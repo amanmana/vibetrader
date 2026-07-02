@@ -1,0 +1,12 @@
+name = "gannedge-vibetrader"
+compatibility_date = "2026-06-23"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = ".vercel/output/static"
+
+[ai]
+binding = "AI"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "vibetrader-db"
+database_id = "bb2aca15-bfa9-4bc7-9bee-ad65ba39ac46"
