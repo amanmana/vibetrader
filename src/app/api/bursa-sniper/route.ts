@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getStaticGannTargets } from '@/utils/gann';
 
 export const runtime = 'edge';
 
@@ -275,6 +276,8 @@ async function processBursaStock(originalName: string) {
   // Only consider stocks above EMA 34 as healthy candidates
   if (c < e34) return null;
 
+  const gann = getStaticGannTargets(c, 100);
+
   return {
     originalName,
     symbol: data.symbol,
@@ -287,7 +290,12 @@ async function processBursaStock(originalName: string) {
     tp3: tp3.toFixed(3),
     tp4: tp4.toFixed(3),
     highest: highest.toFixed(3),
-    risk: risk.toFixed(3)
+    risk: risk.toFixed(3),
+    gannSL: gann.staticSL,
+    gannTP1: gann.staticTP1,
+    gannTP2: gann.staticTP2,
+    gannTP3: gann.staticTP3,
+    gannTP4: gann.staticTP4,
   };
 }
 
@@ -317,7 +325,10 @@ export async function POST(req: NextRequest) {
     // Sort descending by score
     validResults.sort((a, b) => parseFloat(b.score) - parseFloat(a.score));
 
-    return NextResponse.json({ success: true, data: validResults });
+    // Return only top 5 as requested by the UI
+    const top5 = validResults.slice(0, 5);
+
+    return NextResponse.json({ success: true, data: top5 });
 
   } catch (e: any) {
     console.error("[Bursa Sniper] API Error:", e);

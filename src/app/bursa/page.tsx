@@ -802,11 +802,36 @@ export default function BursaPage() {
                               <span className="font-bold text-amber-400">{stock.score}/10</span>
                             </td>
                             <td className="p-4 font-mono text-sm text-zinc-300">{stock.price}</td>
-                            <td className="p-4 font-mono text-sm font-bold text-rose-400">{stock.stopLoss}</td>
-                            <td className="p-4 font-mono text-sm font-medium text-emerald-400">{stock.tp1}</td>
-                            <td className="p-4 font-mono text-sm font-medium text-emerald-400">{stock.tp2}</td>
-                            <td className="p-4 font-mono text-sm font-medium text-emerald-400">{stock.tp3}</td>
-                            <td className="p-4 font-mono text-sm font-medium text-emerald-400">{stock.tp4}</td>
+                            <td className="p-4">
+                              <div className="flex flex-col">
+                                <span className="font-mono text-sm font-bold text-rose-400">{stock.stopLoss}</span>
+                                {stock.gannSL && <span className="text-[10px] text-zinc-500 mt-1">Gann: {stock.gannSL}</span>}
+                              </div>
+                            </td>
+                            <td className="p-4">
+                              <div className="flex flex-col">
+                                <span className="font-mono text-sm font-medium text-emerald-400">{stock.tp1}</span>
+                                {stock.gannTP1 && <span className="text-[10px] text-zinc-500 mt-1">Gann: {stock.gannTP1}</span>}
+                              </div>
+                            </td>
+                            <td className="p-4">
+                              <div className="flex flex-col">
+                                <span className="font-mono text-sm font-medium text-emerald-400">{stock.tp2}</span>
+                                {stock.gannTP2 && <span className="text-[10px] text-zinc-500 mt-1">Gann: {stock.gannTP2}</span>}
+                              </div>
+                            </td>
+                            <td className="p-4">
+                              <div className="flex flex-col">
+                                <span className="font-mono text-sm font-medium text-emerald-400">{stock.tp3}</span>
+                                {stock.gannTP3 && <span className="text-[10px] text-zinc-500 mt-1">Gann: {stock.gannTP3}</span>}
+                              </div>
+                            </td>
+                            <td className="p-4">
+                              <div className="flex flex-col">
+                                <span className="font-mono text-sm font-medium text-emerald-400">{stock.tp4}</span>
+                                {stock.gannTP4 && <span className="text-[10px] text-zinc-500 mt-1">Gann: {stock.gannTP4}</span>}
+                              </div>
+                            </td>
                             <td className="p-4 font-mono text-sm text-zinc-400 pr-6">{stock.highest}</td>
                           </tr>
                         ))}
