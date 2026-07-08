@@ -1386,7 +1386,7 @@ export default function BursaPage() {
                           <th className="p-4 font-semibold text-emerald-400/80 w-32">TP2</th>
                           <th className="p-4 font-semibold text-emerald-400/80 w-32">TP3</th>
                           <th className="p-4 font-semibold text-emerald-400/80 w-32">TP4</th>
-                          <th className="p-4 font-semibold pr-6 w-32">Highest (5D)</th>
+                          <th className="p-4 font-semibold pr-6 w-32">Highest (This Week)</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-zinc-800/50">
