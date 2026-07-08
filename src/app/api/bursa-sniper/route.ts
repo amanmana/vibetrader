@@ -254,6 +254,12 @@ async function processBursaStock(originalName: string) {
   const idx = size - 1; // Latest candle
 
   const c = closes[idx];
+  
+  const avgVolume = volSma[idx] || 0;
+  const avgTradedValue = avgVolume * c;
+  
+  // Liquidity Filter: Reject if average daily traded value is less than RM 500,000 to avoid liquidity traps (barcode charts)
+  if (avgTradedValue < 500000) return null;
   const e13 = emaFast[idx];
   const e34 = emaSlow[idx];
   const e89 = emaTrend[idx];
