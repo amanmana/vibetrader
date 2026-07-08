@@ -258,8 +258,20 @@ async function processBursaStock(originalName: string) {
   const avgVolume = volSma[idx] || 0;
   const avgTradedValue = avgVolume * c;
   
-  // Liquidity Filter: Reject if average daily traded value is less than RM 500,000 to avoid liquidity traps (barcode charts)
+  // Liquidity Filter 1: Reject if average daily traded value is less than RM 500,000
   if (avgTradedValue < 500000) return null;
+  
+  // Liquidity Filter 2 (Barcode Chart Trap): Reject if price doesn't move. 
+  // Count how many of the last 10 candles are basically flat (range <= 1 tick)
+  let flatCandles = 0;
+  for (let i = Math.max(0, size - 10); i <= idx; i++) {
+    if (highs[i] - lows[i] <= 0.0051) {
+      flatCandles++;
+    }
+  }
+  // If 4 or more out of the last 10 days are flat, it's a barcode chart. Reject.
+  if (flatCandles >= 4) return null;
+
   const e13 = emaFast[idx];
   const e34 = emaSlow[idx];
   const e89 = emaTrend[idx];
