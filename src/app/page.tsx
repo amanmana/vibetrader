@@ -1097,10 +1097,10 @@ export default function VibeTrader() {
 
                     {/* Progress Bar with 4 Equal 25% Segments */}
                     <div className="relative h-2 bg-zinc-850 rounded-full overflow-hidden flex">
-                      <div className="bg-rose-500/80 h-full w-1/4" title="Risk Zone (SL to Entry)" />
-                      <div className="bg-emerald-500/80 h-full w-1/4" title="TP1 Zone (Entry to TP1)" />
-                      <div className="bg-purple-500/80 h-full w-1/4" title="TP2 Zone (TP1 to TP2)" />
-                      <div className="bg-cyan-500/80 h-full w-1/4" title="TP3 Zone (TP2 to TP3)" />
+                      <div className="bg-rose-500/80 h-full w-1/2" title="Risk Zone (SL to Entry)" />
+                      <div className="bg-emerald-500/80 h-full w-1/2" title="TP1 Zone (Entry to TP1)" />
+                      <div className="bg-purple-500/80 h-full w-1/2" title="TP2 Zone (TP1 to TP2)" />
+                      <div className="bg-cyan-500/80 h-full w-1/2" title="TP3 Zone (TP2 to TP3)" />
                     </div>
 
                     {/* Mathematically Aligned Labels */}
@@ -1109,7 +1109,7 @@ export default function VibeTrader() {
                       <span className="absolute left-1/4 -translate-x-1/2">Entry ({cSym}{result.levels.entry_price.toFixed(2)})</span>
                       <span className="absolute left-1/2 -translate-x-1/2">TP1 ({cSym}{result.levels.take_profit_1.toFixed(2)})</span>
                       <span className="absolute left-[75%] -translate-x-1/2">TP2 ({cSym}{result.levels.take_profit_2.toFixed(2)})</span>
-                      <span className="absolute right-0">TP3 ({cSym}{result.levels.take_profit_3 ? result.levels.take_profit_3.toFixed(2) : '0.00'})</span>
+                      
                     </div>
                   </div>
                 )}
