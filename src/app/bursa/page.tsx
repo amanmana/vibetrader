@@ -1376,7 +1376,9 @@ export default function BursaPage() {
                           <th className="p-4 font-semibold w-32">
                             <div className="flex flex-col">
                               <span>Last Done</span>
-                              <span className="text-[10px] text-zinc-500 font-normal capitalize">(Date)</span>
+                              <span className="text-[10px] text-zinc-500 font-normal capitalize">
+                                {searchedStock?.lastDoneDate || (customMasterResults.length > 0 ? customMasterResults[0].lastDoneDate : '') || '(Date)'}
+                              </span>
                             </div>
                           </th>
                           <th className="p-4 font-semibold text-rose-400/80 w-32">Stop Loss</th>
@@ -1406,10 +1408,7 @@ export default function BursaPage() {
                               <span className="font-bold text-amber-400">{searchedStock.score}/10</span>
                             </td>
                             <td className="p-4 font-mono text-sm text-zinc-300">
-                              <div className="flex flex-col">
-                                <span>{searchedStock.price}</span>
-                                {searchedStock.lastDoneDate && <span className="text-[10px] text-zinc-500 font-sans">{searchedStock.lastDoneDate}</span>}
-                              </div>
+                              {searchedStock.price}
                             </td>
                             <td className="p-4">
                               <div className="flex flex-col gap-1">
@@ -1476,10 +1475,7 @@ export default function BursaPage() {
                               <span className="font-bold text-blue-400">{row.score}/10</span>
                             </td>
                             <td className="p-4 font-mono text-sm text-zinc-300">
-                              <div className="flex flex-col">
-                                <span>{row.price}</span>
-                                {row.lastDoneDate && <span className="text-[10px] text-zinc-500 font-sans">{row.lastDoneDate}</span>}
-                              </div>
+                              {row.price}
                             </td>
                             <td className={`p-4`}>
                               <div className="flex flex-col gap-1">
