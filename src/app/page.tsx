@@ -194,7 +194,7 @@ export default function VibeTrader() {
     let extracted: string[] = [];
     
     // Convert all whitespace (newlines, tabs, spaces) into a flat array of words
-    const tokens = importText.trim().split(/\\s+/);
+    const tokens = importText.trim().split(/\s+/);
     
     // Look for Finviz pattern: Number followed immediately by a Ticker
     const numRegex = new RegExp('^\\d+$');

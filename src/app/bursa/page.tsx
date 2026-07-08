@@ -973,11 +973,11 @@ export default function BursaPage() {
                               <span className="font-bold text-amber-400">{stock.score}/10</span>
                             </td>
                             <td className="p-4 font-mono text-sm text-zinc-300">{stock.price}</td>
-                            <td className="p-4 font-mono text-sm font-bold text-rose-400">{stock.stopLoss}</td>
-                            <td className="p-4 font-mono text-sm font-medium text-emerald-400">{stock.tp1}</td>
-                            <td className="p-4 font-mono text-sm font-medium text-emerald-400">{stock.tp2}</td>
-                            <td className="p-4 font-mono text-sm font-medium text-emerald-400">{stock.tp3}</td>
-                            <td className="p-4 font-mono text-sm font-medium text-emerald-400">{stock.tp4}</td>
+                            <td className={`p-4 font-mono text-sm font-bold ${stock.gannSLColor === 'red' ? 'text-rose-400' : stock.gannSLColor === 'blue' ? 'text-blue-400' : 'text-zinc-400'}`}>{stock.gannSL}</td>
+                            <td className={`p-4 font-mono text-sm font-medium ${stock.gannTP1Color === 'red' ? 'text-rose-400' : stock.gannTP1Color === 'blue' ? 'text-blue-400' : 'text-zinc-400'}`}>{stock.gannTP1}</td>
+                            <td className={`p-4 font-mono text-sm font-medium ${stock.gannTP2Color === 'red' ? 'text-rose-400' : stock.gannTP2Color === 'blue' ? 'text-blue-400' : 'text-zinc-400'}`}>{stock.gannTP2}</td>
+                            <td className={`p-4 font-mono text-sm font-medium ${stock.gannTP3Color === 'red' ? 'text-rose-400' : stock.gannTP3Color === 'blue' ? 'text-blue-400' : 'text-zinc-400'}`}>{stock.gannTP3}</td>
+                            <td className={`p-4 font-mono text-sm font-medium ${stock.gannTP4Color === 'red' ? 'text-rose-400' : stock.gannTP4Color === 'blue' ? 'text-blue-400' : 'text-zinc-400'}`}>{stock.gannTP4}</td>
                             <td className="p-4 font-mono text-sm text-zinc-400 pr-6">{stock.highest}</td>
                           </tr>
                         ))}

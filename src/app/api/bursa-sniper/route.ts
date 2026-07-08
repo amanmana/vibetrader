@@ -318,10 +318,15 @@ async function processBursaStock(originalName: string) {
     highest: highest.toFixed(3),
     risk: risk.toFixed(3),
     gannSL: gann.staticSL,
+    gannSLColor: gann.staticSLColor,
     gannTP1: gann.staticTP1,
+    gannTP1Color: gann.staticTP1Color,
     gannTP2: gann.staticTP2,
+    gannTP2Color: gann.staticTP2Color,
     gannTP3: gann.staticTP3,
+    gannTP3Color: gann.staticTP3Color,
     gannTP4: gann.staticTP4,
+    gannTP4Color: gann.staticTP4Color,
   };
 }
 
