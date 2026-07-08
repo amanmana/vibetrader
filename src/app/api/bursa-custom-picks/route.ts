@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
     // Max 30-100 symbols
     const quotePromises = symbols.map(async (sym: string) => {
       try {
-        const res = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?interval=1d&range=1d`, {
+        const res = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?interval=1d&range=1mo`, {
           headers: {
             "User-Agent": "Mozilla/5.0 TradeNetMY/1.0",
             "Accept": "application/json"
@@ -39,8 +39,49 @@ export async function GET(req: NextRequest) {
         });
         if (!res.ok) return null;
         const data = await res.json() as any;
-        if (data?.chart?.result?.[0]?.meta) {
-          return { symbol: sym, meta: data.chart.result[0].meta };
+        const result = data?.chart?.result?.[0];
+        if (result?.meta) {
+          const timestamps = result.timestamp || [];
+          const closes = result.indicators?.quote?.[0]?.close || [];
+          
+          const currentLivePrice = result.meta.regularMarketPrice;
+          const currentHigh = result.meta.regularMarketDayHigh;
+
+          // find last week's close (last trading day before current week's Monday)
+          const now = new Date();
+          // get time in Malaysia (UTC+8)
+          const myTime = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Kuala_Lumpur' }));
+          const currentDay = myTime.getDay();
+          const daysSinceMonday = currentDay === 0 ? 6 : currentDay - 1;
+          const mondayStart = new Date(myTime);
+          mondayStart.setDate(myTime.getDate() - daysSinceMonday);
+          mondayStart.setHours(0, 0, 0, 0);
+          const mondayStartMs = mondayStart.getTime();
+
+          let lastWeekClose = currentLivePrice;
+          let lastWeekDateStr = '';
+
+          for (let i = timestamps.length - 1; i >= 0; i--) {
+            // Yahoo timestamps are in seconds
+            const ts = timestamps[i] * 1000;
+            if (ts < mondayStartMs) {
+              if (closes[i]) {
+                lastWeekClose = closes[i];
+                const dateObj = new Date(ts);
+                lastWeekDateStr = dateObj.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+              }
+              break;
+            }
+          }
+
+          return { 
+            symbol: sym, 
+            meta: result.meta,
+            lastWeekClose,
+            lastWeekDateStr,
+            currentLivePrice,
+            currentHigh
+          };
         }
       } catch (err) {
         console.warn(`Failed to fetch live price for ${sym}`, err);
@@ -53,8 +94,10 @@ export async function GET(req: NextRequest) {
     for (const res of quoteResults) {
       if (res) {
         quoteMap[res.symbol] = {
-          regularMarketPrice: res.meta.regularMarketPrice,
-          regularMarketDayHigh: res.meta.regularMarketDayHigh
+          lastWeekClose: res.lastWeekClose,
+          lastWeekDateStr: res.lastWeekDateStr,
+          currentLivePrice: res.currentLivePrice,
+          currentHigh: res.currentHigh
         };
       }
     }
@@ -62,14 +105,16 @@ export async function GET(req: NextRequest) {
     // Attach hit flags
     const enrichedResults = results.map((row: any) => {
       const q = quoteMap[row.symbol];
-      const currentLivePrice = q?.regularMarketPrice || row.price;
-      const currentHigh = q?.regularMarketDayHigh || currentLivePrice;
+      const basePrice = q?.lastWeekClose || row.price;
+      const currentLivePrice = q?.currentLivePrice || row.price;
+      const currentHigh = q?.currentHigh || currentLivePrice;
       const newHighestPrice = Math.max(row.highest_price, currentHigh);
       
       return {
         symbol: row.symbol,
         companyName: row.company_name,
-        price: currentLivePrice.toFixed(3),
+        price: basePrice.toFixed(3),
+        lastDoneDate: q?.lastWeekDateStr || '',
         score: row.score.toFixed(1),
         stopLoss: row.stop_loss.toFixed(3),
         tp1: row.tp1.toFixed(3),

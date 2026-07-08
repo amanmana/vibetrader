@@ -1370,10 +1370,15 @@ export default function BursaPage() {
                     <table className="w-full text-left border-collapse">
                       <thead>
                         <tr className="bg-zinc-900/80 border-b border-zinc-800 text-xs uppercase tracking-wider text-zinc-500">
-                          <th className="p-4 font-semibold pl-6 w-16">Rank</th>
+                          <th className="p-4 font-semibold w-16 pl-6">Rank</th>
                           <th className="p-4 font-semibold w-48">Stock</th>
                           <th className="p-4 font-semibold w-24">Score</th>
-                          <th className="p-4 font-semibold w-32">Last Done</th>
+                          <th className="p-4 font-semibold w-32">
+                            <div className="flex flex-col">
+                              <span>Last Done</span>
+                              <span className="text-[10px] text-zinc-500 font-normal capitalize">(Date)</span>
+                            </div>
+                          </th>
                           <th className="p-4 font-semibold text-rose-400/80 w-32">Stop Loss</th>
                           <th className="p-4 font-semibold text-emerald-400/80 w-32">TP1</th>
                           <th className="p-4 font-semibold text-emerald-400/80 w-32">TP2</th>
@@ -1400,7 +1405,12 @@ export default function BursaPage() {
                             <td className="p-4">
                               <span className="font-bold text-amber-400">{searchedStock.score}/10</span>
                             </td>
-                            <td className="p-4 font-mono text-sm text-zinc-300">{searchedStock.price}</td>
+                            <td className="p-4 font-mono text-sm text-zinc-300">
+                              <div className="flex flex-col">
+                                <span>{searchedStock.price}</span>
+                                {searchedStock.lastDoneDate && <span className="text-[10px] text-zinc-500 font-sans">{searchedStock.lastDoneDate}</span>}
+                              </div>
+                            </td>
                             <td className="p-4">
                               <div className="flex flex-col gap-1">
                                 <div className="flex items-center gap-1.5">
@@ -1466,8 +1476,9 @@ export default function BursaPage() {
                               <span className="font-bold text-blue-400">{row.score}/10</span>
                             </td>
                             <td className="p-4 font-mono text-sm text-zinc-300">
-                              <div className="flex items-center gap-2">
-                                {row.price}
+                              <div className="flex flex-col">
+                                <span>{row.price}</span>
+                                {row.lastDoneDate && <span className="text-[10px] text-zinc-500 font-sans">{row.lastDoneDate}</span>}
                               </div>
                             </td>
                             <td className={`p-4`}>
