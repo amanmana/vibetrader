@@ -325,7 +325,15 @@ export default function BursaPage() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Failed to scan stocks');
       
-      setTop5Results(data.data);
+      const enrichedData = data.data.map((item: any) => {
+        const match = results.find(r => r.stock_name.replace('[S]', '').trim().toUpperCase() === (item.originalName || '').toUpperCase());
+        return {
+          ...item,
+          ocrStatus: match ? match.status : '-'
+        };
+      });
+      
+      setTop5Results(enrichedData);
       
       // scroll to top 5
       setTimeout(() => {
@@ -808,7 +816,14 @@ export default function BursaPage() {
                             </td>
                             <td className="p-4">
                               <div className="flex flex-col">
-                                <a href={`https://www.tradingview.com/chart/S83uhZmn/?symbol=MYX:${stock.symbol.replace('.KL', '')}`} target="_blank" rel="noopener noreferrer" className="font-bold text-zinc-200 hover:text-amber-400 hover:underline transition cursor-pointer">{stock.originalName || stock.companyName}</a>
+                                <div className="flex items-center gap-2">
+                                  <a href={`https://www.tradingview.com/chart/S83uhZmn/?symbol=MYX:${stock.symbol.replace('.KL', '')}`} target="_blank" rel="noopener noreferrer" className="font-bold text-zinc-200 hover:text-amber-400 hover:underline transition cursor-pointer">{stock.originalName || stock.companyName}</a>
+                                  {stock.ocrStatus && stock.ocrStatus !== '-' && (
+                                    <span className={`px-2 py-0.5 rounded text-[9px] font-bold border ${getStatusColor(stock.ocrStatus)}`}>
+                                      {stock.ocrStatus}
+                                    </span>
+                                  )}
+                                </div>
                                 <span className="text-[10px] text-zinc-500">{stock.symbol}</span>
                               </div>
                             </td>
