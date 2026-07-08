@@ -1393,14 +1393,20 @@ export default function BursaPage() {
                               {searchedStock.price}
                             </td>
                             <td className="p-4">
-                              <div className="flex items-center gap-1.5 font-mono text-sm text-zinc-300">
-                                <span>{searchedStock.currentPrice || searchedStock.price}</span>
-                                {parseFloat(searchedStock.currentPrice || searchedStock.price) > parseFloat(searchedStock.price) ? (
-                                  <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
-                                ) : parseFloat(searchedStock.currentPrice || searchedStock.price) < parseFloat(searchedStock.price) ? (
-                                  <TrendingDown className="w-3.5 h-3.5 text-rose-400" />
-                                ) : null}
-                              </div>
+                              {(() => {
+                                const cur = parseFloat(searchedStock.currentPrice || searchedStock.price);
+                                const isGolden = cur > parseFloat(searchedStock.staticSL) && cur < parseFloat(searchedStock.staticTP1) && cur > parseFloat(searchedStock.price);
+                                return (
+                                  <div className={`flex w-fit items-center gap-1.5 font-mono text-sm ${isGolden ? 'bg-emerald-600 text-white px-2 py-0.5 rounded-full animate-pulse shadow-[0_0_10px_rgba(5,150,105,0.6)]' : 'text-zinc-300'}`}>
+                                    <span className={isGolden ? 'font-bold' : ''}>{searchedStock.currentPrice || searchedStock.price}</span>
+                                    {cur > parseFloat(searchedStock.price) ? (
+                                      <TrendingUp className={`w-3.5 h-3.5 ${isGolden ? 'text-white' : 'text-emerald-400'}`} />
+                                    ) : cur < parseFloat(searchedStock.price) ? (
+                                      <TrendingDown className="w-3.5 h-3.5 text-rose-400" />
+                                    ) : null}
+                                  </div>
+                                );
+                              })()}
                             </td>
                             <td className="p-4">
                               <div className="flex flex-col gap-1">
@@ -1454,14 +1460,20 @@ export default function BursaPage() {
                               {row.price}
                             </td>
                             <td className="p-4">
-                              <div className="flex items-center gap-1.5 font-mono text-sm text-zinc-300">
-                                <span>{row.currentPrice || row.price}</span>
-                                {parseFloat(row.currentPrice || row.price) > parseFloat(row.price) ? (
-                                  <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
-                                ) : parseFloat(row.currentPrice || row.price) < parseFloat(row.price) ? (
-                                  <TrendingDown className="w-3.5 h-3.5 text-rose-400" />
-                                ) : null}
-                              </div>
+                              {(() => {
+                                const cur = parseFloat(row.currentPrice || row.price);
+                                const isGolden = cur > parseFloat(row.staticSL) && cur < parseFloat(row.staticTP1) && cur > parseFloat(row.price);
+                                return (
+                                  <div className={`flex w-fit items-center gap-1.5 font-mono text-sm ${isGolden ? 'bg-emerald-600 text-white px-2 py-0.5 rounded-full animate-pulse shadow-[0_0_10px_rgba(5,150,105,0.6)]' : 'text-zinc-300'}`}>
+                                    <span className={isGolden ? 'font-bold' : ''}>{row.currentPrice || row.price}</span>
+                                    {cur > parseFloat(row.price) ? (
+                                      <TrendingUp className={`w-3.5 h-3.5 ${isGolden ? 'text-white' : 'text-emerald-400'}`} />
+                                    ) : cur < parseFloat(row.price) ? (
+                                      <TrendingDown className="w-3.5 h-3.5 text-rose-400" />
+                                    ) : null}
+                                  </div>
+                                );
+                              })()}
                             </td>
                             <td className={`p-4`}>
                               <div className="flex flex-col gap-1">
