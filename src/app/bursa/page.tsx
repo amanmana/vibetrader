@@ -695,7 +695,14 @@ export default function BursaPage() {
                             >
                               {copiedIndex === idx ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
                             </button>
-                            <span className="font-bold text-zinc-200">{row.stock_name.replace('[S]', '').trim()}</span>
+                            <a 
+                              href={`https://www.tradingview.com/chart/S83uhZmn/?symbol=MYX:${row.stock_name.replace('[S]', '').trim()}`} 
+                              target="_blank" 
+                              rel="noopener noreferrer" 
+                              className="font-bold text-zinc-200 hover:text-amber-400 hover:underline transition cursor-pointer"
+                            >
+                              {row.stock_name.replace('[S]', '').trim()}
+                            </a>
                             {row.stock_name.includes('[S]') && (
                               <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
                                 S
