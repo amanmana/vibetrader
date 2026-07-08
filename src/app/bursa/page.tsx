@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from 'react';
-import { Upload, Image as ImageIcon, Loader2, AlertCircle, Copy, Check, Power, RefreshCcw, Trash2, Save } from 'lucide-react';
+import { Upload, Image as ImageIcon, Loader2, AlertCircle, Copy, Check, Power, RefreshCcw, Trash2, Save, TrendingUp, TrendingDown } from 'lucide-react';
 
 interface BursaStock {
   stock_name: string;
@@ -1362,7 +1362,7 @@ export default function BursaPage() {
                               </span>
                             </div>
                           </th>
-                          <th className="p-4 font-semibold w-24 text-blue-400/90">Last Price</th>
+                          <th className="p-4 font-semibold w-24">Last Price</th>
                           <th className="p-4 font-semibold text-rose-400/80 w-32">Stop Loss</th>
                           <th className="p-4 font-semibold text-emerald-400/80 w-32">TP1</th>
                           <th className="p-4 font-semibold text-emerald-400/80 w-32">TP2</th>
@@ -1392,8 +1392,15 @@ export default function BursaPage() {
                             <td className="p-4 font-mono text-sm text-zinc-300">
                               {searchedStock.price}
                             </td>
-                            <td className="p-4 font-mono text-sm font-bold text-blue-400">
-                              {searchedStock.currentPrice || searchedStock.price}
+                            <td className="p-4">
+                              <div className="flex items-center gap-1.5 font-mono text-sm text-zinc-300">
+                                <span>{searchedStock.currentPrice || searchedStock.price}</span>
+                                {parseFloat(searchedStock.currentPrice || searchedStock.price) > parseFloat(searchedStock.price) ? (
+                                  <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
+                                ) : parseFloat(searchedStock.currentPrice || searchedStock.price) < parseFloat(searchedStock.price) ? (
+                                  <TrendingDown className="w-3.5 h-3.5 text-rose-400" />
+                                ) : null}
+                              </div>
                             </td>
                             <td className="p-4">
                               <div className="flex flex-col gap-1">
@@ -1446,8 +1453,15 @@ export default function BursaPage() {
                             <td className="p-4 font-mono text-sm text-zinc-300">
                               {row.price}
                             </td>
-                            <td className="p-4 font-mono text-sm font-bold text-blue-400">
-                              {row.currentPrice || row.price}
+                            <td className="p-4">
+                              <div className="flex items-center gap-1.5 font-mono text-sm text-zinc-300">
+                                <span>{row.currentPrice || row.price}</span>
+                                {parseFloat(row.currentPrice || row.price) > parseFloat(row.price) ? (
+                                  <TrendingUp className="w-3.5 h-3.5 text-emerald-400" />
+                                ) : parseFloat(row.currentPrice || row.price) < parseFloat(row.price) ? (
+                                  <TrendingDown className="w-3.5 h-3.5 text-rose-400" />
+                                ) : null}
+                              </div>
                             </td>
                             <td className={`p-4`}>
                               <div className="flex flex-col gap-1">
