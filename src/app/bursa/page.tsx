@@ -39,6 +39,7 @@ export default function BursaPage() {
   const [isFetchingCustomMaster, setIsFetchingCustomMaster] = useState(false);
 
   const [showDynamic, setShowDynamic] = useState(false);
+  const [showSniperDynamic, setShowSniperDynamic] = useState(false);
   
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
@@ -760,11 +761,17 @@ export default function BursaPage() {
 
             {top5Results.length > 0 && (
               <div id="top5-section" className="mt-8 pt-8 border-t border-zinc-800/50 space-y-6">
-                <div className="text-center mb-10">
+                <div className="flex flex-col items-center mb-10">
                   <h2 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500">
                     Top 5 Sniper Candidates
                   </h2>
-                  <p className="text-zinc-400 mt-2">Berdasarkan momentum teknikal semasa</p>
+                  <p className="text-zinc-400 mt-2 mb-6">Berdasarkan momentum teknikal semasa</p>
+                  <button
+                    onClick={() => setShowSniperDynamic(!showSniperDynamic)}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${showSniperDynamic ? 'bg-indigo-500 text-white shadow-[0_0_15px_rgba(99,102,241,0.4)]' : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200'}`}
+                  >
+                    {showSniperDynamic ? 'Hide Dynamic TP/SL' : 'Show Dynamic TP/SL'}
+                  </button>
                 </div>
                 
                 <div className="border border-zinc-800 bg-zinc-950/80 rounded-3xl overflow-hidden backdrop-blur-xl shadow-2xl mt-4">
@@ -776,11 +783,11 @@ export default function BursaPage() {
                           <th className="p-4 font-semibold">Stock</th>
                           <th className="p-4 font-semibold">Score</th>
                           <th className="p-4 font-semibold">Last Done</th>
-                          <th className="p-4 font-semibold text-rose-400/80">Stop Loss</th>
-                          <th className="p-4 font-semibold text-emerald-400/80">TP1</th>
-                          <th className="p-4 font-semibold text-emerald-400/80">TP2</th>
-                          <th className="p-4 font-semibold text-emerald-400/80">TP3</th>
-                          <th className="p-4 font-semibold text-emerald-400/80">TP4</th>
+                          <th className="p-4 font-semibold text-rose-400/80">Stop Loss<br/>{showSniperDynamic && <span className="text-[10px] text-zinc-600">Gann / Dyn</span>}</th>
+                          <th className="p-4 font-semibold text-emerald-400/80">TP1<br/>{showSniperDynamic && <span className="text-[10px] text-zinc-600">Gann / Dyn</span>}</th>
+                          <th className="p-4 font-semibold text-emerald-400/80">TP2<br/>{showSniperDynamic && <span className="text-[10px] text-zinc-600">Gann / Dyn</span>}</th>
+                          <th className="p-4 font-semibold text-emerald-400/80">TP3<br/>{showSniperDynamic && <span className="text-[10px] text-zinc-600">Gann / Dyn</span>}</th>
+                          <th className="p-4 font-semibold text-emerald-400/80">TP4<br/>{showSniperDynamic && <span className="text-[10px] text-zinc-600">Gann / Dyn</span>}</th>
                           <th className="p-4 font-semibold pr-6">Highest (5D)</th>
                         </tr>
                       </thead>
@@ -804,32 +811,32 @@ export default function BursaPage() {
                             <td className="p-4 font-mono text-sm text-zinc-300">{stock.price}</td>
                             <td className="p-4">
                               <div className="flex flex-col">
-                                <span className="font-mono text-sm font-bold text-rose-400">{stock.stopLoss}</span>
-                                {stock.gannSL && <span className="text-[10px] text-zinc-500 mt-1">Gann: {stock.gannSL}</span>}
+                                <span className="font-mono text-sm font-bold text-rose-400">{stock.gannSL || stock.stopLoss}</span>
+                                {showSniperDynamic && <span className="text-[10px] text-zinc-500 mt-1">{stock.stopLoss}</span>}
                               </div>
                             </td>
                             <td className="p-4">
                               <div className="flex flex-col">
-                                <span className="font-mono text-sm font-medium text-emerald-400">{stock.tp1}</span>
-                                {stock.gannTP1 && <span className="text-[10px] text-zinc-500 mt-1">Gann: {stock.gannTP1}</span>}
+                                <span className="font-mono text-sm font-medium text-emerald-400">{stock.gannTP1 || stock.tp1}</span>
+                                {showSniperDynamic && <span className="text-[10px] text-zinc-500 mt-1">{stock.tp1}</span>}
                               </div>
                             </td>
                             <td className="p-4">
                               <div className="flex flex-col">
-                                <span className="font-mono text-sm font-medium text-emerald-400">{stock.tp2}</span>
-                                {stock.gannTP2 && <span className="text-[10px] text-zinc-500 mt-1">Gann: {stock.gannTP2}</span>}
+                                <span className="font-mono text-sm font-medium text-emerald-400">{stock.gannTP2 || stock.tp2}</span>
+                                {showSniperDynamic && <span className="text-[10px] text-zinc-500 mt-1">{stock.tp2}</span>}
                               </div>
                             </td>
                             <td className="p-4">
                               <div className="flex flex-col">
-                                <span className="font-mono text-sm font-medium text-emerald-400">{stock.tp3}</span>
-                                {stock.gannTP3 && <span className="text-[10px] text-zinc-500 mt-1">Gann: {stock.gannTP3}</span>}
+                                <span className="font-mono text-sm font-medium text-emerald-400">{stock.gannTP3 || stock.tp3}</span>
+                                {showSniperDynamic && <span className="text-[10px] text-zinc-500 mt-1">{stock.tp3}</span>}
                               </div>
                             </td>
                             <td className="p-4">
                               <div className="flex flex-col">
-                                <span className="font-mono text-sm font-medium text-emerald-400">{stock.tp4}</span>
-                                {stock.gannTP4 && <span className="text-[10px] text-zinc-500 mt-1">Gann: {stock.gannTP4}</span>}
+                                <span className="font-mono text-sm font-medium text-emerald-400">{stock.gannTP4 || stock.tp4}</span>
+                                {showSniperDynamic && <span className="text-[10px] text-zinc-500 mt-1">{stock.tp4}</span>}
                               </div>
                             </td>
                             <td className="p-4 font-mono text-sm text-zinc-400 pr-6">{stock.highest}</td>
