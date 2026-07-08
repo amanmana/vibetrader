@@ -17,6 +17,7 @@ interface YahooData {
   companyName: string;
   symbol: string;
   candles: Candle[];
+  currentWeekHighest?: number;
 }
 
 // Map some known names just in case search fails or is ambiguous
@@ -101,16 +102,41 @@ async function fetchYahooPrice(symbol: string): Promise<YahooData | null> {
     const volumes = quotes?.volume || [];
 
     const candles: Candle[] = [];
+    
+    const now = new Date();
+    const myTime = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Kuala_Lumpur' }));
+    const currentDay = myTime.getDay();
+    const daysSinceMonday = currentDay === 0 ? 6 : currentDay - 1;
+    const mondayStart = new Date(myTime);
+    mondayStart.setDate(myTime.getDate() - daysSinceMonday);
+    mondayStart.setHours(0, 0, 0, 0);
+    const mondayStartMs = mondayStart.getTime();
+
+    let currentWeekHighest = 0;
+
     for (let i = 0; i < closes.length; i++) {
       const o = opens[i], h = highs[i], l = lows[i], c = closes[i], v = volumes[i];
+      const ts = timestamps[i] * 1000;
+      
       if (o !== null && h !== null && l !== null && c !== null && v !== null &&
           o !== undefined && h !== undefined && l !== undefined && c !== undefined && v !== undefined) {
-        candles.push({ timestamp: timestamps[i], open: Number(o), high: Number(h), low: Number(l), close: Number(c), volume: Number(v) });
+        
+        if (ts >= mondayStartMs) {
+          // Track highest price for current week but DO NOT add to candles (simulate Friday)
+          if (Number(h) > currentWeekHighest) {
+            currentWeekHighest = Number(h);
+          }
+        } else {
+          candles.push({ timestamp: timestamps[i], open: Number(o), high: Number(h), low: Number(l), close: Number(c), volume: Number(v) });
+        }
       }
     }
 
-    if (Number.isFinite(price) && price > 0 && candles.length > 0) {
-      return { price, companyName, symbol, candles };
+    // Set price to the last candle's close (which should be Friday)
+    const basePrice = candles.length > 0 ? candles[candles.length - 1].close : Number(meta?.regularMarketPrice);
+
+    if (Number.isFinite(basePrice) && basePrice > 0 && candles.length > 0) {
+      return { price: basePrice, companyName, symbol, candles, currentWeekHighest };
     }
   } catch (err) {
     console.error(`Error fetching ${symbol}:`, err);
@@ -271,7 +297,7 @@ async function processBursaStock(originalName: string) {
   const tp4 = c + (risk * 4.5);
   
   const last5Highs = highs.slice(-5);
-  const highest = Math.max(...last5Highs);
+  const highest = (data.currentWeekHighest ?? 0) > 0 ? data.currentWeekHighest! : Math.max(...last5Highs);
 
   // Only consider stocks above EMA 34 as healthy candidates
   if (c < e34) return null;
