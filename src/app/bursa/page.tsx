@@ -1406,7 +1406,7 @@ export default function BursaPage() {
                               <div className="flex flex-col gap-1">
                                 <div className="flex items-center gap-1.5">
                                   <div className={`w-1.5 h-1.5 rounded-full ${searchedStock.staticSLColor === 'blue' ? 'bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.8)]' : 'bg-rose-500 shadow-[0_0_6px_rgba(244,63,94,0.8)]'}`} />
-                                  <span className="font-mono text-sm font-bold text-rose-400">{searchedStock.staticSL}</span>
+                                  <span className={`font-mono text-sm font-bold ${parseFloat(searchedStock.currentPrice || searchedStock.price) < parseFloat(searchedStock.staticSL) ? 'bg-rose-600 text-white px-2 py-0.5 rounded-full animate-pulse shadow-[0_0_10px_rgba(225,29,72,0.6)]' : 'text-rose-400'}`}>{searchedStock.staticSL}</span>
                                 </div>
                                 {showDynamic && <span className="font-mono text-xs font-medium text-rose-500/50 pl-3">{searchedStock.stopLoss}</span>}
                               </div>
@@ -1467,7 +1467,7 @@ export default function BursaPage() {
                               <div className="flex flex-col gap-1">
                                 <div className="flex items-center gap-1.5">
                                   <div className={`w-1.5 h-1.5 rounded-full ${row.staticSLColor === 'blue' ? 'bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.8)]' : 'bg-rose-500 shadow-[0_0_6px_rgba(244,63,94,0.8)]'}`} />
-                                  <span className={`font-mono text-sm font-medium ${parseFloat(row.price) <= parseFloat(row.staticSL) ? 'bg-rose-500/20 text-rose-400 px-1 rounded animate-pulse' : 'text-rose-400'}`}>{row.staticSL}</span>
+                                  <span className={`font-mono text-sm font-medium ${parseFloat(row.currentPrice || row.price) < parseFloat(row.staticSL) ? 'bg-rose-600 text-white px-2 py-0.5 rounded-full animate-pulse shadow-[0_0_10px_rgba(225,29,72,0.6)]' : 'text-rose-400'}`}>{row.staticSL}</span>
                                 </div>
                                 {showDynamic && <span className={`font-mono text-xs font-medium pl-3 ${parseFloat(row.price) <= parseFloat(row.stopLoss) ? 'text-rose-500' : 'text-rose-400/50'}`}>{row.stopLoss}</span>}
                               </div>
