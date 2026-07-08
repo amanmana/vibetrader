@@ -43,6 +43,7 @@ export async function GET(req: NextRequest) {
         if (result?.meta) {
           const timestamps = result.timestamp || [];
           const closes = result.indicators?.quote?.[0]?.close || [];
+          const highs = result.indicators?.quote?.[0]?.high || [];
           
           const currentLivePrice = result.meta.regularMarketPrice;
           const currentHigh = result.meta.regularMarketDayHigh;
@@ -60,11 +61,18 @@ export async function GET(req: NextRequest) {
 
           let lastWeekClose = currentLivePrice;
           let lastWeekDateStr = '';
+          let currentWeekHighest = currentHigh;
 
           for (let i = timestamps.length - 1; i >= 0; i--) {
             // Yahoo timestamps are in seconds
             const ts = timestamps[i] * 1000;
-            if (ts < mondayStartMs) {
+            if (ts >= mondayStartMs) {
+              // Day in current week, track the highest high
+              if (highs[i] && highs[i] > currentWeekHighest) {
+                currentWeekHighest = highs[i];
+              }
+            } else {
+              // First day before current week's Monday
               if (closes[i]) {
                 lastWeekClose = closes[i];
                 const dateObj = new Date(ts);
@@ -80,7 +88,7 @@ export async function GET(req: NextRequest) {
             lastWeekClose,
             lastWeekDateStr,
             currentLivePrice,
-            currentHigh
+            currentHigh: currentWeekHighest
           };
         }
       } catch (err) {
