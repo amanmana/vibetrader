@@ -122,6 +122,7 @@ export async function GET(req: NextRequest) {
         symbol: row.symbol,
         companyName: row.company_name,
         price: basePrice.toFixed(3),
+        currentPrice: currentLivePrice.toFixed(3),
         lastDoneDate: q?.lastWeekDateStr || '',
         score: row.score.toFixed(1),
         stopLoss: row.stop_loss.toFixed(3),

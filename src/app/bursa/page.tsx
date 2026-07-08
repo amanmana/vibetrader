@@ -1362,6 +1362,7 @@ export default function BursaPage() {
                               </span>
                             </div>
                           </th>
+                          <th className="p-4 font-semibold w-24 text-blue-400/90">Last Price</th>
                           <th className="p-4 font-semibold text-rose-400/80 w-32">Stop Loss</th>
                           <th className="p-4 font-semibold text-emerald-400/80 w-32">TP1</th>
                           <th className="p-4 font-semibold text-emerald-400/80 w-32">TP2</th>
@@ -1390,6 +1391,9 @@ export default function BursaPage() {
                             </td>
                             <td className="p-4 font-mono text-sm text-zinc-300">
                               {searchedStock.price}
+                            </td>
+                            <td className="p-4 font-mono text-sm font-bold text-blue-400">
+                              {searchedStock.currentPrice || searchedStock.price}
                             </td>
                             <td className="p-4">
                               <div className="flex flex-col gap-1">
@@ -1441,6 +1445,9 @@ export default function BursaPage() {
                             </td>
                             <td className="p-4 font-mono text-sm text-zinc-300">
                               {row.price}
+                            </td>
+                            <td className="p-4 font-mono text-sm font-bold text-blue-400">
+                              {row.currentPrice || row.price}
                             </td>
                             <td className={`p-4`}>
                               <div className="flex flex-col gap-1">
