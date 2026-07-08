@@ -53,6 +53,24 @@ export default function BursaPage() {
   const [isFetchingUsWatchlist, setIsFetchingUsWatchlist] = useState(false);
   const [isSavingUsWatchlist, setIsSavingUsWatchlist] = useState(false);
   
+  const getWeeklyTradePeriod = () => {
+    const today = new Date();
+    const dayOfWeek = today.getDay();
+    const diffToLastFriday = dayOfWeek >= 5 ? dayOfWeek - 5 : dayOfWeek + 2;
+    const lastFriday = new Date(today);
+    lastFriday.setDate(today.getDate() - diffToLastFriday);
+    
+    const upcomingFriday = new Date(lastFriday);
+    upcomingFriday.setDate(lastFriday.getDate() + 7);
+    
+    const formatShortDate = (date: Date) => {
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      return `${date.getDate()} ${months[date.getMonth()]}`;
+    };
+    
+    return `${formatShortDate(lastFriday)} - ${formatShortDate(upcomingFriday)}`;
+  };
+
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Load state from local storage on mount
@@ -1308,7 +1326,12 @@ export default function BursaPage() {
                       <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
                         <span className="text-blue-500 font-bold">★</span>
                       </div>
-                      <h2 className="text-2xl font-bold text-zinc-100">Custom Master List</h2>
+                      <div className="flex flex-col">
+                        <h2 className="text-2xl font-bold text-zinc-100">Custom Master List</h2>
+                        <p className="text-sm font-medium text-amber-500/90 mt-0.5">
+                          Tempoh seminggu: {getWeeklyTradePeriod()}
+                        </p>
+                      </div>
                     </div>
                     {lastCustomMasterUpdate && (
                       <p className="text-sm text-zinc-500 mt-2 flex items-center gap-2">
