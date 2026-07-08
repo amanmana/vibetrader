@@ -325,10 +325,7 @@ export async function POST(req: NextRequest) {
     // Sort descending by score
     validResults.sort((a, b) => parseFloat(b.score) - parseFloat(a.score));
 
-    // Return only top 5 as requested by the UI
-    const top5 = validResults.slice(0, 5);
-
-    return NextResponse.json({ success: true, data: top5 });
+    return NextResponse.json({ success: true, data: validResults });
 
   } catch (e: any) {
     console.error("[Bursa Sniper] API Error:", e);
