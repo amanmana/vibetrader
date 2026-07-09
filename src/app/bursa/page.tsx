@@ -1610,14 +1610,16 @@ export default function BursaPage() {
                         <th className="p-4 font-semibold pl-6 w-16">Rank</th>
                         <th className="p-4 font-semibold w-48">Stock</th>
                         <th className="p-4 font-semibold w-24">Score</th>
-                        <th className="p-4 font-semibold w-32">
-                          <div className="flex flex-col">
-                            <span>Last Done</span>
-                            <span className="text-[10px] text-zinc-500 font-normal capitalize">
-                              {usWatchlist.length > 0 ? usWatchlist[0].lastDoneDate : '(Date)'}
-                            </span>
-                          </div>
-                        </th>
+                        {usSniperView !== 'scanner' && (
+                          <th className="p-4 font-semibold w-32">
+                            <div className="flex flex-col">
+                              <span>Last Done</span>
+                              <span className="text-[10px] text-zinc-500 font-normal capitalize">
+                                {usWatchlist.length > 0 ? usWatchlist[0].lastDoneDate : '(Date)'}
+                              </span>
+                            </div>
+                          </th>
+                        )}
                         <th className="p-4 font-semibold w-24">Last Price</th>
                         <th className="p-4 font-semibold text-rose-400/80 w-32">Stop Loss</th>
                         <th className="p-4 font-semibold text-emerald-400/80 w-32">TP1</th>
@@ -1653,9 +1655,11 @@ export default function BursaPage() {
                           <td className="p-4">
                             <span className={`font-bold ${parseFloat(row.score) >= 7.0 ? 'text-emerald-400' : 'text-amber-400'}`}>{row.score}/10</span>
                           </td>
-                          <td className="p-4 font-mono text-sm text-zinc-300">
-                            ${row.price}
-                          </td>
+                          {usSniperView !== 'scanner' && (
+                            <td className="p-4 font-mono text-sm text-zinc-300">
+                              ${row.price}
+                            </td>
+                          )}
                           <td className="p-4">
                             {(() => {
                               const cur = parseFloat(row.currentPrice || row.price);
