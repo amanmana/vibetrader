@@ -227,10 +227,9 @@ export default function BursaPage() {
       });
       const data = await res.json();
       if (!data.success) {
-        alert(data.error || 'Failed to save');
+        console.error('Failed to save:', data.error);
         return;
       }
-      alert(`${row.ticker} saved to Watchlist!`);
       setUsWatchlist(prev => [...prev, payload]);
     } catch (e) {
       console.error("Failed to save to US Watchlist:", e);
