@@ -829,7 +829,7 @@ export default function BursaPage() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-zinc-800/50">
-                        {top5Results.map((stock, i) => (
+                        {top5Results.slice(0, 5).map((stock, i) => (
                           <tr key={i} className="hover:bg-zinc-800/30 transition group">
                             <td className="p-4 pl-6">
                               <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-amber-500/10 text-amber-500 font-bold text-xs border border-amber-500/20">
