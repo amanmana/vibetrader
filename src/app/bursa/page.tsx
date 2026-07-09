@@ -1622,6 +1622,8 @@ export default function BursaPage() {
                         <th className="p-4 font-semibold text-rose-400/80 w-32">Stop Loss</th>
                         <th className="p-4 font-semibold text-emerald-400/80 w-32">TP1</th>
                         <th className="p-4 font-semibold text-emerald-400/80 w-32">TP2</th>
+                        <th className="p-4 font-semibold text-emerald-400/80 w-32">TP3</th>
+                        <th className="p-4 font-semibold text-emerald-400/80 w-32">TP4</th>
                         
                         <th className="p-4 font-semibold pr-6 w-32">Highest (This Week)</th>
                         <th className="p-4 font-semibold w-12 text-center text-zinc-500">Act</th>
@@ -1695,6 +1697,24 @@ export default function BursaPage() {
                                 <span className={`font-mono text-sm font-medium ${parseFloat(row.highestPrice) >= parseFloat(row.staticTP2) ? 'bg-zinc-700/30 text-yellow-400 px-1 rounded' : 'text-emerald-400'}`}>${row.staticTP2}</span>
                               </div>
                               {showDynamic && <span className={`font-mono text-xs font-medium pl-3 ${parseFloat(row.highestPrice) >= parseFloat(row.tp2) || row.hitTp2 ? 'text-zinc-600' : 'text-emerald-500/50'}`}>${row.tp2}</span>}
+                            </div>
+                          </td>
+                          <td className={`p-4`}>
+                            <div className="flex flex-col gap-1">
+                              <div className="flex items-center gap-1.5">
+                                <div className={`w-1.5 h-1.5 rounded-full ${row.staticTP3Color === 'blue' ? 'bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.8)]' : 'bg-rose-500 shadow-[0_0_6px_rgba(244,63,94,0.8)]'}`} />
+                                <span className={`font-mono text-sm font-medium ${parseFloat(row.highestPrice) >= parseFloat(row.staticTP3) ? 'bg-zinc-700/30 text-yellow-400 px-1 rounded' : 'text-emerald-400'}`}>${row.staticTP3}</span>
+                              </div>
+                              {showDynamic && <span className={`font-mono text-xs font-medium pl-3 ${parseFloat(row.highestPrice) >= parseFloat(row.tp3) || row.hitTp3 ? 'text-zinc-600' : 'text-emerald-500/50'}`}>${row.tp3}</span>}
+                            </div>
+                          </td>
+                          <td className={`p-4`}>
+                            <div className="flex flex-col gap-1">
+                              <div className="flex items-center gap-1.5">
+                                <div className={`w-1.5 h-1.5 rounded-full ${row.staticTP4Color === 'blue' ? 'bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.8)]' : 'bg-rose-500 shadow-[0_0_6px_rgba(244,63,94,0.8)]'}`} />
+                                <span className={`font-mono text-sm font-medium ${parseFloat(row.highestPrice) >= parseFloat(row.staticTP4) ? 'bg-zinc-700/30 text-yellow-400 px-1 rounded' : 'text-emerald-400'}`}>${row.staticTP4}</span>
+                              </div>
+                              {showDynamic && <span className={`font-mono text-xs font-medium pl-3 ${parseFloat(row.highestPrice) >= parseFloat(row.tp4) || row.hitTp4 ? 'text-zinc-600' : 'text-emerald-500/50'}`}>${row.tp4}</span>}
                             </div>
                           </td>
                           
