@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getRequestContext } from '@cloudflare/next-on-pages';
+import { getStaticGannTargets } from '@/utils/gann';
 
 export const runtime = 'edge';
 
@@ -25,7 +26,7 @@ export async function GET(req: NextRequest) {
     // Fetch current prices from Yahoo
     const quotePromises = symbols.map(async (sym: string) => {
       try {
-        const res = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?interval=1d&range=5d`, {
+        const res = await fetch(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(sym)}?interval=1d&range=1mo`, {
           headers: {
             "User-Agent": "Mozilla/5.0 TradeNetMY/1.0",
             "Accept": "application/json"
@@ -34,16 +35,55 @@ export async function GET(req: NextRequest) {
         });
         if (!res.ok) return null;
         const data = await res.json() as any;
-        if (data?.chart?.result?.[0]) {
-          const result = data.chart.result[0];
+        const result = data?.chart?.result?.[0];
+        if (result?.meta) {
+          const timestamps = result.timestamp || [];
+          const closes = result.indicators?.quote?.[0]?.close || [];
           const highs = result.indicators?.quote?.[0]?.high || [];
-          const validHighs = highs.filter((h: any) => h !== null);
-          const highest5D = validHighs.length > 0 ? Math.max(...validHighs) : result.meta.regularMarketPrice;
           
+          const currentLivePrice = result.meta.regularMarketPrice;
+          const currentHigh = result.meta.regularMarketDayHigh;
+
+          // find last week's close (last trading day before current week's Monday)
+          const now = new Date();
+          const myTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
+          const currentDay = myTime.getDay();
+          const daysSinceMonday = currentDay === 0 ? 6 : currentDay - 1;
+          const mondayStart = new Date(myTime);
+          mondayStart.setDate(myTime.getDate() - daysSinceMonday);
+          mondayStart.setHours(0, 0, 0, 0);
+          const mondayStartMs = mondayStart.getTime();
+
+          let lastWeekClose = currentLivePrice;
+          let lastWeekDateStr = '';
+          let currentWeekHighest = currentHigh;
+
+          for (let i = timestamps.length - 1; i >= 0; i--) {
+            // Yahoo timestamps are in seconds
+            const ts = timestamps[i] * 1000;
+            if (ts >= mondayStartMs) {
+              // Day in current week, track the highest high
+              if (highs[i] && highs[i] > currentWeekHighest) {
+                currentWeekHighest = highs[i];
+              }
+            } else {
+              // First day before current week's Monday
+              if (closes[i]) {
+                lastWeekClose = closes[i];
+                const dateObj = new Date(ts);
+                lastWeekDateStr = dateObj.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+              }
+              break;
+            }
+          }
+
           return { 
             symbol: sym, 
-            price: result.meta.regularMarketPrice,
-            highestPrice: highest5D
+            meta: result.meta,
+            lastWeekClose,
+            lastWeekDateStr,
+            currentLivePrice,
+            currentHigh: currentWeekHighest
           };
         }
       } catch (err) {
@@ -56,28 +96,44 @@ export async function GET(req: NextRequest) {
     const quoteMap: Record<string, any> = {};
     for (const res of quoteResults) {
       if (res) {
-        quoteMap[res.symbol] = res;
+        quoteMap[res.symbol] = {
+          lastWeekClose: res.lastWeekClose,
+          lastWeekDateStr: res.lastWeekDateStr,
+          currentLivePrice: res.currentLivePrice,
+          currentHigh: res.currentHigh
+        };
       }
     }
 
     // Merge live price with static DB data
     const finalData = results.map((row: any) => {
-      const liveData = quoteMap[row.symbol];
+      const q = quoteMap[row.symbol];
+      const basePrice = q?.lastWeekClose || row.price;
+      const currentLivePrice = q?.currentLivePrice || row.price;
+      const currentHigh = q?.currentHigh || currentLivePrice;
+      const newHighestPrice = Math.max(row.highest_price || 0, currentHigh);
+
+      const gann = getStaticGannTargets(basePrice, 1);
+
       return {
         id: row.id,
         ticker: row.symbol,
         name: row.company_name,
-        price: liveData ? liveData.price.toFixed(2) : row.price,
-        highestPrice: liveData ? liveData.highestPrice.toFixed(2) : row.highest_price,
+        price: basePrice.toFixed(2),
+        currentPrice: currentLivePrice.toFixed(2),
+        lastDoneDate: q?.lastWeekDateStr || '',
+        highestPrice: newHighestPrice.toFixed(2),
         score: row.score,
-        staticSL: row.static_sl,
-        staticSLColor: row.static_sl_color,
-        staticTP1: row.static_tp1,
-        staticTP1Color: row.static_tp1_color,
-        staticTP2: row.static_tp2,
-        staticTP2Color: row.static_tp2_color,
-        staticTP3: row.static_tp3,
-        staticTP3Color: row.static_tp3_color,
+        staticSL: gann.staticSL,
+        staticSLColor: gann.staticSLColor,
+        staticTP1: gann.staticTP1,
+        staticTP1Color: gann.staticTP1Color,
+        staticTP2: gann.staticTP2,
+        staticTP2Color: gann.staticTP2Color,
+        staticTP3: gann.staticTP3,
+        staticTP3Color: gann.staticTP3Color,
+        staticTP4: gann.staticTP4,
+        staticTP4Color: gann.staticTP4Color,
       };
     });
 

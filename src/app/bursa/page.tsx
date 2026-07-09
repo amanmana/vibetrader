@@ -1606,12 +1606,20 @@ export default function BursaPage() {
                         <th className="p-4 font-semibold pl-6 w-16">Rank</th>
                         <th className="p-4 font-semibold w-48">Stock</th>
                         <th className="p-4 font-semibold w-24">Score</th>
-                        <th className="p-4 font-semibold w-32">Last Done</th>
+                        <th className="p-4 font-semibold w-32">
+                          <div className="flex flex-col">
+                            <span>Last Done</span>
+                            <span className="text-[10px] text-zinc-500 font-normal capitalize">
+                              {usWatchlist.length > 0 ? usWatchlist[0].lastDoneDate : '(Date)'}
+                            </span>
+                          </div>
+                        </th>
+                        <th className="p-4 font-semibold w-24">Last Price</th>
                         <th className="p-4 font-semibold text-rose-400/80 w-32">Stop Loss</th>
                         <th className="p-4 font-semibold text-emerald-400/80 w-32">TP1</th>
                         <th className="p-4 font-semibold text-emerald-400/80 w-32">TP2</th>
                         
-                        <th className="p-4 font-semibold pr-6 w-32">Highest (5D)</th>
+                        <th className="p-4 font-semibold pr-6 w-32">Highest (This Week)</th>
                         <th className="p-4 font-semibold w-12 text-center text-zinc-500">Act</th>
                       </tr>
                     </thead>
@@ -1640,17 +1648,31 @@ export default function BursaPage() {
                             <span className={`font-bold ${parseFloat(row.score) >= 7.0 ? 'text-emerald-400' : 'text-amber-400'}`}>{row.score}/10</span>
                           </td>
                           <td className="p-4 font-mono text-sm text-zinc-300">
-                            <div className="flex items-center gap-2">
-                              ${parseFloat(row.price).toFixed(2)}
-                            </div>
+                            ${row.price}
+                          </td>
+                          <td className="p-4">
+                            {(() => {
+                              const cur = parseFloat(row.currentPrice || row.price);
+                              const isGolden = cur > parseFloat(row.staticSL) && cur < parseFloat(row.staticTP1) && cur > parseFloat(row.price);
+                              return (
+                                <div className={`flex w-fit items-center gap-1.5 font-mono text-sm ${isGolden ? 'bg-emerald-600 text-white px-2 py-0.5 rounded-full animate-pulse shadow-[0_0_10px_rgba(5,150,105,0.6)]' : 'text-zinc-300'}`}>
+                                  <span className={isGolden ? 'font-bold' : ''}>${row.currentPrice || row.price}</span>
+                                  {cur > parseFloat(row.price) ? (
+                                    <TrendingUp className={`w-3.5 h-3.5 ${isGolden ? 'text-white' : 'text-emerald-400'}`} />
+                                  ) : cur < parseFloat(row.price) ? (
+                                    <TrendingDown className="w-3.5 h-3.5 text-rose-400" />
+                                  ) : null}
+                                </div>
+                              );
+                            })()}
                           </td>
                           <td className={`p-4`}>
                             <div className="flex flex-col gap-1">
                               <div className="flex items-center gap-1.5">
                                 <div className={`w-1.5 h-1.5 rounded-full ${row.staticSLColor === 'blue' ? 'bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.8)]' : 'bg-rose-500 shadow-[0_0_6px_rgba(244,63,94,0.8)]'}`} />
-                                <span className={`font-mono text-sm font-medium ${parseFloat(row.price) <= parseFloat(row.staticSL) ? 'bg-rose-500/20 text-rose-400 px-1 rounded animate-pulse' : 'text-rose-400'}`}>${row.staticSL}</span>
+                                <span className={`font-mono text-sm font-medium ${parseFloat(row.currentPrice || row.price) < parseFloat(row.staticSL) ? 'bg-rose-600 text-white px-2 py-0.5 rounded-full animate-pulse shadow-[0_0_10px_rgba(225,29,72,0.6)]' : 'text-rose-400'}`}>${row.staticSL}</span>
                               </div>
-                              {showDynamic && <span className={`font-mono text-xs font-medium pl-3 ${parseFloat(row.price) <= parseFloat(row.stopLoss) ? 'text-rose-500' : 'text-rose-400/50'}`}>${row.stopLoss}</span>}
+                              {showDynamic && <span className={`font-mono text-xs font-medium pl-3 ${parseFloat(row.currentPrice || row.price) <= parseFloat(row.stopLoss) ? 'text-rose-500' : 'text-rose-400/50'}`}>${row.stopLoss}</span>}
                             </div>
                           </td>
                           <td className={`p-4`}>
