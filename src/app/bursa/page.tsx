@@ -220,13 +220,18 @@ export default function BursaPage() {
         staticTP3: row.staticTP3,
         staticTP3Color: row.staticTP3Color,
       };
-      await fetch('/api/us-custom-picks', {
+      const res = await fetch('/api/us-custom-picks', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
+      const data = await res.json();
+      if (!data.success) {
+        alert(data.error || 'Failed to save');
+        return;
+      }
       alert(`${row.ticker} saved to Watchlist!`);
-      // Optionally re-fetch watchlist if we are on that view, or just fetch it when they switch tab.
+      setUsWatchlist(prev => [...prev, payload]);
     } catch (e) {
       console.error("Failed to save to US Watchlist:", e);
     } finally {
@@ -1699,7 +1704,11 @@ export default function BursaPage() {
                             <div className="flex items-center justify-center gap-2">
                               {usSniperView === 'scanner' ? (
                                 <>
-                                  <button onClick={() => saveToUsWatchlist(row)} disabled={isSavingUsWatchlist} className="text-zinc-600 hover:text-emerald-500 transition-colors bg-zinc-800/50 hover:bg-emerald-500/10 p-2 rounded-lg disabled:opacity-50">
+                                  <button 
+                                    onClick={() => saveToUsWatchlist(row)} 
+                                    disabled={isSavingUsWatchlist || usWatchlist.some(w => w.ticker === row.ticker)} 
+                                    className={`transition-colors p-2 rounded-lg ${usWatchlist.some(w => w.ticker === row.ticker) ? 'text-emerald-500 bg-emerald-500/10' : 'text-zinc-600 hover:text-emerald-500 bg-zinc-800/50 hover:bg-emerald-500/10'} disabled:opacity-50`}
+                                  >
                                     <Save className="w-4 h-4" />
                                   </button>
                                   <button onClick={() => removeUsSniperResult(row.ticker)} className="text-zinc-600 hover:text-red-500 transition-colors bg-zinc-800/50 hover:bg-red-500/10 p-2 rounded-lg">

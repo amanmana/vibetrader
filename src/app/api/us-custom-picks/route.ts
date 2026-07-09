@@ -162,6 +162,11 @@ export async function POST(req: NextRequest) {
     const id = crypto.randomUUID();
     const dateStr = new Date().toISOString();
 
+    const existing = await db.prepare(`SELECT id FROM us_custom_picks WHERE symbol = ?`).bind(ticker).first();
+    if (existing) {
+      return NextResponse.json({ success: false, error: "Already in Watchlist" }, { status: 400 });
+    }
+
     await db.prepare(`
       INSERT INTO us_custom_picks (
         id, date, symbol, company_name, price, score, highest_price,
