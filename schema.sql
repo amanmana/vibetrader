@@ -61,3 +61,15 @@ CREATE TABLE IF NOT EXISTS system_settings (
   value TEXT NOT NULL,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS ocr_picks (
+  id TEXT PRIMARY KEY,
+  date TEXT NOT NULL,
+  stock_name TEXT NOT NULL,
+  last_done TEXT,
+  target TEXT,
+  highest_price TEXT,
+  tp2 TEXT,
+  status TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);

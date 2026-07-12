@@ -261,21 +261,37 @@ export default function BursaPage() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Load state from local storage on mount
+  // Load state from local storage and D1 on mount
   useEffect(() => {
     const savedState = localStorage.getItem('vibeTraderAiEnabled');
     if (savedState !== null) {
       setIsAiEnabled(savedState === 'true');
     }
     
-    const savedResults = localStorage.getItem('bursaOcrResults');
-    if (savedResults) {
+    async function loadOcrResults() {
       try {
-        setResults(JSON.parse(savedResults));
+        const res = await fetch('/api/bursa-ocr-picks');
+        const data = await res.json();
+        if (data.success && data.data && data.data.length > 0) {
+          setResults(data.data);
+          localStorage.setItem('bursaOcrResults', JSON.stringify(data.data));
+          return;
+        }
       } catch (e) {
-        console.error("Failed to parse saved results");
+        console.error("Failed to fetch OCR picks from D1:", e);
+      }
+
+      // Fallback to localStorage if D1 is empty or fails
+      const savedResults = localStorage.getItem('bursaOcrResults');
+      if (savedResults) {
+        try {
+          setResults(JSON.parse(savedResults));
+        } catch (e) {
+          console.error("Failed to parse saved results");
+        }
       }
     }
+    loadOcrResults();
   }, []);
 
   // Handle global paste event
@@ -412,6 +428,13 @@ export default function BursaPage() {
       if (data.success && data.data) {
         setResults(data.data);
         localStorage.setItem('bursaOcrResults', JSON.stringify(data.data));
+        
+        // Save to D1 database in the background
+        fetch('/api/bursa-ocr-picks', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ results: data.data })
+        }).catch(err => console.error("Failed to save OCR picks to D1:", err));
       } else {
         throw new Error('Invalid response format');
       }
@@ -768,6 +791,11 @@ export default function BursaPage() {
                  setResults([]);
                  setTop5Results([]);
                  localStorage.removeItem('bursaOcrResults');
+                 
+                 // Clear from D1 database in the background
+                 fetch('/api/bursa-ocr-picks', {
+                   method: 'DELETE'
+                 }).catch(err => console.error("Failed to clear OCR picks in D1:", err));
                }}
                className="text-xs text-slate-500 hover:text-red-400 transition"
              >
