@@ -589,7 +589,7 @@ export default function VibeTrader() {
                           <div className="flex justify-between items-start">
                             <div>
                               <div className="flex items-center gap-2">
-                                <a href={`https://finviz.com/stock?t=${res.ticker}&p=d`} target="_blank" rel="noopener noreferrer" className="font-mono font-bold text-2xl text-zinc-100 hover:text-blue-400 transition cursor-pointer">{res.ticker}</a>
+                                <a href={`https://www.tradingview.com/chart/S83uhZmn/?symbol=${res.ticker}`} target="_blank" rel="noopener noreferrer" className="font-mono font-bold text-2xl text-zinc-100 hover:text-blue-400 transition cursor-pointer">{res.ticker}</a>
                                 {i === 0 && <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-400 text-zinc-950">#1</span>}
                                 {i === 1 && <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-zinc-300 text-zinc-950">#2</span>}
                                 {i === 2 && <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-700 text-zinc-100">#3</span>}
@@ -732,7 +732,7 @@ export default function VibeTrader() {
                           {isBuy && <div className="absolute top-0 right-0 w-16 h-16 bg-emerald-500/10 rounded-bl-full blur-xl" />}
                           <div className="flex justify-between items-start">
                             <div>
-                              <a href={`https://finviz.com/stock?t=${res.ticker}&p=d`} target="_blank" rel="noopener noreferrer" className="font-mono font-bold text-lg text-zinc-100 hover:text-blue-400 transition cursor-pointer">{res.ticker}</a>
+                              <a href={`https://www.tradingview.com/chart/S83uhZmn/?symbol=${res.ticker}`} target="_blank" rel="noopener noreferrer" className="font-mono font-bold text-lg text-zinc-100 hover:text-blue-400 transition cursor-pointer">{res.ticker}</a>
                               <span className="block text-xs text-zinc-500">{getCurrencySymbol(res.ticker)} {res.technical_indicators?.current_price.toFixed(2)}</span>
                             </div>
                             <div className="flex items-center gap-2">
@@ -843,7 +843,7 @@ export default function VibeTrader() {
                       <div key={idx} className="bg-zinc-950/50 border border-zinc-800 p-4 rounded-2xl flex flex-col justify-between hover:border-blue-500/50 transition">
                         <div className="flex justify-between items-start mb-3">
                           <div>
-                            <a href={`https://finviz.com/stock?t=${result.ticker}&p=d`} target="_blank" rel="noopener noreferrer" className="font-bold text-lg text-zinc-200 block hover:text-blue-400 transition cursor-pointer">{result.ticker}</a>
+                            <a href={`https://www.tradingview.com/chart/S83uhZmn/?symbol=${result.ticker}`} target="_blank" rel="noopener noreferrer" className="font-bold text-lg text-zinc-200 block hover:text-blue-400 transition cursor-pointer">{result.ticker}</a>
                             <span className="text-[10px] text-zinc-500 line-clamp-1">{result.name}</span>
                           </div>
                           <div className="flex items-center gap-2">
