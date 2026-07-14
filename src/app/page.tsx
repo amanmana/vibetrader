@@ -724,63 +724,93 @@ export default function VibeTrader() {
 
                 {/* Watchlist Scan Results Grid */}
                 {watchlistResults.length > 0 && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 animate-in fade-in slide-in-from-top-4 duration-500">
-                    {watchlistResults.map((res, i) => {
-                      const isBuy = res.trading_decision.action === 'BUY';
-                      return (
-                        <div key={i} className={`p-4 rounded-2xl border ${isBuy ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-zinc-950/50 border-zinc-800'} flex flex-col gap-3 relative overflow-hidden`}>
-                          {isBuy && <div className="absolute top-0 right-0 w-16 h-16 bg-emerald-500/10 rounded-bl-full blur-xl" />}
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <a href={`https://www.tradingview.com/chart/S83uhZmn/?symbol=${res.ticker}`} target="_blank" rel="noopener noreferrer" className="font-mono font-bold text-lg text-zinc-100 hover:text-blue-400 transition cursor-pointer">{res.ticker}</a>
-                              <span className="block text-xs text-zinc-500">{getCurrencySymbol(res.ticker)} {res.technical_indicators?.current_price.toFixed(2)}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  const newList = watchlist.filter(t => t !== res.ticker);
-                                  setWatchlist(newList);
-                                  setWatchlistResults(prev => prev.filter(r => r.ticker !== res.ticker));
-                                  localStorage.setItem('vibe_watchlist', JSON.stringify(newList));
-                                }}
-                                className="p-1.5 rounded-lg text-zinc-600 hover:text-rose-400 hover:bg-rose-500/20 transition"
-                                title="Remove from Watchlist"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                              <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider ${isBuy ? 'bg-emerald-500 text-zinc-950' : res.trading_decision.action === 'HOLD' ? 'bg-amber-500 text-zinc-950' : res.trading_decision.action === 'WATCH' ? 'bg-indigo-500 text-white' : 'bg-rose-500 text-white'}`}>
-                                {res.trading_decision.action}
-                              </span>
-                            </div>
-                          </div>
-                          {res.adaptive_sniper && (
-                            <div className="flex justify-between items-end mt-2">
-                              <div>
-                                <span className="text-zinc-500 text-[10px] uppercase font-bold block">Sniper Score</span>
-                                <span className={`text-lg font-mono font-bold ${
-                                  parseFloat(res.adaptive_sniper.score) >= 7.0 ? 'text-emerald-400' :
-                                  parseFloat(res.adaptive_sniper.score) >= 5.0 ? 'text-amber-400' : 'text-rose-400'
-                                }`}>
-                                  {res.adaptive_sniper.score}
-                                </span>
-                              </div>
-                              <button
-                                onClick={() => {
-                                  setTicker(res.ticker);
-                                  analyzeTicker(res.ticker);
-                                  window.scrollTo({ top: 0, behavior: 'smooth' });
-                                }}
-                                className="bg-blue-600 hover:bg-blue-500 text-white p-2 rounded-xl transition"
-                                title="Analyze Full Chart"
-                              >
-                                <ArrowRight className="w-4 h-4" />
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
+                  <div className="border border-zinc-800 bg-zinc-950/80 rounded-3xl overflow-hidden backdrop-blur-xl shadow-2xl mt-8 animate-in fade-in slide-in-from-top-4 duration-500">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="bg-zinc-900/80 border-b border-zinc-800 text-xs uppercase tracking-wider text-zinc-500">
+                            <th className="p-4 font-semibold pl-6 w-16">Rank</th>
+                            <th className="p-4 font-semibold">Stock</th>
+                            <th className="p-4 font-semibold">Score</th>
+                            <th className="p-4 font-semibold">Last Price</th>
+                            <th className="p-4 font-semibold text-rose-400/80">Stop Loss</th>
+                            <th className="p-4 font-semibold text-emerald-400/80">TP1</th>
+                            <th className="p-4 font-semibold text-emerald-400/80">TP2</th>
+                            <th className="p-4 font-semibold pr-6 text-right">Act</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-zinc-800/50">
+                          {watchlistResults.map((res, i) => {
+                            const isBuy = res.trading_decision?.action === 'BUY';
+                            return (
+                              <tr key={i} className="hover:bg-zinc-800/30 transition group">
+                                <td className="p-4 pl-6">
+                                  <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold border ${isBuy ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-amber-500/10 text-amber-500 border-amber-500/20'}`}>
+                                    #{i + 1}
+                                  </span>
+                                </td>
+                                <td className="p-4">
+                                  <div className="flex flex-col">
+                                    <div className="flex items-center gap-2">
+                                      <a href={`https://www.tradingview.com/chart/S83uhZmn/?symbol=${res.ticker}`} target="_blank" rel="noopener noreferrer" className="font-bold text-zinc-200 hover:text-amber-400 hover:underline transition cursor-pointer">{res.ticker}</a>
+                                    </div>
+                                  </div>
+                                </td>
+                                <td className="p-4">
+                                  <span className={`font-bold ${
+                                    parseFloat(res.adaptive_sniper?.score || '0') >= 7.0 ? 'text-emerald-400' :
+                                    parseFloat(res.adaptive_sniper?.score || '0') >= 5.0 ? 'text-amber-400' : 'text-rose-400'
+                                  }`}>{res.adaptive_sniper?.score || '-'}</span>
+                                </td>
+                                <td className="p-4 font-mono text-sm text-zinc-300">
+                                  {res.technical_indicators?.current_price ? `${getCurrencySymbol(res.ticker)} ${res.technical_indicators.current_price.toFixed(2)}` : '-'}
+                                </td>
+                                <td className="p-4 font-mono text-sm font-bold text-rose-400">
+                                  {res.levels?.stop_loss ? `${getCurrencySymbol(res.ticker)} ${res.levels.stop_loss.toFixed(2)}` : '-'}
+                                </td>
+                                <td className="p-4 font-mono text-sm font-medium text-emerald-400">
+                                  {res.levels?.take_profit_1 ? `${getCurrencySymbol(res.ticker)} ${res.levels.take_profit_1.toFixed(2)}` : '-'}
+                                </td>
+                                <td className="p-4 font-mono text-sm font-medium text-emerald-400">
+                                  {res.levels?.take_profit_2 ? `${getCurrencySymbol(res.ticker)} ${res.levels.take_profit_2.toFixed(2)}` : '-'}
+                                </td>
+                                <td className="p-4 pr-6">
+                                  <div className="flex items-center justify-end gap-3">
+                                    <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider ${isBuy ? 'bg-emerald-500 text-zinc-950' : res.trading_decision?.action === 'HOLD' ? 'bg-amber-500 text-zinc-950' : res.trading_decision?.action === 'WATCH' ? 'bg-indigo-500 text-white' : 'bg-rose-500 text-white'}`}>
+                                      {res.trading_decision?.action || '-'}
+                                    </span>
+                                    <button
+                                      onClick={() => {
+                                        setTicker(res.ticker);
+                                        analyzeTicker(res.ticker);
+                                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                                      }}
+                                      className="p-1.5 bg-blue-600/20 text-blue-400 hover:bg-blue-600 hover:text-white rounded-lg transition"
+                                      title="Analyze Full Chart"
+                                    >
+                                      <ArrowRight className="w-4 h-4" />
+                                    </button>
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        const newList = watchlist.filter(t => t !== res.ticker);
+                                        setWatchlist(newList);
+                                        setWatchlistResults(prev => prev.filter(r => r.ticker !== res.ticker));
+                                        localStorage.setItem('vibe_watchlist', JSON.stringify(newList));
+                                      }}
+                                      className="p-1.5 rounded-lg text-zinc-600 hover:text-rose-400 hover:bg-rose-500/20 transition"
+                                      title="Remove from Watchlist"
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 )}
               </>
