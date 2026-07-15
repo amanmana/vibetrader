@@ -433,7 +433,7 @@ export default function BursaPage() {
       case 'On Going':
         return 'bg-amber-500/10 text-amber-400 border-amber-500/20';
       default: // Belum Gerak
-        return 'bg-zinc-800/30 text-zinc-300 border-zinc-700/50';
+        return 'bg-slate-800/30 text-slate-300 border-slate-700/50';
     }
   };
 
@@ -469,7 +469,7 @@ export default function BursaPage() {
   };
 
   return (
-    <main className="min-h-screen bg-zinc-950 text-zinc-100 pb-20 font-sans">
+    <main className="min-h-screen bg-slate-950 text-slate-100 pb-20 font-sans">
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[500px] bg-gradient-to-b from-amber-900/10 via-orange-900/5 to-transparent rounded-full blur-[120px] pointer-events-none" />
       
       <div className="relative max-w-5xl mx-auto px-6 pt-24">
@@ -482,7 +482,7 @@ export default function BursaPage() {
           <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4">
             AI Watchlist <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500">Extractor</span>
           </h1>
-          <p className="text-zinc-400 max-w-2xl mx-auto text-sm md:text-base mb-6">
+          <p className="text-slate-400 max-w-2xl mx-auto text-sm md:text-base mb-6">
             Upload or paste an image of a stock watchlist. The AI will intelligently read the stocks, targets, and analyze row colors to determine their status automatically.
           </p>
           <button 
@@ -494,7 +494,7 @@ export default function BursaPage() {
             className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition border ${
               isAiEnabled 
                 ? 'bg-amber-500/10 border-amber-500/30 text-amber-400 hover:bg-amber-500/20' 
-                : 'bg-zinc-800/50 border-zinc-700/50 text-zinc-500 hover:text-zinc-400'
+                : 'bg-slate-800/50 border-slate-700/50 text-slate-500 hover:text-slate-400'
             }`}
           >
             <Power className="w-4 h-4" />
@@ -504,32 +504,32 @@ export default function BursaPage() {
 
         {/* Tabs */}
         <div className="flex justify-center mb-8">
-          <div className="bg-zinc-900/50 p-1 rounded-2xl border border-zinc-800/50 inline-flex backdrop-blur-sm">
+          <div className="bg-slate-900/50 p-1 rounded-2xl border border-slate-800/50 inline-flex backdrop-blur-sm">
             <button
               onClick={() => setActiveTab('ocr')}
-              className={`px-6 py-2.5 rounded-xl text-sm font-bold transition ${activeTab === 'ocr' ? 'bg-zinc-800 text-zinc-100 shadow-md' : 'text-zinc-500 hover:text-zinc-300'}`}
+              className={`px-6 py-2.5 rounded-xl text-sm font-bold transition ${activeTab === 'ocr' ? 'bg-slate-800 text-slate-100 shadow-md' : 'text-slate-500 hover:text-slate-300'}`}
             >
               OCR Extractor
             </button>
             <button
               onClick={() => setActiveTab('custom')}
-              className={`px-6 py-2.5 rounded-xl text-sm font-bold transition ${activeTab === 'custom' ? 'bg-zinc-800 text-zinc-100 shadow-md' : 'text-zinc-500 hover:text-zinc-300'}`}
+              className={`px-6 py-2.5 rounded-xl text-sm font-bold transition ${activeTab === 'custom' ? 'bg-slate-800 text-slate-100 shadow-md' : 'text-slate-500 hover:text-slate-300'}`}
             >
               Custom List
             </button>
             {/* Live Master Tab Hidden */}
             {/* <button
               onClick={() => setActiveTab('live')}
-              className={`px-6 py-2.5 rounded-xl text-sm font-bold transition flex items-center gap-2 ${activeTab === 'live' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.1)]' : 'text-zinc-500 hover:text-zinc-300'}`}
+              className={`px-6 py-2.5 rounded-xl text-sm font-bold transition flex items-center gap-2 ${activeTab === 'live' ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.1)]' : 'text-slate-500 hover:text-slate-300'}`}
             >
-              <div className={`w-2 h-2 rounded-full ${activeTab === 'live' ? 'bg-amber-400 animate-pulse' : 'bg-zinc-600'}`} />
+              <div className={`w-2 h-2 rounded-full ${activeTab === 'live' ? 'bg-amber-400 animate-pulse' : 'bg-slate-600'}`} />
               Live Master
             </button> */}
             <button
               onClick={() => setActiveTab('customMaster')}
-              className={`px-6 py-2.5 rounded-xl text-sm font-bold transition flex items-center gap-2 ${activeTab === 'customMaster' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.1)]' : 'text-zinc-500 hover:text-zinc-300'}`}
+              className={`px-6 py-2.5 rounded-xl text-sm font-bold transition flex items-center gap-2 ${activeTab === 'customMaster' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.1)]' : 'text-slate-500 hover:text-slate-300'}`}
             >
-              <div className={`w-2 h-2 rounded-full ${activeTab === 'customMaster' ? 'bg-blue-400 animate-pulse' : 'bg-zinc-600'}`} />
+              <div className={`w-2 h-2 rounded-full ${activeTab === 'customMaster' ? 'bg-blue-400 animate-pulse' : 'bg-slate-600'}`} />
               Custom Master
             </button>
 
@@ -541,8 +541,8 @@ export default function BursaPage() {
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             {/* Upload Area */}
         <div 
-          className={`relative border-2 border-dashed rounded-3xl p-10 text-center transition duration-300 flex flex-col items-center justify-center bg-zinc-900/30 backdrop-blur-sm ${
-            isDragging ? 'border-amber-500 bg-amber-500/5' : 'border-zinc-800 hover:border-zinc-700 hover:bg-zinc-800/30'
+          className={`relative border-2 border-dashed rounded-3xl p-10 text-center transition duration-300 flex flex-col items-center justify-center bg-slate-900/30 backdrop-blur-sm ${
+            isDragging ? 'border-amber-500 bg-amber-500/5' : 'border-slate-800 hover:border-slate-700 hover:bg-slate-800/30'
           }`}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
@@ -556,16 +556,16 @@ export default function BursaPage() {
             className="hidden" 
           />
           
-          <div className="w-16 h-16 rounded-2xl bg-zinc-800/80 flex items-center justify-center mb-4 text-zinc-400 shadow-inner">
+          <div className="w-16 h-16 rounded-2xl bg-slate-800/80 flex items-center justify-center mb-4 text-slate-400 shadow-inner">
             <Upload className="w-8 h-8" />
           </div>
           
-          <h3 className="text-xl font-bold text-zinc-200 mb-2">Drag & Drop Image Here</h3>
-          <p className="text-zinc-500 text-sm mb-6">Or simply press <kbd className="px-2 py-1 bg-zinc-800 rounded text-xs font-mono border border-zinc-700 text-zinc-300">Ctrl+V</kbd> to paste an image</p>
+          <h3 className="text-xl font-bold text-slate-200 mb-2">Drag & Drop Image Here</h3>
+          <p className="text-slate-500 text-sm mb-6">Or simply press <kbd className="px-2 py-1 bg-slate-800 rounded text-xs font-mono border border-slate-700 text-slate-300">Ctrl+V</kbd> to paste an image</p>
           
           <button 
             onClick={() => fileInputRef.current?.click()}
-            className="px-6 py-2.5 bg-zinc-100 hover:bg-white text-zinc-900 font-bold rounded-xl transition shadow-[0_0_20px_rgba(255,255,255,0.1)] active:scale-95"
+            className="px-6 py-2.5 bg-slate-100 hover:bg-white text-slate-900 font-bold rounded-xl transition shadow-[0_0_20px_rgba(255,255,255,0.1)] active:scale-95"
           >
             Browse Files
           </button>
@@ -585,11 +585,11 @@ export default function BursaPage() {
 
         {/* Loading State */}
         {isProcessing && (
-          <div className="mt-8 border border-zinc-800 bg-zinc-900/50 p-8 rounded-3xl flex flex-col items-center justify-center backdrop-blur-md relative overflow-hidden">
+          <div className="mt-8 border border-slate-800 bg-slate-900/50 p-8 rounded-3xl flex flex-col items-center justify-center backdrop-blur-md relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-500/10 to-transparent -translate-x-full animate-[shimmer_2s_infinite]" />
             <Loader2 className="w-10 h-10 text-amber-500 animate-spin mb-4" />
-            <h3 className="text-lg font-bold text-zinc-200">Analyzing Image</h3>
-            <p className="text-sm text-zinc-500 mt-2 text-center max-w-sm">
+            <h3 className="text-lg font-bold text-slate-200">Analyzing Image</h3>
+            <p className="text-sm text-slate-500 mt-2 text-center max-w-sm">
               Our Vision AI is extracting the table data and analyzing row colors to determine stock status...
             </p>
           </div>
@@ -604,7 +604,7 @@ export default function BursaPage() {
                  setTop5Results([]);
                  localStorage.removeItem('bursaOcrResults');
                }}
-               className="text-xs text-zinc-500 hover:text-red-400 transition"
+               className="text-xs text-slate-500 hover:text-red-400 transition"
              >
                Clear Saved Data
              </button>
@@ -616,25 +616,25 @@ export default function BursaPage() {
           <div className="mt-12 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             {/* Preview Image small */}
             {previewUrl && (
-              <div className="flex items-center gap-4 p-4 border border-zinc-800 bg-zinc-900/50 rounded-2xl backdrop-blur-sm">
-                <div className="w-16 h-16 rounded-xl overflow-hidden bg-zinc-950 border border-zinc-800 shrink-0">
+              <div className="flex items-center gap-4 p-4 border border-slate-800 bg-slate-900/50 rounded-2xl backdrop-blur-sm">
+                <div className="w-16 h-16 rounded-xl overflow-hidden bg-slate-950 border border-slate-800 shrink-0">
                   <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-bold text-zinc-200 flex items-center gap-2">
+                  <h4 className="text-sm font-bold text-slate-200 flex items-center gap-2">
                     <ImageIcon className="w-4 h-4 text-amber-500" />
                     Source Image Processed
                   </h4>
-                  <p className="text-xs text-zinc-500 mt-1">Successfully extracted {results.length} stocks.</p>
+                  <p className="text-xs text-slate-500 mt-1">Successfully extracted {results.length} stocks.</p>
                 </div>
               </div>
             )}
 
-            <div className="border border-zinc-800 bg-zinc-950/80 rounded-3xl overflow-hidden backdrop-blur-xl shadow-2xl">
+            <div className="border border-slate-800 bg-slate-950/80 rounded-3xl overflow-hidden backdrop-blur-xl shadow-2xl">
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-zinc-900/80 border-b border-zinc-800 text-xs uppercase tracking-wider text-zinc-500">
+                    <tr className="bg-slate-900/80 border-b border-slate-800 text-xs uppercase tracking-wider text-slate-500">
                       <th className="p-4 font-semibold pl-6">Stock Name</th>
                       <th className="p-4 font-semibold">Last Done</th>
                       <th className="p-4 font-semibold">Target</th>
@@ -643,14 +643,14 @@ export default function BursaPage() {
                       <th className="p-4 font-semibold pr-6 text-right">Status</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-zinc-800/50">
+                  <tbody className="divide-y divide-slate-800/50">
                     {results.map((row, idx) => (
-                      <tr key={idx} className="hover:bg-zinc-900/30 transition group">
+                      <tr key={idx} className="hover:bg-slate-900/30 transition group">
                         <td className="p-4 pl-6">
                           <div className="flex items-center gap-3">
                             <button 
                               onClick={() => copyToClipboard(row.stock_name, idx)}
-                              className="text-zinc-600 hover:text-zinc-300 transition opacity-0 group-hover:opacity-100"
+                              className="text-slate-600 hover:text-slate-300 transition opacity-0 group-hover:opacity-100"
                               title="Copy Stock Name"
                             >
                               {copiedIndex === idx ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
@@ -659,7 +659,7 @@ export default function BursaPage() {
                               href={`https://www.tradingview.com/chart/S83uhZmn/?symbol=MYX:${row.stock_name.replace('[S]', '').trim()}`} 
                               target="_blank" 
                               rel="noopener noreferrer" 
-                              className="font-bold text-zinc-200 hover:text-amber-400 hover:underline transition cursor-pointer"
+                              className="font-bold text-slate-200 hover:text-amber-400 hover:underline transition cursor-pointer"
                             >
                               {row.stock_name.replace('[S]', '').trim()}
                             </a>
@@ -670,9 +670,9 @@ export default function BursaPage() {
                             )}
                           </div>
                         </td>
-                        <td className="p-4 font-mono text-sm text-zinc-400">{row.last_done || '-'}</td>
-                        <td className="p-4 font-mono text-sm text-zinc-300 font-medium">{row.target || '-'}</td>
-                        <td className="p-4 font-mono text-sm text-zinc-400">{row.highest_price || '-'}</td>
+                        <td className="p-4 font-mono text-sm text-slate-400">{row.last_done || '-'}</td>
+                        <td className="p-4 font-mono text-sm text-slate-300 font-medium">{row.target || '-'}</td>
+                        <td className="p-4 font-mono text-sm text-slate-400">{row.highest_price || '-'}</td>
                         <td className="p-4 font-mono text-sm text-amber-500/80">{row.tp2 || '-'}</td>
                         <td className="p-4 pr-6 text-right">
                           <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold border ${getStatusColor(row.status)}`}>
@@ -689,15 +689,15 @@ export default function BursaPage() {
             <div className="flex gap-4 justify-center">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-sm bg-emerald-500/20 border border-emerald-500/30" />
-                <span className="text-xs text-zinc-500">Hit TP</span>
+                <span className="text-xs text-slate-500">Hit TP</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-sm bg-amber-500/20 border border-amber-500/30" />
-                <span className="text-xs text-zinc-500">On Going</span>
+                <span className="text-xs text-slate-500">On Going</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-sm bg-zinc-800/50 border border-zinc-700/50" />
-                <span className="text-xs text-zinc-500">Belum Gerak</span>
+                <div className="w-3 h-3 rounded-sm bg-slate-800/50 border border-slate-700/50" />
+                <span className="text-xs text-slate-500">Belum Gerak</span>
               </div>
             </div>
 
@@ -727,40 +727,40 @@ export default function BursaPage() {
             )}
 
             {top5Results.length > 0 && (
-              <div id="top5-section" className="mt-8 pt-8 border-t border-zinc-800/50 space-y-6">
+              <div id="top5-section" className="mt-8 pt-8 border-t border-slate-800/50 space-y-6">
                 <div className="flex flex-col items-center mb-10">
                   <h2 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-orange-500">
                     Top 5 Sniper Candidates
                   </h2>
-                  <p className="text-zinc-400 mt-2 mb-6">Berdasarkan momentum teknikal semasa</p>
+                  <p className="text-slate-400 mt-2 mb-6">Berdasarkan momentum teknikal semasa</p>
                   <button
                     onClick={() => setShowSniperDynamic(!showSniperDynamic)}
-                    className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${showSniperDynamic ? 'bg-indigo-500 text-white shadow-[0_0_15px_rgba(99,102,241,0.4)]' : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200'}`}
+                    className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${showSniperDynamic ? 'bg-indigo-500 text-white shadow-[0_0_15px_rgba(99,102,241,0.4)]' : 'bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-slate-200'}`}
                   >
                     {showSniperDynamic ? 'Hide Dynamic TP/SL' : 'Show Dynamic TP/SL'}
                   </button>
                 </div>
                 
-                <div className="border border-zinc-800 bg-zinc-950/80 rounded-3xl overflow-hidden backdrop-blur-xl shadow-2xl mt-4">
+                <div className="border border-slate-800 bg-slate-950/80 rounded-3xl overflow-hidden backdrop-blur-xl shadow-2xl mt-4">
                   <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                       <thead>
-                        <tr className="bg-zinc-900/80 border-b border-zinc-800 text-xs uppercase tracking-wider text-zinc-500">
+                        <tr className="bg-slate-900/80 border-b border-slate-800 text-xs uppercase tracking-wider text-slate-500">
                           <th className="p-4 font-semibold pl-6">Rank</th>
                           <th className="p-4 font-semibold">Stock</th>
                           <th className="p-4 font-semibold">Score</th>
                           <th className="p-4 font-semibold">Last Done</th>
-                          <th className="p-4 font-semibold text-rose-400/80">Stop Loss<br/>{showSniperDynamic && <span className="text-[10px] text-zinc-600">Gann / Dyn</span>}</th>
-                          <th className="p-4 font-semibold text-emerald-400/80">TP1<br/>{showSniperDynamic && <span className="text-[10px] text-zinc-600">Gann / Dyn</span>}</th>
-                          <th className="p-4 font-semibold text-emerald-400/80">TP2<br/>{showSniperDynamic && <span className="text-[10px] text-zinc-600">Gann / Dyn</span>}</th>
+                          <th className="p-4 font-semibold text-rose-400/80">Stop Loss<br/>{showSniperDynamic && <span className="text-[10px] text-slate-600">Gann / Dyn</span>}</th>
+                          <th className="p-4 font-semibold text-emerald-400/80">TP1<br/>{showSniperDynamic && <span className="text-[10px] text-slate-600">Gann / Dyn</span>}</th>
+                          <th className="p-4 font-semibold text-emerald-400/80">TP2<br/>{showSniperDynamic && <span className="text-[10px] text-slate-600">Gann / Dyn</span>}</th>
                           
                           
                           <th className="p-4 font-semibold pr-6">Highest (5D)</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-zinc-800/50">
+                      <tbody className="divide-y divide-slate-800/50">
                         {top5Results.slice(0, 5).map((stock, i) => (
-                          <tr key={i} className="hover:bg-zinc-800/30 transition group">
+                          <tr key={i} className="hover:bg-slate-800/30 transition group">
                             <td className="p-4 pl-6">
                               <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-amber-500/10 text-amber-500 font-bold text-xs border border-amber-500/20">
                                 #{i + 1}
@@ -769,41 +769,41 @@ export default function BursaPage() {
                             <td className="p-4">
                               <div className="flex flex-col">
                                 <div className="flex items-center gap-2">
-                                  <a href={`https://www.tradingview.com/chart/S83uhZmn/?symbol=MYX:${stock.symbol.replace('.KL', '')}`} target="_blank" rel="noopener noreferrer" className="font-bold text-zinc-200 hover:text-amber-400 hover:underline transition cursor-pointer">{stock.originalName || stock.companyName}</a>
+                                  <a href={`https://www.tradingview.com/chart/S83uhZmn/?symbol=MYX:${stock.symbol.replace('.KL', '')}`} target="_blank" rel="noopener noreferrer" className="font-bold text-slate-200 hover:text-amber-400 hover:underline transition cursor-pointer">{stock.originalName || stock.companyName}</a>
                                   {stock.ocrStatus && stock.ocrStatus !== '-' && (
                                     <span className={`px-2 py-0.5 rounded text-[9px] font-bold border ${getStatusColor(stock.ocrStatus)}`}>
                                       {stock.ocrStatus}
                                     </span>
                                   )}
                                 </div>
-                                <span className="text-[10px] text-zinc-500">{stock.symbol}</span>
+                                <span className="text-[10px] text-slate-500">{stock.symbol}</span>
                               </div>
                             </td>
                             <td className="p-4">
                               <span className="font-bold text-amber-400">{stock.score}/10</span>
                             </td>
-                            <td className="p-4 font-mono text-sm text-zinc-300">{stock.price}</td>
+                            <td className="p-4 font-mono text-sm text-slate-300">{stock.price}</td>
                             <td className="p-4">
                               <div className="flex flex-col">
                                 <span className="font-mono text-sm font-bold text-rose-400">{stock.gannSL || stock.stopLoss}</span>
-                                {showSniperDynamic && <span className="text-[10px] text-zinc-500 mt-1">{stock.stopLoss}</span>}
+                                {showSniperDynamic && <span className="text-[10px] text-slate-500 mt-1">{stock.stopLoss}</span>}
                               </div>
                             </td>
                             <td className="p-4">
                               <div className="flex flex-col">
                                 <span className="font-mono text-sm font-medium text-emerald-400">{stock.gannTP1 || stock.tp1}</span>
-                                {showSniperDynamic && <span className="text-[10px] text-zinc-500 mt-1">{stock.tp1}</span>}
+                                {showSniperDynamic && <span className="text-[10px] text-slate-500 mt-1">{stock.tp1}</span>}
                               </div>
                             </td>
                             <td className="p-4">
                               <div className="flex flex-col">
                                 <span className="font-mono text-sm font-medium text-emerald-400">{stock.gannTP2 || stock.tp2}</span>
-                                {showSniperDynamic && <span className="text-[10px] text-zinc-500 mt-1">{stock.tp2}</span>}
+                                {showSniperDynamic && <span className="text-[10px] text-slate-500 mt-1">{stock.tp2}</span>}
                               </div>
                             </td>
                             
                             
-                            <td className="p-4 font-mono text-sm text-zinc-400 pr-6">{stock.highest}</td>
+                            <td className="p-4 font-mono text-sm text-slate-400 pr-6">{stock.highest}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -820,15 +820,15 @@ export default function BursaPage() {
         {/* Custom Tab */}
         {activeTab === 'custom' && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="border border-zinc-800 bg-zinc-900/30 rounded-3xl p-8 backdrop-blur-sm mb-8">
-              <h2 className="text-xl font-bold text-zinc-200 mb-4">Manual Text Input</h2>
-              <p className="text-sm text-zinc-500 mb-6">Paste a list of stock codes or names (e.g. 2429, 4456, YTL). You can separate them by commas, spaces, or newlines.</p>
+            <div className="border border-slate-800 bg-slate-900/30 rounded-3xl p-8 backdrop-blur-sm mb-8">
+              <h2 className="text-xl font-bold text-slate-200 mb-4">Manual Text Input</h2>
+              <p className="text-sm text-slate-500 mb-6">Paste a list of stock codes or names (e.g. 2429, 4456, YTL). You can separate them by commas, spaces, or newlines.</p>
               
               <textarea
                 value={customText}
                 onChange={(e) => setCustomText(e.target.value)}
                 placeholder="e.g. 2429, YTL, 0138, MYEG"
-                className="w-full h-32 bg-zinc-950 border border-zinc-800 rounded-xl p-4 text-zinc-200 focus:outline-none focus:border-amber-500/50 resize-none mb-6"
+                className="w-full h-32 bg-slate-950 border border-slate-800 rounded-xl p-4 text-slate-200 focus:outline-none focus:border-amber-500/50 resize-none mb-6"
               />
               
               <div className="flex justify-end">
@@ -862,13 +862,13 @@ export default function BursaPage() {
                   <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center">
                     <span className="text-amber-500 font-bold">★</span>
                   </div>
-                  <h2 className="text-2xl font-bold text-zinc-100 flex-1">Sniper Analysis Results</h2>
+                  <h2 className="text-2xl font-bold text-slate-100 flex-1">Sniper Analysis Results</h2>
                   <button
                     onClick={handleSaveCustomToMaster}
                     disabled={isSavingCustom}
                     className={`px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition ${
                       isSavingCustom
-                        ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
+                        ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
                         : 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 border border-blue-500/30'
                     }`}
                   >
@@ -880,11 +880,11 @@ export default function BursaPage() {
                   </button>
                 </div>
                 
-                <div className="border border-zinc-800 bg-zinc-950/80 rounded-3xl overflow-hidden backdrop-blur-xl shadow-2xl mt-4">
+                <div className="border border-slate-800 bg-slate-950/80 rounded-3xl overflow-hidden backdrop-blur-xl shadow-2xl mt-4">
                   <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                       <thead>
-                        <tr className="bg-zinc-900/80 border-b border-zinc-800 text-xs uppercase tracking-wider text-zinc-500">
+                        <tr className="bg-slate-900/80 border-b border-slate-800 text-xs uppercase tracking-wider text-slate-500">
                           <th className="p-4 font-semibold pl-6">Rank</th>
                           <th className="p-4 font-semibold">Stock</th>
                           <th className="p-4 font-semibold">Score</th>
@@ -897,9 +897,9 @@ export default function BursaPage() {
                           <th className="p-4 font-semibold pr-6">Highest (5D)</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-zinc-800/50">
+                      <tbody className="divide-y divide-slate-800/50">
                         {top5Results.map((stock, i) => (
-                          <tr key={i} className="hover:bg-zinc-800/30 transition group">
+                          <tr key={i} className="hover:bg-slate-800/30 transition group">
                             <td className="p-4 pl-6">
                               <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-amber-500/10 text-amber-500 font-bold text-xs border border-amber-500/20">
                                 #{i + 1}
@@ -907,20 +907,20 @@ export default function BursaPage() {
                             </td>
                             <td className="p-4">
                               <div className="flex flex-col">
-                                <a href={`https://www.tradingview.com/chart/S83uhZmn/?symbol=MYX:${stock.symbol.replace('.KL', '')}`} target="_blank" rel="noopener noreferrer" className="font-bold text-zinc-200 hover:text-amber-400 hover:underline transition cursor-pointer">{stock.companyName || stock.originalName}</a>
-                                <span className="text-[10px] text-zinc-500">{stock.symbol}</span>
+                                <a href={`https://www.tradingview.com/chart/S83uhZmn/?symbol=MYX:${stock.symbol.replace('.KL', '')}`} target="_blank" rel="noopener noreferrer" className="font-bold text-slate-200 hover:text-amber-400 hover:underline transition cursor-pointer">{stock.companyName || stock.originalName}</a>
+                                <span className="text-[10px] text-slate-500">{stock.symbol}</span>
                               </div>
                             </td>
                             <td className="p-4">
                               <span className="font-bold text-amber-400">{stock.score}/10</span>
                             </td>
-                            <td className="p-4 font-mono text-sm text-zinc-300">{stock.price}</td>
-                            <td className={`p-4 font-mono text-sm font-bold ${stock.gannSLColor === 'red' ? 'text-rose-400' : stock.gannSLColor === 'blue' ? 'text-blue-400' : 'text-zinc-400'}`}>{stock.gannSL}</td>
-                            <td className={`p-4 font-mono text-sm font-medium ${stock.gannTP1Color === 'red' ? 'text-rose-400' : stock.gannTP1Color === 'blue' ? 'text-blue-400' : 'text-zinc-400'}`}>{stock.gannTP1}</td>
-                            <td className={`p-4 font-mono text-sm font-medium ${stock.gannTP2Color === 'red' ? 'text-rose-400' : stock.gannTP2Color === 'blue' ? 'text-blue-400' : 'text-zinc-400'}`}>{stock.gannTP2}</td>
+                            <td className="p-4 font-mono text-sm text-slate-300">{stock.price}</td>
+                            <td className={`p-4 font-mono text-sm font-bold ${stock.gannSLColor === 'red' ? 'text-rose-400' : stock.gannSLColor === 'blue' ? 'text-blue-400' : 'text-slate-400'}`}>{stock.gannSL}</td>
+                            <td className={`p-4 font-mono text-sm font-medium ${stock.gannTP1Color === 'red' ? 'text-rose-400' : stock.gannTP1Color === 'blue' ? 'text-blue-400' : 'text-slate-400'}`}>{stock.gannTP1}</td>
+                            <td className={`p-4 font-mono text-sm font-medium ${stock.gannTP2Color === 'red' ? 'text-rose-400' : stock.gannTP2Color === 'blue' ? 'text-blue-400' : 'text-slate-400'}`}>{stock.gannTP2}</td>
                             
                             
-                            <td className="p-4 font-mono text-sm text-zinc-400 pr-6">{stock.highest}</td>
+                            <td className="p-4 font-mono text-sm text-slate-400 pr-6">{stock.highest}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -936,18 +936,18 @@ export default function BursaPage() {
         {activeTab === 'live' && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             {!liveResults.length && !isLiveScanning && (
-              <div className="border border-zinc-800 bg-zinc-900/30 rounded-3xl p-12 text-center backdrop-blur-sm">
+              <div className="border border-slate-800 bg-slate-900/30 rounded-3xl p-12 text-center backdrop-blur-sm">
                 <div className="w-16 h-16 rounded-full bg-amber-500/10 flex items-center justify-center mx-auto mb-6">
                   <Power className="w-8 h-8 text-amber-500" />
                 </div>
-                <h3 className="text-2xl font-bold text-zinc-200 mb-2">Live Market Screener</h3>
-                <p className="text-zinc-500 max-w-md mx-auto mb-8">
+                <h3 className="text-2xl font-bold text-slate-200 mb-2">Live Market Screener</h3>
+                <p className="text-slate-500 max-w-md mx-auto mb-8">
                   Scan the top 80+ most active stocks in Bursa Malaysia instantly to find the best technical setups.
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 mx-auto justify-center">
                   <button 
                     onClick={handleLiveScan}
-                    className="group relative inline-flex items-center gap-3 px-8 py-4 bg-zinc-800 hover:bg-zinc-700 rounded-2xl text-zinc-100 font-bold transition duration-300 active:scale-95"
+                    className="group relative inline-flex items-center gap-3 px-8 py-4 bg-slate-800 hover:bg-slate-700 rounded-2xl text-slate-100 font-bold transition duration-300 active:scale-95"
                   >
                     <span>Dynamic Scan</span>
                   </button>
@@ -962,13 +962,13 @@ export default function BursaPage() {
             )}
 
             {(isLiveScanning || isUpdatingMaster) && (
-              <div className="border border-zinc-800 bg-zinc-900/50 p-12 rounded-3xl flex flex-col items-center justify-center backdrop-blur-md relative overflow-hidden">
+              <div className="border border-slate-800 bg-slate-900/50 p-12 rounded-3xl flex flex-col items-center justify-center backdrop-blur-md relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-500/10 to-transparent -translate-x-full animate-[shimmer_2s_infinite]" />
                 <Loader2 className="w-12 h-12 text-amber-500 animate-spin mb-6" />
-                <h3 className="text-xl font-bold text-zinc-200">
+                <h3 className="text-xl font-bold text-slate-200">
                   {isUpdatingMaster ? 'Updating Master List' : 'Scanning Live Market'}
                 </h3>
-                <p className="text-sm text-zinc-500 mt-2 text-center max-w-sm">
+                <p className="text-sm text-slate-500 mt-2 text-center max-w-sm">
                   Connecting to Bursa Malaysia to analyze active stocks...
                 </p>
               </div>
@@ -984,8 +984,8 @@ export default function BursaPage() {
               <div className="space-y-6">
                 <div className="flex flex-col gap-4 mb-6">
                   <div>
-                    <h2 className="text-2xl font-bold text-zinc-100">Top 30 Live Picks</h2>
-                    <p className="text-zinc-500 text-xs mt-1">
+                    <h2 className="text-2xl font-bold text-slate-100">Top 30 Live Picks</h2>
+                    <p className="text-slate-500 text-xs mt-1">
                       {lastMasterUpdate 
                         ? `Master List loaded from D1 (Last saved: ${new Date(lastMasterUpdate).toLocaleString('en-MY', { timeZone: 'Asia/Kuala_Lumpur' })})` 
                         : 'Market scanned successfully.'}
@@ -998,7 +998,7 @@ export default function BursaPage() {
                         placeholder="Search stock..." 
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-xl text-sm text-zinc-200 outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 w-36"
+                        className="px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-sm text-slate-200 outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 w-36"
                       />
                       <button 
                         type="submit"
@@ -1009,11 +1009,11 @@ export default function BursaPage() {
                       </button>
                     </form>
                     
-                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-zinc-900/50 border border-zinc-800 mx-1">
-                      <span className="text-xs font-medium text-zinc-400 select-none">Dynamic</span>
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900/50 border border-slate-800 mx-1">
+                      <span className="text-xs font-medium text-slate-400 select-none">Dynamic</span>
                       <button 
                         onClick={() => setShowDynamic(!showDynamic)}
-                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ${showDynamic ? 'bg-amber-500' : 'bg-zinc-700'}`}
+                        className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ${showDynamic ? 'bg-amber-500' : 'bg-slate-700'}`}
                       >
                         <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${showDynamic ? 'translate-x-4' : 'translate-x-1'}`} />
                       </button>
@@ -1022,7 +1022,7 @@ export default function BursaPage() {
                     <button 
                       onClick={handleLiveScan}
                       disabled={isLiveScanning || isUpdatingMaster}
-                      className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-xl text-sm font-bold transition disabled:opacity-50"
+                      className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-sm font-bold transition disabled:opacity-50"
                     >
                       Dynamic Scan
                     </button>
@@ -1035,7 +1035,7 @@ export default function BursaPage() {
                     </button>
                     <button
                       onClick={() => window.location.reload()}
-                      className="p-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-zinc-200 rounded-xl transition"
+                      className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-slate-200 rounded-xl transition"
                       title="Refresh Page"
                     >
                       <RefreshCcw className="w-5 h-5" />
@@ -1043,24 +1043,24 @@ export default function BursaPage() {
                   </div>
                 </div>
                 
-                <div className="border border-zinc-800 bg-zinc-950/80 rounded-3xl overflow-hidden backdrop-blur-xl shadow-2xl">
+                <div className="border border-slate-800 bg-slate-950/80 rounded-3xl overflow-hidden backdrop-blur-xl shadow-2xl">
                   <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                       <thead>
-                        <tr className="bg-zinc-900/80 border-b border-zinc-800 text-xs uppercase tracking-wider text-zinc-500">
+                        <tr className="bg-slate-900/80 border-b border-slate-800 text-xs uppercase tracking-wider text-slate-500">
                           <th className="p-4 font-semibold pl-6">Rank</th>
                           <th className="p-4 font-semibold">Stock</th>
                           <th className="p-4 font-semibold">Score</th>
                           <th className="p-4 font-semibold">Last Done</th>
-                          <th className="p-4 font-semibold text-rose-400/80">Stop Loss<br/>{showDynamic && <span className="text-[10px] text-zinc-600">Stat / Dyn</span>}</th>
-                          <th className="p-4 font-semibold text-emerald-400/80">TP1<br/>{showDynamic && <span className="text-[10px] text-zinc-600">Stat / Dyn</span>}</th>
-                          <th className="p-4 font-semibold text-emerald-400/80">TP2<br/>{showDynamic && <span className="text-[10px] text-zinc-600">Stat / Dyn</span>}</th>
+                          <th className="p-4 font-semibold text-rose-400/80">Stop Loss<br/>{showDynamic && <span className="text-[10px] text-slate-600">Stat / Dyn</span>}</th>
+                          <th className="p-4 font-semibold text-emerald-400/80">TP1<br/>{showDynamic && <span className="text-[10px] text-slate-600">Stat / Dyn</span>}</th>
+                          <th className="p-4 font-semibold text-emerald-400/80">TP2<br/>{showDynamic && <span className="text-[10px] text-slate-600">Stat / Dyn</span>}</th>
                           
                           
                           <th className="p-4 font-semibold pr-6">Highest (5D)</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-zinc-800/50">
+                      <tbody className="divide-y divide-slate-800/50">
                         {searchedStock && (
                           <tr className="hover:bg-blue-900/10 transition group border-b-2 border-blue-500/30 relative">
                             <td className="p-4 pl-6 relative">
@@ -1078,7 +1078,7 @@ export default function BursaPage() {
                             <td className="p-4">
                               <span className="font-bold text-amber-400">{searchedStock.score}/10</span>
                             </td>
-                            <td className="p-4 font-mono text-sm text-zinc-300">{searchedStock.price}</td>
+                            <td className="p-4 font-mono text-sm text-slate-300">{searchedStock.price}</td>
                             <td className="p-4">
                               <div className="flex flex-col gap-1">
                                 <div className="flex items-center gap-1.5">
@@ -1092,27 +1092,27 @@ export default function BursaPage() {
                               <div className="flex flex-col gap-1">
                                 <div className="flex items-center gap-1.5">
                                   <div className={`w-1.5 h-1.5 rounded-full ${searchedStock.staticTP1Color === 'blue' ? 'bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.8)]' : 'bg-rose-500 shadow-[0_0_6px_rgba(244,63,94,0.8)]'}`} />
-                                  <span className={`font-mono text-sm font-medium ${parseFloat(searchedStock.highestPrice) >= parseFloat(searchedStock.staticTP1) ? 'bg-zinc-700/30 text-yellow-400 px-1 rounded' : 'text-emerald-400'}`}>{searchedStock.staticTP1}</span>
+                                  <span className={`font-mono text-sm font-medium ${parseFloat(searchedStock.highestPrice) >= parseFloat(searchedStock.staticTP1) ? 'bg-slate-700/30 text-yellow-400 px-1 rounded' : 'text-emerald-400'}`}>{searchedStock.staticTP1}</span>
                                 </div>
-                                {showDynamic && <span className={`font-mono text-xs font-medium pl-3 ${parseFloat(searchedStock.highestPrice) >= parseFloat(searchedStock.tp1) || searchedStock.hitTp1 ? 'text-zinc-600' : 'text-emerald-500/50'}`}>{searchedStock.tp1}</span>}
+                                {showDynamic && <span className={`font-mono text-xs font-medium pl-3 ${parseFloat(searchedStock.highestPrice) >= parseFloat(searchedStock.tp1) || searchedStock.hitTp1 ? 'text-slate-600' : 'text-emerald-500/50'}`}>{searchedStock.tp1}</span>}
                               </div>
                             </td>
                             <td className={`p-4`}>
                               <div className="flex flex-col gap-1">
                                 <div className="flex items-center gap-1.5">
                                   <div className={`w-1.5 h-1.5 rounded-full ${searchedStock.staticTP2Color === 'blue' ? 'bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.8)]' : 'bg-rose-500 shadow-[0_0_6px_rgba(244,63,94,0.8)]'}`} />
-                                  <span className={`font-mono text-sm font-medium ${parseFloat(searchedStock.highestPrice) >= parseFloat(searchedStock.staticTP2) ? 'bg-zinc-700/30 text-yellow-400 px-1 rounded' : 'text-emerald-400'}`}>{searchedStock.staticTP2}</span>
+                                  <span className={`font-mono text-sm font-medium ${parseFloat(searchedStock.highestPrice) >= parseFloat(searchedStock.staticTP2) ? 'bg-slate-700/30 text-yellow-400 px-1 rounded' : 'text-emerald-400'}`}>{searchedStock.staticTP2}</span>
                                 </div>
-                                {showDynamic && <span className={`font-mono text-xs font-medium pl-3 ${parseFloat(searchedStock.highestPrice) >= parseFloat(searchedStock.tp2) || searchedStock.hitTp2 ? 'text-zinc-600' : 'text-emerald-500/50'}`}>{searchedStock.tp2}</span>}
+                                {showDynamic && <span className={`font-mono text-xs font-medium pl-3 ${parseFloat(searchedStock.highestPrice) >= parseFloat(searchedStock.tp2) || searchedStock.hitTp2 ? 'text-slate-600' : 'text-emerald-500/50'}`}>{searchedStock.tp2}</span>}
                               </div>
                             </td>
                             
                             
-                            <td className="p-4 font-mono text-sm text-zinc-500 pr-6">{searchedStock.highestPrice}</td>
+                            <td className="p-4 font-mono text-sm text-slate-500 pr-6">{searchedStock.highestPrice}</td>
                           </tr>
                         )}
                         {liveResults.map((row, idx) => (
-                          <tr key={idx} className="hover:bg-zinc-900/30 transition group">
+                          <tr key={idx} className="hover:bg-slate-900/30 transition group">
                             <td className="p-4 pl-6">
                               <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-amber-500/10 text-amber-500 font-bold text-xs border border-amber-500/20">
                                 #{idx + 1}
@@ -1120,14 +1120,14 @@ export default function BursaPage() {
                             </td>
                             <td className="p-4">
                               <div className="flex flex-col">
-                                <a href={`https://www.tradingview.com/chart/S83uhZmn/?symbol=MYX:${row.symbol.replace('.KL', '')}`} target="_blank" rel="noopener noreferrer" className="font-bold text-zinc-200 hover:text-zinc-100 hover:underline transition cursor-pointer">{row.companyName}</a>
-                                <span className="text-[10px] text-zinc-500">{row.symbol}</span>
+                                <a href={`https://www.tradingview.com/chart/S83uhZmn/?symbol=MYX:${row.symbol.replace('.KL', '')}`} target="_blank" rel="noopener noreferrer" className="font-bold text-slate-200 hover:text-slate-100 hover:underline transition cursor-pointer">{row.companyName}</a>
+                                <span className="text-[10px] text-slate-500">{row.symbol}</span>
                               </div>
                             </td>
                             <td className="p-4">
                               <span className="font-bold text-amber-400">{row.score}/10</span>
                             </td>
-                            <td className="p-4 font-mono text-sm text-zinc-300">{row.price}</td>
+                            <td className="p-4 font-mono text-sm text-slate-300">{row.price}</td>
                             <td className="p-4">
                               <div className="flex flex-col gap-1">
                                 <div className="flex items-center gap-1.5">
@@ -1141,23 +1141,23 @@ export default function BursaPage() {
                               <div className="flex flex-col gap-1">
                                 <div className="flex items-center gap-1.5">
                                   <div className={`w-1.5 h-1.5 rounded-full ${row.staticTP1Color === 'blue' ? 'bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.8)]' : 'bg-rose-500 shadow-[0_0_6px_rgba(244,63,94,0.8)]'}`} />
-                                  <span className={`font-mono text-sm font-medium ${parseFloat(row.highestPrice) >= parseFloat(row.staticTP1) ? 'bg-zinc-700/30 text-yellow-400 px-1 rounded' : 'text-emerald-400'}`}>{row.staticTP1}</span>
+                                  <span className={`font-mono text-sm font-medium ${parseFloat(row.highestPrice) >= parseFloat(row.staticTP1) ? 'bg-slate-700/30 text-yellow-400 px-1 rounded' : 'text-emerald-400'}`}>{row.staticTP1}</span>
                                 </div>
-                                {showDynamic && <span className={`font-mono text-xs font-medium pl-3 ${parseFloat(row.highestPrice) >= parseFloat(row.tp1) || row.hitTp1 ? 'text-zinc-600' : 'text-emerald-500/50'}`}>{row.tp1}</span>}
+                                {showDynamic && <span className={`font-mono text-xs font-medium pl-3 ${parseFloat(row.highestPrice) >= parseFloat(row.tp1) || row.hitTp1 ? 'text-slate-600' : 'text-emerald-500/50'}`}>{row.tp1}</span>}
                               </div>
                             </td>
                             <td className={`p-4`}>
                               <div className="flex flex-col gap-1">
                                 <div className="flex items-center gap-1.5">
                                   <div className={`w-1.5 h-1.5 rounded-full ${row.staticTP2Color === 'blue' ? 'bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.8)]' : 'bg-rose-500 shadow-[0_0_6px_rgba(244,63,94,0.8)]'}`} />
-                                  <span className={`font-mono text-sm font-medium ${parseFloat(row.highestPrice) >= parseFloat(row.staticTP2) ? 'bg-zinc-700/30 text-yellow-400 px-1 rounded' : 'text-emerald-400'}`}>{row.staticTP2}</span>
+                                  <span className={`font-mono text-sm font-medium ${parseFloat(row.highestPrice) >= parseFloat(row.staticTP2) ? 'bg-slate-700/30 text-yellow-400 px-1 rounded' : 'text-emerald-400'}`}>{row.staticTP2}</span>
                                 </div>
-                                {showDynamic && <span className={`font-mono text-xs font-medium pl-3 ${parseFloat(row.highestPrice) >= parseFloat(row.tp2) || row.hitTp2 ? 'text-zinc-600' : 'text-emerald-500/50'}`}>{row.tp2}</span>}
+                                {showDynamic && <span className={`font-mono text-xs font-medium pl-3 ${parseFloat(row.highestPrice) >= parseFloat(row.tp2) || row.hitTp2 ? 'text-slate-600' : 'text-emerald-500/50'}`}>{row.tp2}</span>}
                               </div>
                             </td>
                             
                             
-                            <td className="p-4 font-mono text-sm text-zinc-500 pr-6">{row.highestPrice}</td>
+                            <td className="p-4 font-mono text-sm text-slate-500 pr-6">{row.highestPrice}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -1172,12 +1172,12 @@ export default function BursaPage() {
         {activeTab === 'customMaster' && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             {!customMasterResults.length && !isFetchingCustomMaster && (
-              <div className="border border-zinc-800 bg-zinc-900/30 rounded-3xl p-12 text-center backdrop-blur-sm">
+              <div className="border border-slate-800 bg-slate-900/30 rounded-3xl p-12 text-center backdrop-blur-sm">
                 <div className="w-16 h-16 rounded-full bg-blue-500/10 flex items-center justify-center mx-auto mb-6">
                   <Power className="w-8 h-8 text-blue-500" />
                 </div>
-                <h3 className="text-2xl font-bold text-zinc-200 mb-2">Custom Master List</h3>
-                <p className="text-zinc-500 max-w-md mx-auto mb-8">
+                <h3 className="text-2xl font-bold text-slate-200 mb-2">Custom Master List</h3>
+                <p className="text-slate-500 max-w-md mx-auto mb-8">
                   Tiada senarai tersimpan. Sila pergi ke tab "Custom List", buat carian, dan tekan "Save to Custom Master".
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 mx-auto justify-center">
@@ -1195,7 +1195,7 @@ export default function BursaPage() {
                         })
                         .finally(() => setIsFetchingCustomMaster(false));
                     }}
-                    className="group relative inline-flex items-center gap-3 px-8 py-4 bg-zinc-800 hover:bg-zinc-700 rounded-2xl text-zinc-100 font-bold transition duration-300 active:scale-95"
+                    className="group relative inline-flex items-center gap-3 px-8 py-4 bg-slate-800 hover:bg-slate-700 rounded-2xl text-slate-100 font-bold transition duration-300 active:scale-95"
                   >
                     <span>Muat Semula senarai tersimpan</span>
                   </button>
@@ -1206,7 +1206,7 @@ export default function BursaPage() {
             {isFetchingCustomMaster && (
               <div className="flex flex-col items-center justify-center py-20">
                 <Loader2 className="w-10 h-10 animate-spin text-blue-500 mb-4" />
-                <p className="text-zinc-400 font-medium">Fetching custom master list...</p>
+                <p className="text-slate-400 font-medium">Fetching custom master list...</p>
               </div>
             )}
 
@@ -1219,14 +1219,14 @@ export default function BursaPage() {
                         <span className="text-blue-500 font-bold">★</span>
                       </div>
                       <div className="flex flex-col">
-                        <h2 className="text-2xl font-bold text-zinc-100">Custom Master List</h2>
+                        <h2 className="text-2xl font-bold text-slate-100">Custom Master List</h2>
                         <p className="text-sm font-medium text-amber-500/90 mt-0.5">
                           Tempoh seminggu: {getWeeklyTradePeriod()}
                         </p>
                       </div>
                     </div>
                     {lastCustomMasterUpdate && (
-                      <p className="text-sm text-zinc-500 mt-2 flex items-center gap-2">
+                      <p className="text-sm text-slate-500 mt-2 flex items-center gap-2">
                         <span className="relative flex h-2 w-2">
                           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                           <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
@@ -1243,7 +1243,7 @@ export default function BursaPage() {
                         placeholder="Search stock..." 
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-xl text-sm text-zinc-200 outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 w-36"
+                        className="px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-sm text-slate-200 outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 w-36"
                       />
                       <button 
                         type="submit"
@@ -1255,7 +1255,7 @@ export default function BursaPage() {
                     </form>
                     <button
                       onClick={() => setShowDynamic(!showDynamic)}
-                      className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${showDynamic ? 'bg-indigo-500 text-white shadow-[0_0_15px_rgba(99,102,241,0.4)]' : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700 hover:text-zinc-200'}`}
+                      className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${showDynamic ? 'bg-indigo-500 text-white shadow-[0_0_15px_rgba(99,102,241,0.4)]' : 'bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-slate-200'}`}
                     >
                       {showDynamic ? 'Show Static Gann' : 'Show Dynamic TP/SL'}
                     </button>
@@ -1273,7 +1273,7 @@ export default function BursaPage() {
                           })
                           .finally(() => setIsFetchingCustomMaster(false));
                       }}
-                      className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-xl text-xs font-bold transition flex items-center gap-2"
+                      className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold transition flex items-center gap-2"
                     >
                       <RefreshCcw className="w-3.5 h-3.5" /> Refresh
                     </button>
@@ -1304,7 +1304,7 @@ export default function BursaPage() {
                       </div>
                       <button 
                         onClick={() => setCustomTopPicks([])}
-                        className="ml-auto p-2 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 rounded-xl transition"
+                        className="ml-auto p-2 text-slate-500 hover:text-slate-300 hover:bg-slate-800 rounded-xl transition"
                         title="Close Top Picks"
                       >
                         <X className="w-5 h-5" />
@@ -1319,17 +1319,17 @@ export default function BursaPage() {
                         return (
                           <div key={i} className="relative group">
                             <div className="absolute -inset-0.5 bg-gradient-to-br from-amber-500/40 to-orange-600/10 rounded-3xl blur opacity-30 group-hover:opacity-60 transition duration-500" />
-                            <div className="relative p-6 rounded-2xl border border-amber-500/30 bg-zinc-950/80 backdrop-blur-sm flex flex-col gap-4">
+                            <div className="relative p-6 rounded-2xl border border-amber-500/30 bg-slate-950/80 backdrop-blur-sm flex flex-col gap-4">
                               <div className="flex justify-between items-start">
                                 <div>
                                   <div className="flex items-center gap-2">
-                                    <a href={`https://www.tradingview.com/chart/S83uhZmn/?symbol=MYX:${(res.symbol || '').replace('.KL', '')}`} target="_blank" rel="noopener noreferrer" className="font-bold text-2xl text-zinc-100 hover:text-blue-400 transition cursor-pointer">{name}</a>
-                                    {i === 0 && <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-400 text-zinc-950">#1</span>}
-                                    {i === 1 && <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-zinc-300 text-zinc-950">#2</span>}
-                                    {i === 2 && <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-700 text-zinc-100">#3</span>}
+                                    <a href={`https://www.tradingview.com/chart/S83uhZmn/?symbol=MYX:${(res.symbol || '').replace('.KL', '')}`} target="_blank" rel="noopener noreferrer" className="font-bold text-2xl text-slate-100 hover:text-blue-400 transition cursor-pointer">{name}</a>
+                                    {i === 0 && <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-400 text-slate-950">#1</span>}
+                                    {i === 1 && <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-300 text-slate-950">#2</span>}
+                                    {i === 2 && <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-700 text-slate-100">#3</span>}
                                   </div>
-                                  <span className="block text-sm text-zinc-400 mt-1">RM {price ? price.toFixed(3) : '-'}</span>
-                                  <span className="block text-xs font-mono text-zinc-600 mt-1">{res.symbol}</span>
+                                  <span className="block text-sm text-slate-400 mt-1">RM {price ? price.toFixed(3) : '-'}</span>
+                                  <span className="block text-xs font-mono text-slate-600 mt-1">{res.symbol}</span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                   <button
@@ -1347,9 +1347,9 @@ export default function BursaPage() {
                                 </div>
                               </div>
                               
-                              <div className="flex justify-between items-end mt-4 pt-4 border-t border-zinc-800">
+                              <div className="flex justify-between items-end mt-4 pt-4 border-t border-slate-800">
                                 <div>
-                                  <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest block mb-1">Sniper Score</span>
+                                  <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest block mb-1">Sniper Score</span>
                                   <div className="flex items-baseline gap-1">
                                     <span className="text-3xl font-black text-amber-400">{score}</span>
                                   </div>
@@ -1363,18 +1363,18 @@ export default function BursaPage() {
                   </div>
                 )}
 
-                <div className="border border-zinc-800 bg-zinc-950/80 rounded-3xl overflow-hidden backdrop-blur-xl shadow-2xl">
+                <div className="border border-slate-800 bg-slate-950/80 rounded-3xl overflow-hidden backdrop-blur-xl shadow-2xl">
                   <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                       <thead>
-                        <tr className="bg-zinc-900/80 border-b border-zinc-800 text-xs uppercase tracking-wider text-zinc-500">
+                        <tr className="bg-slate-900/80 border-b border-slate-800 text-xs uppercase tracking-wider text-slate-500">
                           <th className="p-4 font-semibold w-16 pl-6">Rank</th>
                           <th className="p-4 font-semibold w-48">Stock</th>
                           <th className="p-4 font-semibold w-24">Score</th>
                           <th className="p-4 font-semibold w-32">
                             <div className="flex flex-col">
                               <span>Last Done</span>
-                              <span className="text-[10px] text-zinc-500 font-normal capitalize">
+                              <span className="text-[10px] text-slate-500 font-normal capitalize">
                                 {searchedStock?.lastDoneDate || (customMasterResults.length > 0 ? customMasterResults[0].lastDoneDate : '') || '(Date)'}
                               </span>
                             </div>
@@ -1388,7 +1388,7 @@ export default function BursaPage() {
                           <th className="p-4 font-semibold pr-6 w-32">Highest (This Week)</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-zinc-800/50">
+                      <tbody className="divide-y divide-slate-800/50">
                         {searchedStock && (
                           <tr className="hover:bg-blue-900/10 transition group border-b-2 border-blue-500/30 relative">
                             <td className="p-4 pl-6 relative">
@@ -1406,7 +1406,7 @@ export default function BursaPage() {
                             <td className="p-4">
                               <span className="font-bold text-amber-400">{searchedStock.score}/10</span>
                             </td>
-                            <td className="p-4 font-mono text-sm text-zinc-300">
+                            <td className="p-4 font-mono text-sm text-slate-300">
                               {searchedStock.price}
                             </td>
                             <td className="p-4">
@@ -1414,7 +1414,7 @@ export default function BursaPage() {
                                 const cur = parseFloat(searchedStock.currentPrice || searchedStock.price);
                                 const isGolden = cur > parseFloat(searchedStock.staticSL) && cur < parseFloat(searchedStock.staticTP1) && cur > parseFloat(searchedStock.price);
                                 return (
-                                  <div className={`flex w-fit items-center gap-1.5 font-mono text-sm ${isGolden ? 'bg-emerald-600 text-white px-2 py-0.5 rounded-full animate-pulse shadow-[0_0_10px_rgba(5,150,105,0.6)]' : 'text-zinc-300'}`}>
+                                  <div className={`flex w-fit items-center gap-1.5 font-mono text-sm ${isGolden ? 'bg-emerald-600 text-white px-2 py-0.5 rounded-full animate-pulse shadow-[0_0_10px_rgba(5,150,105,0.6)]' : 'text-slate-300'}`}>
                                     <span className={isGolden ? 'font-bold' : ''}>{searchedStock.currentPrice || searchedStock.price}</span>
                                     {cur > parseFloat(searchedStock.price) ? (
                                       <TrendingUp className={`w-3.5 h-3.5 ${isGolden ? 'text-white' : 'text-emerald-400'}`} />
@@ -1438,27 +1438,27 @@ export default function BursaPage() {
                               <div className="flex flex-col gap-1">
                                 <div className="flex items-center gap-1.5">
                                   <div className={`w-1.5 h-1.5 rounded-full ${searchedStock.staticTP1Color === 'blue' ? 'bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.8)]' : 'bg-rose-500 shadow-[0_0_6px_rgba(244,63,94,0.8)]'}`} />
-                                  <span className={`font-mono text-sm font-medium ${parseFloat(searchedStock.highestPrice) >= parseFloat(searchedStock.staticTP1) ? 'bg-zinc-700/30 text-yellow-400 px-1 rounded' : 'text-emerald-400'}`}>{searchedStock.staticTP1}</span>
+                                  <span className={`font-mono text-sm font-medium ${parseFloat(searchedStock.highestPrice) >= parseFloat(searchedStock.staticTP1) ? 'bg-slate-700/30 text-yellow-400 px-1 rounded' : 'text-emerald-400'}`}>{searchedStock.staticTP1}</span>
                                 </div>
-                                {showDynamic && <span className={`font-mono text-xs font-medium pl-3 ${parseFloat(searchedStock.highestPrice) >= parseFloat(searchedStock.tp1) || searchedStock.hitTp1 ? 'text-zinc-600' : 'text-emerald-500/50'}`}>{searchedStock.tp1}</span>}
+                                {showDynamic && <span className={`font-mono text-xs font-medium pl-3 ${parseFloat(searchedStock.highestPrice) >= parseFloat(searchedStock.tp1) || searchedStock.hitTp1 ? 'text-slate-600' : 'text-emerald-500/50'}`}>{searchedStock.tp1}</span>}
                               </div>
                             </td>
                             <td className={`p-4`}>
                               <div className="flex flex-col gap-1">
                                 <div className="flex items-center gap-1.5">
                                   <div className={`w-1.5 h-1.5 rounded-full ${searchedStock.staticTP2Color === 'blue' ? 'bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.8)]' : 'bg-rose-500 shadow-[0_0_6px_rgba(244,63,94,0.8)]'}`} />
-                                  <span className={`font-mono text-sm font-medium ${parseFloat(searchedStock.highestPrice) >= parseFloat(searchedStock.staticTP2) ? 'bg-zinc-700/30 text-yellow-400 px-1 rounded' : 'text-emerald-400'}`}>{searchedStock.staticTP2}</span>
+                                  <span className={`font-mono text-sm font-medium ${parseFloat(searchedStock.highestPrice) >= parseFloat(searchedStock.staticTP2) ? 'bg-slate-700/30 text-yellow-400 px-1 rounded' : 'text-emerald-400'}`}>{searchedStock.staticTP2}</span>
                                 </div>
-                                {showDynamic && <span className={`font-mono text-xs font-medium pl-3 ${parseFloat(searchedStock.highestPrice) >= parseFloat(searchedStock.tp2) || searchedStock.hitTp2 ? 'text-zinc-600' : 'text-emerald-500/50'}`}>{searchedStock.tp2}</span>}
+                                {showDynamic && <span className={`font-mono text-xs font-medium pl-3 ${parseFloat(searchedStock.highestPrice) >= parseFloat(searchedStock.tp2) || searchedStock.hitTp2 ? 'text-slate-600' : 'text-emerald-500/50'}`}>{searchedStock.tp2}</span>}
                               </div>
                             </td>
                             
                             
-                            <td className="p-4 font-mono text-sm text-zinc-500 pr-6">{searchedStock.highestPrice}</td>
+                            <td className="p-4 font-mono text-sm text-slate-500 pr-6">{searchedStock.highestPrice}</td>
                           </tr>
                         )}
                         {customMasterResults.map((row, idx) => (
-                          <tr key={idx} className="hover:bg-zinc-800/30 transition group">
+                          <tr key={idx} className="hover:bg-slate-800/30 transition group">
                             <td className="p-4 pl-6">
                               <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-500/10 text-blue-500 font-bold text-xs border border-blue-500/20">
                                 #{idx + 1}
@@ -1466,14 +1466,14 @@ export default function BursaPage() {
                             </td>
                             <td className="p-4">
                               <div className="flex flex-col">
-                                <a href={`https://www.tradingview.com/chart/S83uhZmn/?symbol=MYX:${row.symbol.replace('.KL', '')}`} target="_blank" rel="noopener noreferrer" className="font-bold text-zinc-200 hover:text-blue-400 hover:underline transition cursor-pointer">{row.companyName}</a>
-                                <span className="text-[10px] text-zinc-500 font-mono">{row.symbol}</span>
+                                <a href={`https://www.tradingview.com/chart/S83uhZmn/?symbol=MYX:${row.symbol.replace('.KL', '')}`} target="_blank" rel="noopener noreferrer" className="font-bold text-slate-200 hover:text-blue-400 hover:underline transition cursor-pointer">{row.companyName}</a>
+                                <span className="text-[10px] text-slate-500 font-mono">{row.symbol}</span>
                               </div>
                             </td>
                             <td className="p-4">
                               <span className="font-bold text-blue-400">{row.score}/10</span>
                             </td>
-                            <td className="p-4 font-mono text-sm text-zinc-300">
+                            <td className="p-4 font-mono text-sm text-slate-300">
                               {row.price}
                             </td>
                             <td className="p-4">
@@ -1481,7 +1481,7 @@ export default function BursaPage() {
                                 const cur = parseFloat(row.currentPrice || row.price);
                                 const isGolden = cur > parseFloat(row.staticSL) && cur < parseFloat(row.staticTP1) && cur > parseFloat(row.price);
                                 return (
-                                  <div className={`flex w-fit items-center gap-1.5 font-mono text-sm ${isGolden ? 'bg-emerald-600 text-white px-2 py-0.5 rounded-full animate-pulse shadow-[0_0_10px_rgba(5,150,105,0.6)]' : 'text-zinc-300'}`}>
+                                  <div className={`flex w-fit items-center gap-1.5 font-mono text-sm ${isGolden ? 'bg-emerald-600 text-white px-2 py-0.5 rounded-full animate-pulse shadow-[0_0_10px_rgba(5,150,105,0.6)]' : 'text-slate-300'}`}>
                                     <span className={isGolden ? 'font-bold' : ''}>{row.currentPrice || row.price}</span>
                                     {cur > parseFloat(row.price) ? (
                                       <TrendingUp className={`w-3.5 h-3.5 ${isGolden ? 'text-white' : 'text-emerald-400'}`} />
@@ -1505,23 +1505,23 @@ export default function BursaPage() {
                               <div className="flex flex-col gap-1">
                                 <div className="flex items-center gap-1.5">
                                   <div className={`w-1.5 h-1.5 rounded-full ${row.staticTP1Color === 'blue' ? 'bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.8)]' : 'bg-rose-500 shadow-[0_0_6px_rgba(244,63,94,0.8)]'}`} />
-                                  <span className={`font-mono text-sm font-medium ${parseFloat(row.highestPrice) >= parseFloat(row.staticTP1) ? 'bg-zinc-700/30 text-yellow-400 px-1 rounded' : 'text-emerald-400'}`}>{row.staticTP1}</span>
+                                  <span className={`font-mono text-sm font-medium ${parseFloat(row.highestPrice) >= parseFloat(row.staticTP1) ? 'bg-slate-700/30 text-yellow-400 px-1 rounded' : 'text-emerald-400'}`}>{row.staticTP1}</span>
                                 </div>
-                                {showDynamic && <span className={`font-mono text-xs font-medium pl-3 ${parseFloat(row.highestPrice) >= parseFloat(row.tp1) || row.hitTp1 ? 'text-zinc-600' : 'text-emerald-500/50'}`}>{row.tp1}</span>}
+                                {showDynamic && <span className={`font-mono text-xs font-medium pl-3 ${parseFloat(row.highestPrice) >= parseFloat(row.tp1) || row.hitTp1 ? 'text-slate-600' : 'text-emerald-500/50'}`}>{row.tp1}</span>}
                               </div>
                             </td>
                             <td className={`p-4`}>
                               <div className="flex flex-col gap-1">
                                 <div className="flex items-center gap-1.5">
                                   <div className={`w-1.5 h-1.5 rounded-full ${row.staticTP2Color === 'blue' ? 'bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.8)]' : 'bg-rose-500 shadow-[0_0_6px_rgba(244,63,94,0.8)]'}`} />
-                                  <span className={`font-mono text-sm font-medium ${parseFloat(row.highestPrice) >= parseFloat(row.staticTP2) ? 'bg-zinc-700/30 text-yellow-400 px-1 rounded' : 'text-emerald-400'}`}>{row.staticTP2}</span>
+                                  <span className={`font-mono text-sm font-medium ${parseFloat(row.highestPrice) >= parseFloat(row.staticTP2) ? 'bg-slate-700/30 text-yellow-400 px-1 rounded' : 'text-emerald-400'}`}>{row.staticTP2}</span>
                                 </div>
-                                {showDynamic && <span className={`font-mono text-xs font-medium pl-3 ${parseFloat(row.highestPrice) >= parseFloat(row.tp2) || row.hitTp2 ? 'text-zinc-600' : 'text-emerald-500/50'}`}>{row.tp2}</span>}
+                                {showDynamic && <span className={`font-mono text-xs font-medium pl-3 ${parseFloat(row.highestPrice) >= parseFloat(row.tp2) || row.hitTp2 ? 'text-slate-600' : 'text-emerald-500/50'}`}>{row.tp2}</span>}
                               </div>
                             </td>
                             
                             
-                            <td className="p-4 font-mono text-sm text-zinc-500 pr-6">{row.highestPrice}</td>
+                            <td className="p-4 font-mono text-sm text-slate-500 pr-6">{row.highestPrice}</td>
                           </tr>
                         ))}
                       </tbody>
