@@ -844,11 +844,19 @@ export default function VibeTrader() {
                                 <td className="p-4 font-mono text-sm font-bold text-rose-400">
                                   {res.levels?.stop_loss ? `${getCurrencySymbol(res.ticker)} ${(showDynamicLevels || !res.levels.static_sl) ? res.levels.stop_loss.toFixed(2) : res.levels.static_sl.toFixed(2)}` : '-'}
                                 </td>
-                                <td className="p-4 font-mono text-sm font-medium text-emerald-400">
-                                  {res.levels?.take_profit_1 ? `${getCurrencySymbol(res.ticker)} ${(showDynamicLevels || !res.levels.static_tp1) ? res.levels.take_profit_1.toFixed(2) : res.levels.static_tp1.toFixed(2)}` : '-'}
+                                <td className="p-4 font-mono text-sm font-medium">
+                                  {res.levels?.take_profit_1 ? (
+                                    <span className={`${(res.technical_indicators?.current_price || 0) >= ((showDynamicLevels || !res.levels.static_tp1) ? res.levels.take_profit_1 : res.levels.static_tp1) ? 'bg-zinc-700/30 text-yellow-400 px-1 rounded' : 'text-emerald-400'}`}>
+                                      {getCurrencySymbol(res.ticker)} {(showDynamicLevels || !res.levels.static_tp1) ? res.levels.take_profit_1.toFixed(2) : res.levels.static_tp1.toFixed(2)}
+                                    </span>
+                                  ) : '-'}
                                 </td>
-                                <td className="p-4 font-mono text-sm font-medium text-emerald-400">
-                                  {res.levels?.take_profit_2 ? `${getCurrencySymbol(res.ticker)} ${(showDynamicLevels || !res.levels.static_tp2) ? res.levels.take_profit_2.toFixed(2) : res.levels.static_tp2.toFixed(2)}` : '-'}
+                                <td className="p-4 font-mono text-sm font-medium">
+                                  {res.levels?.take_profit_2 ? (
+                                    <span className={`${(res.technical_indicators?.current_price || 0) >= ((showDynamicLevels || !res.levels.static_tp2) ? res.levels.take_profit_2 : res.levels.static_tp2) ? 'bg-zinc-700/30 text-yellow-400 px-1 rounded' : 'text-emerald-400'}`}>
+                                      {getCurrencySymbol(res.ticker)} {(showDynamicLevels || !res.levels.static_tp2) ? res.levels.take_profit_2.toFixed(2) : res.levels.static_tp2.toFixed(2)}
+                                    </span>
+                                  ) : '-'}
                                 </td>
                                 <td className="p-4 pr-6">
                                   <div className="flex items-center justify-end gap-3">
@@ -1148,7 +1156,7 @@ export default function VibeTrader() {
                           <span className="text-zinc-500 text-[10px] uppercase font-bold tracking-wider block mb-1">
                             Target 1 (TP1)
                           </span>
-                          <span className="text-sm sm:text-base font-bold font-mono text-emerald-400 block">
+                          <span className={`text-sm sm:text-base font-bold font-mono block w-fit ${(result.technical_indicators?.current_price || 0) >= ((showDynamicLevels || !result.levels.static_tp1) ? result.levels.take_profit_1 : result.levels.static_tp1) ? 'bg-zinc-700/30 text-yellow-400 px-1 rounded -ml-1' : 'text-emerald-400'}`}>
                             {cSym} {(showDynamicLevels || !result.levels.static_tp1) ? result.levels.take_profit_1.toFixed(2) : result.levels.static_tp1.toFixed(2)}
                           </span>
                           <span className="text-[9px] text-zinc-500 block mt-1">
@@ -1161,7 +1169,7 @@ export default function VibeTrader() {
                           <span className="text-zinc-500 text-[10px] uppercase font-bold tracking-wider block mb-1">
                             Target 2 (TP2)
                           </span>
-                          <span className="text-sm sm:text-base font-bold font-mono text-purple-400 block">
+                          <span className={`text-sm sm:text-base font-bold font-mono block w-fit ${(result.technical_indicators?.current_price || 0) >= ((showDynamicLevels || !result.levels.static_tp2) ? result.levels.take_profit_2 : result.levels.static_tp2) ? 'bg-zinc-700/30 text-yellow-400 px-1 rounded -ml-1' : 'text-purple-400'}`}>
                             {cSym} {(showDynamicLevels || !result.levels.static_tp2) ? result.levels.take_profit_2.toFixed(2) : result.levels.static_tp2.toFixed(2)}
                           </span>
                           <span className="text-[9px] text-zinc-500 block mt-1">
