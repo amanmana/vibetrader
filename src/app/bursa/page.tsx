@@ -53,7 +53,7 @@ export default function BursaPage() {
     
     // Filter for picks with good potential
     const filtered = customMasterResults.filter(res => {
-      if (ignoredList.includes(res.ticker)) return false;
+      if (ignoredList.includes(res.symbol)) return false;
       
       const curPrice = parseFloat(res.currentPrice || res.price);
       const sl = parseFloat(res.staticSL);
@@ -1314,7 +1314,7 @@ export default function BursaPage() {
                       {customTopPicks.map((res, i) => {
                         const score = res.score?.split('/')[0] || 0;
                         const price = parseFloat(res.currentPrice || res.price || 0);
-                        const name = res.name || '';
+                        const name = res.companyName || '';
                         
                         return (
                           <div key={i} className="relative group">
@@ -1323,7 +1323,7 @@ export default function BursaPage() {
                               <div className="flex justify-between items-start">
                                 <div>
                                   <div className="flex items-center gap-2">
-                                    <span className="font-mono font-bold text-2xl text-zinc-100">{res.ticker}</span>
+                                    <a href={`https://www.tradingview.com/chart/S83uhZmn/?symbol=MYX:${(res.symbol || '').replace('.KL', '')}`} target="_blank" rel="noopener noreferrer" className="font-mono font-bold text-2xl text-zinc-100 hover:text-blue-400 transition cursor-pointer">{res.symbol}</a>
                                     {i === 0 && <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-400 text-zinc-950">#1</span>}
                                     {i === 1 && <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-zinc-300 text-zinc-950">#2</span>}
                                     {i === 2 && <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-700 text-zinc-100">#3</span>}
@@ -1335,7 +1335,7 @@ export default function BursaPage() {
                                   <button
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      const newIgnored = [...ignoredCustomPicks, res.ticker];
+                                      const newIgnored = [...ignoredCustomPicks, res.symbol];
                                       setIgnoredCustomPicks(newIgnored);
                                       findCustomTopPicks(newIgnored);
                                     }}
