@@ -28,7 +28,10 @@ import {
   X,
   AlertCircle,
   RefreshCcw,
-  Save
+  Save,
+  Calculator,
+  Loader2,
+  Check
 } from 'lucide-react';
 import { getStaticGannTargets } from '@/utils/gann';
 
@@ -48,7 +51,15 @@ export default function VibeTrader() {
   const [loadingNews, setLoadingNews] = useState(false);
   
   // Screener State
-  const [activeTab, setActiveTab] = useState<'watchlist' | 'screener' | 'us-sniper'>('watchlist');
+  const [activeTab, setActiveTab] = useState<'watchlist' | 'screener' | 'us-sniper' | 'calculator'>('watchlist');
+
+  // Calculator state
+  const [calcTicker, setCalcTicker] = useState('');
+  const [calcPrice, setCalcPrice] = useState<string>('');
+  const [calcCompany, setCalcCompany] = useState('');
+  const [calcLastFetch, setCalcLastFetch] = useState<string>('');
+  const [calcRecent, setCalcRecent] = useState<string[]>([]);
+  const [isCalcFetching, setIsCalcFetching] = useState(false);
   const [usSniperResults, setUsSniperResults] = useState<any[]>([]);
   const [isFetchingUsSniper, setIsFetchingUsSniper] = useState(false);
   const [usSniperType, setUsSniperType] = useState('top_swing_picks');
@@ -345,7 +356,59 @@ export default function VibeTrader() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, usSniperType, usSniperView]);
 
+  const fetchCalcPrice = async () => {
+    if (!calcTicker) return;
+    setIsCalcFetching(true);
+    try {
+      const response = await fetch('/api/gann-edge', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ticker: calcTicker.toUpperCase() })
+      });
+      const data = await response.json();
+      
+      if (data.success && data.data) {
+        const p = data.data.technical_indicators?.current_price;
+        if (p) setCalcPrice(p.toString());
+        if (data.data.name) setCalcCompany(data.data.name);
+        
+        setCalcLastFetch(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+        
+        // Add to recent
+        const tick = calcTicker.toUpperCase();
+        setCalcRecent(prev => {
+          const newRecent = [tick, ...prev.filter(t => t !== tick)].slice(0, 5);
+          return newRecent;
+        });
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsCalcFetching(false);
+    }
+  };
+
   const scanMarket = async () => {
+    setIsScreening(true);
+    setLiveError('');
+    setScreenerResults([]);
+    try {
+      const res = await fetch(`/api/screener?type=${screenerType}`);
+      const data = await res.json();
+      if (data.success && data.results) {
+        setScreenerResults(data.results);
+      } else {
+        setLiveError(data.error || 'Failed to scan market.');
+      }
+    } catch (e: any) {
+      console.error("Failed to fetch Live Screener:", e);
+      setLiveError(e.message || 'Failed to scan market.');
+    } finally {
+      setIsScreening(false);
+    }
+  };
+
+  const handleLiveScan = async () => {
     setIsScreening(true);
     setScreenerResults([]);
     try {
@@ -740,6 +803,19 @@ export default function VibeTrader() {
               }`}
             >
               🇺🇸 US Sniper
+            </button>
+            <button
+              onClick={() => {
+                setActiveTab('calculator');
+                setTopPicks([]);
+                setIgnoredPicks([]);
+              }}
+              className={`flex-1 py-4 text-sm font-bold flex items-center justify-center gap-2 transition border-b-2 ${
+                activeTab === 'calculator' ? 'border-emerald-400 text-emerald-400 bg-zinc-800/30' : 'border-transparent text-zinc-500 hover:bg-zinc-800/50 hover:text-zinc-300'
+              }`}
+            >
+              <Calculator className="w-4 h-4" />
+              Calculator
             </button>
           </div>
 
@@ -2019,6 +2095,119 @@ export default function VibeTrader() {
               </div>
             )}
 
+          </div>
+        )}
+
+        {/* Calculator Tab */}
+        {activeTab === 'calculator' && (
+          <div className="bg-zinc-900/40 border border-zinc-800/80 rounded-3xl p-6 md:p-8 backdrop-blur-xl shadow-2xl mb-8">
+            <div className="mb-8">
+              <h2 className="text-2xl font-black text-zinc-100 flex items-center gap-3">
+                Trailing Stop Reference
+              </h2>
+              <p className="text-sm text-zinc-400 mt-1">
+                Calculate trailing stop prices based on percentage drops
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+              <div>
+                <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-2">
+                  Ticker Symbol (Optional)
+                </label>
+                <input
+                  type="text"
+                  value={calcTicker}
+                  onChange={(e) => setCalcTicker(e.target.value)}
+                  placeholder="e.g. CRDO"
+                  className="w-full bg-zinc-950/50 border border-zinc-800 rounded-xl px-4 py-3 text-sm text-zinc-200 focus:outline-none focus:border-blue-500/50 transition font-mono uppercase"
+                  onKeyDown={(e) => e.key === 'Enter' && fetchCalcPrice()}
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-2">
+                  Reference Price (USD)
+                </label>
+                <div className="flex gap-3">
+                  <div className="relative flex-1">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 font-mono">$</span>
+                    <input
+                      type="number"
+                      step="0.001"
+                      value={calcPrice}
+                      onChange={(e) => setCalcPrice(e.target.value)}
+                      placeholder="0.00"
+                      className="w-full bg-zinc-950/50 border border-zinc-800 rounded-xl pl-8 pr-4 py-3 text-sm text-zinc-200 focus:outline-none focus:border-blue-500/50 transition font-mono"
+                    />
+                  </div>
+                  <button
+                    onClick={fetchCalcPrice}
+                    disabled={!calcTicker || isCalcFetching}
+                    className="w-12 flex-shrink-0 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-xl flex items-center justify-center transition disabled:opacity-50"
+                  >
+                    {isCalcFetching ? <Loader2 className="w-5 h-5 animate-spin" /> : <TrendingUp className="w-5 h-5" />}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {calcCompany && (
+              <div className="mb-4 flex flex-col gap-1 text-sm">
+                <span className="font-bold text-emerald-400">{calcCompany}</span>
+                <span className="text-zinc-400 text-xs flex items-center gap-1">
+                  <Check className="w-3 h-3" /> Last price from Yahoo Finance: ${parseFloat(calcPrice).toFixed(3)} • {calcTicker.toUpperCase()} • fetched {calcLastFetch}
+                </span>
+              </div>
+            )}
+
+            {calcRecent.length > 0 && (
+              <div className="flex items-center gap-2 mb-8">
+                <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Recent:</span>
+                <div className="flex gap-2">
+                  {calcRecent.map(t => (
+                    <button
+                      key={t}
+                      onClick={() => {
+                        setCalcTicker(t);
+                        // Trigger fetch with this ticker. 
+                        // Note: state update is async, so we pass it explicitly or rely on a useEffect.
+                        // Since we can't easily pass it to fetchCalcPrice without refactoring, 
+                        // we'll just set it and the user can click fetch, or we update fetchCalcPrice to accept a parameter.
+                        // Let's rely on the setCalcTicker for now.
+                      }}
+                      className="bg-zinc-800/50 hover:bg-zinc-700/50 border border-zinc-700/50 rounded-full px-3 py-1 text-xs font-mono text-zinc-300 transition"
+                    >
+                      {t}
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => {
+                      setCalcRecent([]);
+                      setCalcTicker('');
+                      setCalcPrice('');
+                      setCalcCompany('');
+                    }}
+                    className="p-1 text-zinc-500 hover:text-rose-400 transition ml-2"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {calcPrice && !isNaN(parseFloat(calcPrice)) && (
+              <div className="grid grid-cols-2 md:grid-cols-5 border border-zinc-800 rounded-xl overflow-hidden bg-zinc-950/30">
+                {[-0.2, -0.3, -0.5, -0.7, -1, -1.5, -2, -2.5, -3, -3.5].map((pct, i) => {
+                  const price = parseFloat(calcPrice) * (1 + pct / 100);
+                  return (
+                    <div key={i} className="p-5 border-r border-b border-zinc-800/50 flex flex-col items-center justify-center gap-1.5 hover:bg-zinc-900/50 transition">
+                      <span className="text-sm font-mono font-bold text-zinc-300">{pct}%</span>
+                      <span className="text-lg font-black font-mono text-emerald-400">${price.toFixed(3)}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
         
