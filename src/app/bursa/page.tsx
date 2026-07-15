@@ -1323,13 +1323,13 @@ export default function BursaPage() {
                               <div className="flex justify-between items-start">
                                 <div>
                                   <div className="flex items-center gap-2">
-                                    <a href={`https://www.tradingview.com/chart/S83uhZmn/?symbol=MYX:${(res.symbol || '').replace('.KL', '')}`} target="_blank" rel="noopener noreferrer" className="font-mono font-bold text-2xl text-zinc-100 hover:text-blue-400 transition cursor-pointer">{res.symbol}</a>
+                                    <a href={`https://www.tradingview.com/chart/S83uhZmn/?symbol=MYX:${(res.symbol || '').replace('.KL', '')}`} target="_blank" rel="noopener noreferrer" className="font-bold text-2xl text-zinc-100 hover:text-blue-400 transition cursor-pointer">{name}</a>
                                     {i === 0 && <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-400 text-zinc-950">#1</span>}
                                     {i === 1 && <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-zinc-300 text-zinc-950">#2</span>}
                                     {i === 2 && <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-700 text-zinc-100">#3</span>}
                                   </div>
                                   <span className="block text-sm text-zinc-400 mt-1">RM {price ? price.toFixed(3) : '-'}</span>
-                                  {name && <span className="block text-xs text-zinc-600 line-clamp-1 mt-1">{name}</span>}
+                                  <span className="block text-xs font-mono text-zinc-600 mt-1">{res.symbol}</span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                   <button
