@@ -104,6 +104,15 @@ export default function VibeTrader() {
           console.error('Failed to parse latest counters:', e);
         }
       }
+      const savedCalcRecent = localStorage.getItem('vibe_calc_recent');
+      if (savedCalcRecent) {
+        try {
+          const parsed = JSON.parse(savedCalcRecent);
+          if (Array.isArray(parsed)) setCalcRecent(parsed);
+        } catch (e) {
+          console.error('Failed to parse calc recent:', e);
+        }
+      }
       const fetchWatchlist = async () => {
         try {
           const res = await fetch('/api/us-watchlist-portfolio', { cache: 'no-store' });
@@ -381,6 +390,7 @@ export default function VibeTrader() {
           const tick = calcTicker.toUpperCase();
           setCalcRecent(prev => {
             const newRecent = [tick, ...prev.filter(t => t !== tick)].slice(0, 5);
+            localStorage.setItem('vibe_calc_recent', JSON.stringify(newRecent));
             return newRecent;
           });
         } else {
@@ -2202,6 +2212,7 @@ export default function VibeTrader() {
                       setCalcPrice('');
                       setCalcCompany('');
                       setCalcError('');
+                      localStorage.removeItem('vibe_calc_recent');
                     }}
                     className="p-1 text-zinc-500 hover:text-rose-400 transition ml-2"
                   >
