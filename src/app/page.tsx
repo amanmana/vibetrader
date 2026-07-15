@@ -1026,12 +1026,12 @@ export default function VibeTrader() {
                                   {res.technical_indicators?.current_price ? `${getCurrencySymbol(res.ticker)} ${res.technical_indicators.current_price.toFixed(2)}` : (res.price ? `${getCurrencySymbol(res.ticker)} ${parseFloat(res.price).toFixed(2)}` : '-')}
                                 </td>
                                 <td className="p-4 font-mono text-sm font-bold text-rose-400">
-                                  {res.levels?.stop_loss ? `${getCurrencySymbol(res.ticker)} ${(showDynamicLevels || !res.levels.static_sl) ? res.levels.stop_loss.toFixed(2) : res.levels.static_sl.toFixed(2)}` : ((showDynamicLevels || !res.staticSL) ? (parseFloat(res.stopLoss) > 0 ? `${getCurrencySymbol(res.ticker)} ${parseFloat(res.stopLoss).toFixed(2)}` : '-') : (res.staticSL > 0 ? `${getCurrencySymbol(res.ticker)} ${res.staticSL.toFixed(2)}` : '-'))}
+                                  {res.levels?.stop_loss ? `${getCurrencySymbol(res.ticker)} ${(showDynamicLevels || !res.levels.static_sl) ? res.levels.stop_loss.toFixed(2) : res.levels.static_sl.toFixed(2)}` : ((showDynamicLevels || !res.staticSL) ? (parseFloat(res.stopLoss) > 0 ? `${getCurrencySymbol(res.ticker)} ${parseFloat(res.stopLoss).toFixed(2)}` : '-') : (parseFloat(res.staticSL) > 0 ? `${getCurrencySymbol(res.ticker)} ${parseFloat(res.staticSL).toFixed(2)}` : '-'))}
                                 </td>
                                 <td className="p-4 font-mono text-sm font-medium">
                                   {res.levels?.take_profit_1 ? (
                                     <span className={`${(res.technical_indicators?.current_price || 0) >= ((showDynamicLevels || !res.levels.static_tp1) ? res.levels.take_profit_1 : res.levels.static_tp1) ? 'bg-zinc-700/30 text-yellow-400 px-1 rounded' : 'text-emerald-400'}`}>
-                                      {getCurrencySymbol(res.ticker)} {(showDynamicLevels || !res.levels.static_tp1) ? res.levels.take_profit_1.toFixed(2) : res.levels.static_tp1.toFixed(2)}
+                                      {getCurrencySymbol(res.ticker)} ${(showDynamicLevels || !res.levels.static_tp1) ? res.levels.take_profit_1.toFixed(2) : res.levels.static_tp1.toFixed(2)}
                                     </span>
                                   ) : ((showDynamicLevels || !res.staticTP1) ? (
                                     parseFloat(res.tp1) > 0 ? (
@@ -1040,9 +1040,9 @@ export default function VibeTrader() {
                                       </span>
                                     ) : '-'
                                   ) : (
-                                    res.staticTP1 > 0 ? (
-                                      <span className={`${parseFloat(res.price) >= res.staticTP1 ? 'bg-zinc-700/30 text-yellow-400 px-1 rounded' : 'text-emerald-400'}`}>
-                                        {getCurrencySymbol(res.ticker)} {res.staticTP1.toFixed(2)}
+                                    parseFloat(res.staticTP1) > 0 ? (
+                                      <span className={`${parseFloat(res.price) >= parseFloat(res.staticTP1) ? 'bg-zinc-700/30 text-yellow-400 px-1 rounded' : 'text-emerald-400'}`}>
+                                        {getCurrencySymbol(res.ticker)} {parseFloat(res.staticTP1).toFixed(2)}
                                       </span>
                                     ) : '-'
                                   ))}
@@ -1050,7 +1050,7 @@ export default function VibeTrader() {
                                 <td className="p-4 font-mono text-sm font-medium">
                                   {res.levels?.take_profit_2 ? (
                                     <span className={`${(res.technical_indicators?.current_price || 0) >= ((showDynamicLevels || !res.levels.static_tp2) ? res.levels.take_profit_2 : res.levels.static_tp2) ? 'bg-zinc-700/30 text-yellow-400 px-1 rounded' : 'text-emerald-400'}`}>
-                                      {getCurrencySymbol(res.ticker)} {(showDynamicLevels || !res.levels.static_tp2) ? res.levels.take_profit_2.toFixed(2) : res.levels.static_tp2.toFixed(2)}
+                                      {getCurrencySymbol(res.ticker)} ${(showDynamicLevels || !res.levels.static_tp2) ? res.levels.take_profit_2.toFixed(2) : res.levels.static_tp2.toFixed(2)}
                                     </span>
                                   ) : ((showDynamicLevels || !res.staticTP2) ? (
                                     parseFloat(res.tp2) > 0 ? (
@@ -1059,9 +1059,9 @@ export default function VibeTrader() {
                                       </span>
                                     ) : '-'
                                   ) : (
-                                    res.staticTP2 > 0 ? (
-                                      <span className={`${parseFloat(res.price) >= res.staticTP2 ? 'bg-zinc-700/30 text-yellow-400 px-1 rounded' : 'text-emerald-400'}`}>
-                                        {getCurrencySymbol(res.ticker)} {res.staticTP2.toFixed(2)}
+                                    parseFloat(res.staticTP2) > 0 ? (
+                                      <span className={`${parseFloat(res.price) >= parseFloat(res.staticTP2) ? 'bg-zinc-700/30 text-yellow-400 px-1 rounded' : 'text-emerald-400'}`}>
+                                        {getCurrencySymbol(res.ticker)} {parseFloat(res.staticTP2).toFixed(2)}
                                       </span>
                                     ) : '-'
                                   ))}
