@@ -1582,8 +1582,19 @@ export default function VibeTrader() {
         )}
 
         {result && (
-          <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            {/* 1. Decision Header */}
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300">
+            <div className="bg-[#0a0a0a] border border-zinc-800 rounded-3xl w-full max-w-5xl max-h-[90vh] overflow-y-auto shadow-2xl relative custom-scrollbar">
+              {/* Close Button */}
+              <div className="sticky top-0 right-0 w-full flex justify-end p-4 z-10 pointer-events-none">
+                <button
+                  onClick={() => setResult(null)}
+                  className="p-2 bg-zinc-900/90 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 rounded-full backdrop-blur-md transition-all border border-zinc-700 pointer-events-auto shadow-lg"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="px-6 pb-8 md:px-8 md:pb-8 space-y-6">
+                {/* 1. Decision Header */}
             {(() => {
               const trend = result.adaptive_sniper?.trend;
               const confidence = result.trading_decision?.confidence_level;
@@ -2114,6 +2125,8 @@ export default function VibeTrader() {
               </div>
             )}
 
+              </div>
+            </div>
           </div>
         )}
 
