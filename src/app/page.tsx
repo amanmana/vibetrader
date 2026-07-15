@@ -61,6 +61,7 @@ export default function VibeTrader() {
   // Gann Scale State (Default false = Swing x1, True = Intraday x100)
   const [isGannIntraday, setIsGannIntraday] = useState(false);
   const [showDynamicLevels, setShowDynamicLevels] = useState(false);
+  const [isRefreshingTable, setIsRefreshingTable] = useState(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -180,6 +181,21 @@ export default function VibeTrader() {
     setWatchlistResults(results);
     syncWatchlistToDB(watchlist, results);
     setIsScanning(false);
+  };
+
+  const handleRefreshWatchlist = async () => {
+    setIsRefreshingTable(true);
+    try {
+      const res = await fetch('/api/us-watchlist-portfolio', { cache: 'no-store' });
+      const data = await res.json();
+      if (data.success) {
+        setWatchlist(data.tickers || []);
+        setWatchlistResults(data.results || []);
+      }
+    } catch (e) {
+      console.error('Failed to refresh table', e);
+    }
+    setIsRefreshingTable(false);
   };
 
   const findTopPicks = (ignoredList: string[] = ignoredPicks) => {
@@ -717,23 +733,14 @@ export default function VibeTrader() {
                       <ClipboardPaste className="w-4 h-4" />
                       Paste Tickers
                     </button>
-                    {watchlistResults.length > 0 && (
-                      <button
-                        onClick={() => setShowDynamicLevels(!showDynamicLevels)}
-                        className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 px-3 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2"
-                        title={showDynamicLevels ? "Show Static Gann" : "Show Dynamic TP/SL"}
-                      >
-                        {showDynamicLevels ? 'Show Static Gann' : 'Show Dynamic TP/SL'}
-                      </button>
-                    )}
                     <button
                       onClick={scanWatchlist}
                       disabled={isScanning}
                       className="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 px-4 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                      title="Refresh"
+                      title="Scan All"
                     >
                       <RefreshCw className={`w-4 h-4 ${isScanning ? 'animate-spin' : ''}`} />
-                      {isScanning ? 'Scanning...' : 'Refresh'}
+                      {isScanning ? 'Scanning...' : 'Scan All'}
                     </button>
                     {watchlistResults.length > 0 && (
                       <button
@@ -774,9 +781,28 @@ export default function VibeTrader() {
 
                 {/* Watchlist Scan Results Grid */}
                 {watchlistResults.length > 0 && (
-                  <div className="border border-zinc-800 bg-zinc-950/80 rounded-3xl overflow-hidden backdrop-blur-xl shadow-2xl mt-8 animate-in fade-in slide-in-from-top-4 duration-500">
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-left border-collapse">
+                  <div className="mt-8 animate-in fade-in slide-in-from-top-4 duration-500">
+                    <div className="flex justify-start items-center gap-3 mb-4">
+                      <button
+                        onClick={() => setShowDynamicLevels(!showDynamicLevels)}
+                        className="bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 px-4 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2 shadow-lg backdrop-blur-sm"
+                        title={showDynamicLevels ? "Show Static Gann" : "Show Dynamic TP/SL"}
+                      >
+                        {showDynamicLevels ? 'Show Static Gann' : 'Show Dynamic TP/SL'}
+                      </button>
+                      <button
+                        onClick={handleRefreshWatchlist}
+                        disabled={isRefreshingTable}
+                        className="bg-zinc-800/80 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 px-4 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg backdrop-blur-sm"
+                        title="Refresh Table"
+                      >
+                        <RefreshCw className={`w-4 h-4 ${isRefreshingTable ? 'animate-spin' : ''}`} />
+                        {isRefreshingTable ? 'Refreshing...' : 'Refresh'}
+                      </button>
+                    </div>
+                    <div className="border border-zinc-800 bg-zinc-950/80 rounded-3xl overflow-hidden backdrop-blur-xl shadow-2xl">
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse">
                         <thead>
                           <tr className="bg-zinc-900/80 border-b border-zinc-800 text-xs uppercase tracking-wider text-zinc-500">
                             <th className="p-4 font-semibold pl-6 w-16">Rank</th>
@@ -862,6 +888,7 @@ export default function VibeTrader() {
                           })}
                         </tbody>
                       </table>
+                    </div>
                     </div>
                   </div>
                 )}
