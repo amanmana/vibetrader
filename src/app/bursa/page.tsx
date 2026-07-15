@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from 'react';
-import { Upload, Image as ImageIcon, Loader2, AlertCircle, Copy, Check, Power, RefreshCcw, Trash2, Save, TrendingUp, TrendingDown } from 'lucide-react';
+import { Upload, Image as ImageIcon, Loader2, AlertCircle, Copy, Check, Power, RefreshCcw, Trash2, Save, TrendingUp, TrendingDown, Trophy, X } from 'lucide-react';
 
 interface BursaStock {
   stock_name: string;
@@ -45,8 +45,40 @@ export default function BursaPage() {
   const [isSearching, setIsSearching] = useState(false);
   const [searchedStock, setSearchedStock] = useState<any | null>(null);
 
-
+  const [customTopPicks, setCustomTopPicks] = useState<any[]>([]);
+  const [ignoredCustomPicks, setIgnoredCustomPicks] = useState<string[]>([]);
   
+  const findCustomTopPicks = (ignoredList: string[] = ignoredCustomPicks) => {
+    if (!customMasterResults || customMasterResults.length === 0) return;
+    
+    // Filter for picks with good potential
+    const filtered = customMasterResults.filter(res => {
+      if (ignoredList.includes(res.ticker)) return false;
+      
+      const curPrice = parseFloat(res.currentPrice || res.price);
+      const sl = parseFloat(res.staticSL);
+      const tp1 = parseFloat(res.staticTP1);
+      
+      // Basic criteria: Not hit stop loss, not hit TP1 yet
+      if (curPrice <= sl) return false;
+      if (curPrice >= tp1) return false;
+      if (res.hitTp1 || res.hitTp2) return false;
+      
+      return true;
+    });
+
+    // Sort descending by score
+    const sorted = filtered.sort((a, b) => {
+      const scoreA = parseFloat(a.score?.split('/')[0] || 0);
+      const scoreB = parseFloat(b.score?.split('/')[0] || 0);
+      return scoreB - scoreA; // descending
+    });
+
+    // Get top 3
+    setCustomTopPicks(sorted.slice(0, 3));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const getWeeklyTradePeriod = () => {
     const today = new Date();
     const dayOfWeek = today.getDay();
@@ -1245,8 +1277,92 @@ export default function BursaPage() {
                     >
                       <RefreshCcw className="w-3.5 h-3.5" /> Refresh
                     </button>
+                    <button
+                      onClick={() => {
+                        if (customTopPicks.length > 0) {
+                          setCustomTopPicks([]);
+                        } else {
+                          findCustomTopPicks();
+                        }
+                      }}
+                      className="px-4 py-2 bg-amber-600/20 border border-amber-500/30 text-amber-500 hover:bg-amber-600 hover:text-white rounded-xl text-xs font-bold transition flex items-center gap-2"
+                    >
+                      <Trophy className="w-3.5 h-3.5" /> Top 3 Picks
+                    </button>
                   </div>
                 </div>
+
+                {customTopPicks.length > 0 && (
+                  <div className="mb-8">
+                    <div className="flex items-center gap-3 mb-6 pb-4 border-b border-amber-500/20">
+                      <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center">
+                        <Trophy className="w-5 h-5 text-amber-400" />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-bold text-amber-400">Top 3 Sniper Picks 🎯</h3>
+                        <p className="text-sm text-amber-500/70">The absolute best setups from your custom master list.</p>
+                      </div>
+                      <button 
+                        onClick={() => setCustomTopPicks([])}
+                        className="ml-auto p-2 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 rounded-xl transition"
+                        title="Close Top Picks"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                      {customTopPicks.map((res, i) => {
+                        const score = res.score?.split('/')[0] || 0;
+                        const price = parseFloat(res.currentPrice || res.price || 0);
+                        const name = res.name || '';
+                        
+                        return (
+                          <div key={i} className="relative group">
+                            <div className="absolute -inset-0.5 bg-gradient-to-br from-amber-500/40 to-orange-600/10 rounded-3xl blur opacity-30 group-hover:opacity-60 transition duration-500" />
+                            <div className="relative p-6 rounded-2xl border border-amber-500/30 bg-zinc-950/80 backdrop-blur-sm flex flex-col gap-4">
+                              <div className="flex justify-between items-start">
+                                <div>
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-mono font-bold text-2xl text-zinc-100">{res.ticker}</span>
+                                    {i === 0 && <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-400 text-zinc-950">#1</span>}
+                                    {i === 1 && <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-zinc-300 text-zinc-950">#2</span>}
+                                    {i === 2 && <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-700 text-zinc-100">#3</span>}
+                                  </div>
+                                  <span className="block text-sm text-zinc-400 mt-1">RM {price ? price.toFixed(3) : '-'}</span>
+                                  {name && <span className="block text-xs text-zinc-600 line-clamp-1 mt-1">{name}</span>}
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      const newIgnored = [...ignoredCustomPicks, res.ticker];
+                                      setIgnoredCustomPicks(newIgnored);
+                                      findCustomTopPicks(newIgnored);
+                                    }}
+                                    className="p-1.5 rounded-lg text-amber-500/50 hover:text-rose-400 hover:bg-rose-500/20 transition"
+                                    title="Ignore this pick"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </div>
+                              
+                              <div className="flex justify-between items-end mt-4 pt-4 border-t border-zinc-800">
+                                <div>
+                                  <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest block mb-1">Sniper Score</span>
+                                  <div className="flex items-baseline gap-1">
+                                    <span className="text-3xl font-black text-amber-400">{score}</span>
+                                    <span className="text-zinc-600 font-bold">/ 10</span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
 
                 <div className="border border-zinc-800 bg-zinc-950/80 rounded-3xl overflow-hidden backdrop-blur-xl shadow-2xl">
                   <div className="overflow-x-auto">
