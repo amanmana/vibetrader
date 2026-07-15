@@ -555,7 +555,11 @@ export async function GET(request: Request) {
       const fetchPromises = screenerIds.map(async (sid) => {
         const fetchUrl = `https://query1.finance.yahoo.com/v1/finance/screener/predefined/saved?formatted=false&scrIds=${sid.id}&count=15`;
         try {
-          const res = await fetch(fetchUrl);
+          const res = await fetch(fetchUrl, {
+            headers: {
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            }
+          });
           const data = await res.json();
           return (data.finance?.result?.[0]?.quotes || []).map((q: any) => ({ symbol: q.symbol, category: sid.label }));
         } catch (e) {
@@ -585,7 +589,11 @@ export async function GET(request: Request) {
       
     } else {
       let fetchUrl = `https://query1.finance.yahoo.com/v1/finance/screener/predefined/saved?formatted=false&scrIds=${filterType}&count=25`;
-      const res = await fetch(fetchUrl);
+      const res = await fetch(fetchUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        }
+      });
       const data = await res.json();
       const quotes = data.finance?.result?.[0]?.quotes || [];
       const labelMap: any = {
