@@ -414,7 +414,7 @@ export default function VibeTrader() {
     try {
       const res = await fetch(`/api/screener?type=${screenerType}`);
       const data = await res.json();
-      if (data.success && data.results) {
+      if (data.results) {
         setScreenerResults(data.results);
       } else {
         setLiveError(data.error || 'Failed to scan market.');
