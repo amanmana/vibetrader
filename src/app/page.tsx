@@ -687,7 +687,7 @@ export default function VibeTrader() {
   }
 
   return (
-    <main className="relative min-h-screen bg-zinc-950 text-zinc-100 overflow-x-hidden font-sans pb-20">
+    <main className="relative min-h-screen bg-[#0B1120] text-zinc-100 overflow-x-hidden font-sans pb-20">
       {/* Background decoration */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[500px] bg-gradient-to-b from-blue-900/10 via-indigo-900/5 to-transparent rounded-full blur-[120px] pointer-events-none" />
       
