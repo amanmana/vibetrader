@@ -80,11 +80,25 @@ export default function VibeTrader() {
       }
       const fetchWatchlist = async () => {
         try {
-          const res = await fetch('/api/us-watchlist-portfolio');
+          const res = await fetch('/api/us-watchlist-portfolio', { cache: 'no-store' });
           const data = await res.json();
           if (data.success) {
-            setWatchlist(data.tickers || []);
-            setWatchlistResults(data.results || []);
+            if (data.tickers && data.tickers.length === 0 && localStorage.getItem('vibe_watchlist')) {
+              // Migrate local to DB if DB is empty but local has data
+              const savedWatchlist = localStorage.getItem('vibe_watchlist');
+              if (savedWatchlist) {
+                const parsed = JSON.parse(savedWatchlist);
+                setWatchlist(parsed);
+                fetch('/api/us-watchlist-portfolio', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ tickers: parsed, results: [] })
+                }).catch(console.error);
+              }
+            } else {
+              setWatchlist(data.tickers || []);
+              setWatchlistResults(data.results || []);
+            }
           } else {
             const savedWatchlist = localStorage.getItem('vibe_watchlist');
             if (savedWatchlist) setWatchlist(JSON.parse(savedWatchlist));
@@ -240,6 +254,7 @@ export default function VibeTrader() {
       const newWatchlist = Array.from(new Set([...watchlist, ...extracted])).slice(0, 50);
       setWatchlist(newWatchlist);
       localStorage.setItem('vibe_watchlist', JSON.stringify(newWatchlist));
+      syncWatchlistToDB(newWatchlist, watchlistResults);
       setShowImportModal(false);
       setImportText('');
     } else {
@@ -681,7 +696,9 @@ export default function VibeTrader() {
                         onClick={() => {
                           if (confirm('Are you sure you want to clear all tickers?')) {
                             setWatchlist([]);
+                            setWatchlistResults([]);
                             localStorage.setItem('vibe_watchlist', JSON.stringify([]));
+                            syncWatchlistToDB([], []);
                           }
                         }}
                         className="bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 px-3 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2"

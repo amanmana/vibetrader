@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getRequestContext } from '@cloudflare/next-on-pages';
 
 export const runtime = 'edge';
+export const dynamic = 'force-dynamic';
 
 // 1. GET: Retrieve synced watchlist tickers and scan results
 export async function GET(req: NextRequest) {
