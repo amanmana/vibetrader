@@ -2137,25 +2137,32 @@ export default function VibeTrader() {
                 <label className="block text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-2">
                   Reference Price (USD)
                 </label>
-                <div className="flex gap-3">
-                  <div className="relative flex-1">
-                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 font-mono">$</span>
-                    <input
-                      type="number"
-                      step="0.001"
-                      value={calcPrice}
-                      onChange={(e) => setCalcPrice(e.target.value)}
-                      placeholder="0.00"
-                      className="w-full bg-zinc-950/50 border border-zinc-800 rounded-xl pl-8 pr-4 py-3 text-sm text-zinc-200 focus:outline-none focus:border-blue-500/50 transition font-mono"
-                    />
+                <div className="flex flex-col gap-2">
+                  <div className="flex gap-3">
+                    <div className="relative flex-1">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 font-mono">$</span>
+                      <input
+                        type="number"
+                        step="0.001"
+                        value={calcPrice}
+                        onChange={(e) => setCalcPrice(e.target.value)}
+                        placeholder="0.00"
+                        className="w-full bg-zinc-950/50 border border-zinc-800 rounded-xl pl-8 pr-4 py-3 text-sm text-zinc-200 focus:outline-none focus:border-blue-500/50 transition font-mono"
+                      />
+                    </div>
+                    <button
+                      onClick={fetchCalcPrice}
+                      disabled={!calcTicker || isCalcFetching}
+                      className="w-12 flex-shrink-0 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-xl flex items-center justify-center transition disabled:opacity-50"
+                    >
+                      {isCalcFetching ? <Loader2 className="w-5 h-5 animate-spin" /> : <TrendingUp className="w-5 h-5" />}
+                    </button>
                   </div>
-                  <button
-                    onClick={fetchCalcPrice}
-                    disabled={!calcTicker || isCalcFetching}
-                    className="w-12 flex-shrink-0 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-xl flex items-center justify-center transition disabled:opacity-50"
-                  >
-                    {isCalcFetching ? <Loader2 className="w-5 h-5 animate-spin" /> : <TrendingUp className="w-5 h-5" />}
-                  </button>
+                  {calcCompany && (
+                    <div className="text-zinc-100/90 text-[11px] sm:text-xs flex items-center gap-1.5 mt-1 font-medium">
+                      <Check className="w-3.5 h-3.5" /> Last price from Yahoo Finance: ${parseFloat(calcPrice).toFixed(4)} • {calcTicker.toUpperCase()} ({calcCompany}) • fetched {calcLastFetch}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -2166,14 +2173,7 @@ export default function VibeTrader() {
                 {calcError}
               </div>
             )}
-            {calcCompany && (
-              <div className="mb-4 flex flex-col gap-1 text-sm">
-                <span className="font-bold text-emerald-400">{calcCompany}</span>
-                <span className="text-zinc-400 text-xs flex items-center gap-1">
-                  <Check className="w-3 h-3" /> Last price from Yahoo Finance: ${parseFloat(calcPrice).toFixed(3)} • {calcTicker.toUpperCase()} • fetched {calcLastFetch}
-                </span>
-              </div>
-            )}
+
 
             {calcRecent.length > 0 && (
               <div className="flex items-center gap-2 mb-8">
@@ -2212,13 +2212,13 @@ export default function VibeTrader() {
             )}
 
             {calcPrice && !isNaN(parseFloat(calcPrice)) && (
-              <div className="grid grid-cols-2 md:grid-cols-5 border border-zinc-800 rounded-xl overflow-hidden bg-zinc-950/30">
+              <div className="grid grid-cols-2 md:grid-cols-5 border border-zinc-800 rounded-xl overflow-hidden bg-zinc-950/40">
                 {[-0.2, -0.3, -0.5, -0.7, -1, -1.5, -2, -2.5, -3, -3.5].map((pct, i) => {
                   const price = parseFloat(calcPrice) * (1 + pct / 100);
                   return (
-                    <div key={i} className="p-5 border-r border-b border-zinc-800/50 flex flex-col items-center justify-center gap-1.5 hover:bg-zinc-900/50 transition">
-                      <span className="text-sm font-mono font-bold text-zinc-300">{pct}%</span>
-                      <span className="text-lg font-black font-mono text-emerald-400">${price.toFixed(3)}</span>
+                    <div key={i} className="p-4 border-r border-b border-zinc-800/50 flex flex-col items-center justify-center gap-1.5 hover:bg-zinc-900/50 transition">
+                      <span className="text-xs font-mono font-bold text-zinc-300">{pct}%</span>
+                      <span className="text-[15px] font-black font-mono text-emerald-400">${price.toFixed(3)}</span>
                     </div>
                   );
                 })}
