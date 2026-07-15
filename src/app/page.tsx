@@ -60,6 +60,7 @@ export default function VibeTrader() {
 
   // Gann Scale State (Default false = Swing x1, True = Intraday x100)
   const [isGannIntraday, setIsGannIntraday] = useState(false);
+  const [showDynamicLevels, setShowDynamicLevels] = useState(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -716,13 +717,23 @@ export default function VibeTrader() {
                       <ClipboardPaste className="w-4 h-4" />
                       Paste Tickers
                     </button>
+                    {watchlistResults.length > 0 && (
+                      <button
+                        onClick={() => setShowDynamicLevels(!showDynamicLevels)}
+                        className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 px-3 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2"
+                        title={showDynamicLevels ? "Show Static Gann" : "Show Dynamic TP/SL"}
+                      >
+                        {showDynamicLevels ? 'Show Static Gann' : 'Show Dynamic TP/SL'}
+                      </button>
+                    )}
                     <button
                       onClick={scanWatchlist}
                       disabled={isScanning}
                       className="bg-zinc-800 hover:bg-zinc-700 text-zinc-200 border border-zinc-700 px-4 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                      title="Refresh"
                     >
                       <RefreshCw className={`w-4 h-4 ${isScanning ? 'animate-spin' : ''}`} />
-                      {isScanning ? 'Scanning...' : 'Scan All'}
+                      {isScanning ? 'Scanning...' : 'Refresh'}
                     </button>
                     {watchlistResults.length > 0 && (
                       <button
@@ -805,13 +816,13 @@ export default function VibeTrader() {
                                   {res.technical_indicators?.current_price ? `${getCurrencySymbol(res.ticker)} ${res.technical_indicators.current_price.toFixed(2)}` : '-'}
                                 </td>
                                 <td className="p-4 font-mono text-sm font-bold text-rose-400">
-                                  {res.levels?.stop_loss ? `${getCurrencySymbol(res.ticker)} ${res.levels.stop_loss.toFixed(2)}` : '-'}
+                                  {res.levels?.stop_loss ? `${getCurrencySymbol(res.ticker)} ${(showDynamicLevels || !res.levels.static_sl) ? res.levels.stop_loss.toFixed(2) : res.levels.static_sl.toFixed(2)}` : '-'}
                                 </td>
                                 <td className="p-4 font-mono text-sm font-medium text-emerald-400">
-                                  {res.levels?.take_profit_1 ? `${getCurrencySymbol(res.ticker)} ${res.levels.take_profit_1.toFixed(2)}` : '-'}
+                                  {res.levels?.take_profit_1 ? `${getCurrencySymbol(res.ticker)} ${(showDynamicLevels || !res.levels.static_tp1) ? res.levels.take_profit_1.toFixed(2) : res.levels.static_tp1.toFixed(2)}` : '-'}
                                 </td>
                                 <td className="p-4 font-mono text-sm font-medium text-emerald-400">
-                                  {res.levels?.take_profit_2 ? `${getCurrencySymbol(res.ticker)} ${res.levels.take_profit_2.toFixed(2)}` : '-'}
+                                  {res.levels?.take_profit_2 ? `${getCurrencySymbol(res.ticker)} ${(showDynamicLevels || !res.levels.static_tp2) ? res.levels.take_profit_2.toFixed(2) : res.levels.static_tp2.toFixed(2)}` : '-'}
                                 </td>
                                 <td className="p-4 pr-6">
                                   <div className="flex items-center justify-end gap-3">
@@ -878,6 +889,15 @@ export default function VibeTrader() {
                       <option value="most_actives">Most Active</option>
                       <option value="day_losers">Top Losers</option>
                     </select>
+                    {screenerResults.length > 0 && (
+                      <button
+                        onClick={() => setShowDynamicLevels(!showDynamicLevels)}
+                        className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 border border-zinc-700 px-3 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2 shrink-0"
+                        title={showDynamicLevels ? "Show Static Gann" : "Show Dynamic TP/SL"}
+                      >
+                        {showDynamicLevels ? 'Show Static Gann' : 'Show Dynamic TP/SL'}
+                      </button>
+                    )}
                     <button
                       onClick={scanMarket}
                       disabled={isScreening}
@@ -1089,9 +1109,11 @@ export default function VibeTrader() {
                             Stop Loss (SL)
                           </span>
                           <span className="text-sm sm:text-base font-bold font-mono text-rose-400 block">
-                            {cSym} {result.levels.stop_loss.toFixed(2)}
+                            {cSym} {(showDynamicLevels || !result.levels.static_sl) ? result.levels.stop_loss.toFixed(2) : result.levels.static_sl.toFixed(2)}
                           </span>
-                          <span className="text-[9px] text-zinc-500 block mt-1">ATR / Swing Low</span>
+                          <span className="text-[9px] text-zinc-500 block mt-1">
+                            {showDynamicLevels ? 'ATR / Swing Low' : 'Gann Support'}
+                          </span>
                         </div>
 
                         {/* Take Profit 1 */}
@@ -1100,9 +1122,11 @@ export default function VibeTrader() {
                             Target 1 (TP1)
                           </span>
                           <span className="text-sm sm:text-base font-bold font-mono text-emerald-400 block">
-                            {cSym} {result.levels.take_profit_1.toFixed(2)}
+                            {cSym} {(showDynamicLevels || !result.levels.static_tp1) ? result.levels.take_profit_1.toFixed(2) : result.levels.static_tp1.toFixed(2)}
                           </span>
-                          <span className="text-[9px] text-zinc-500 block mt-1">1.0x R:R Target</span>
+                          <span className="text-[9px] text-zinc-500 block mt-1">
+                            {showDynamicLevels ? '1.0x R:R Target' : 'Gann Resistance'}
+                          </span>
                         </div>
 
                         {/* Take Profit 2 */}
@@ -1111,9 +1135,11 @@ export default function VibeTrader() {
                             Target 2 (TP2)
                           </span>
                           <span className="text-sm sm:text-base font-bold font-mono text-purple-400 block">
-                            {cSym} {result.levels.take_profit_2.toFixed(2)}
+                            {cSym} {(showDynamicLevels || !result.levels.static_tp2) ? result.levels.take_profit_2.toFixed(2) : result.levels.static_tp2.toFixed(2)}
                           </span>
-                          <span className="text-[9px] text-zinc-500 block mt-1">2.0x R:R Target</span>
+                          <span className="text-[9px] text-zinc-500 block mt-1">
+                            {showDynamicLevels ? '2.0x R:R Target' : 'Gann Resistance'}
+                          </span>
                         </div>
 
                         {/* Take Profit 3 */}

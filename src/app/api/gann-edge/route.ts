@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getRequestContext } from '@cloudflare/next-on-pages';
+import { getStaticGannTargets } from '@/utils/gann';
 
 export const runtime = 'edge';
 
@@ -585,6 +586,8 @@ export async function POST(request: Request) {
       tp3Val = 0;
     }
 
+    const gann = getStaticGannTargets(finalClose, 1);
+
     let parsedJSON: any = null;
 
     try {
@@ -623,7 +626,10 @@ JSON OUTPUT FORMAT:
     "stop_loss": ${stopLossVal},
     "take_profit_1": ${tp1Val},
     "take_profit_2": ${tp2Val},
-    "take_profit_3": ${tp3Val}
+    "take_profit_3": ${tp3Val},
+    "static_sl": ${gann.staticSL},
+    "static_tp1": ${gann.staticTP1},
+    "static_tp2": ${gann.staticTP2}
   },
   "technical_indicators": {
     "current_price": ${livePrice},
@@ -694,6 +700,9 @@ JSON OUTPUT FORMAT:
           take_profit_1: parseFloat(tp1Val.toFixed(2)),
           take_profit_2: parseFloat(tp2Val.toFixed(2)),
           take_profit_3: parseFloat(tp3Val.toFixed(2)),
+          static_sl: parseFloat(gann.staticSL),
+          static_tp1: parseFloat(gann.staticTP1),
+          static_tp2: parseFloat(gann.staticTP2),
           support: parseFloat(latestSwingLowVal.toFixed(2)),
           resistance: parseFloat(latestSwingHighVal.toFixed(2))
         },
@@ -725,6 +734,9 @@ JSON OUTPUT FORMAT:
         take_profit_1: parseFloat(tp1Val.toFixed(2)),
         take_profit_2: parseFloat(tp2Val.toFixed(2)),
         take_profit_3: parseFloat(tp3Val.toFixed(2)),
+        static_sl: parseFloat(gann.staticSL),
+        static_tp1: parseFloat(gann.staticTP1),
+        static_tp2: parseFloat(gann.staticTP2),
         support: parseFloat(latestSwingLowVal.toFixed(2)),
         resistance: parseFloat(latestSwingHighVal.toFixed(2))
       };
