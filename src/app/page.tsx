@@ -60,6 +60,7 @@ export default function VibeTrader() {
   const [calcLastFetch, setCalcLastFetch] = useState<string>('');
   const [calcRecent, setCalcRecent] = useState<string[]>([]);
   const [isCalcFetching, setIsCalcFetching] = useState(false);
+  const [calcError, setCalcError] = useState('');
   const [usSniperResults, setUsSniperResults] = useState<any[]>([]);
   const [isFetchingUsSniper, setIsFetchingUsSniper] = useState(false);
   const [usSniperType, setUsSniperType] = useState('top_swing_picks');
@@ -359,6 +360,7 @@ export default function VibeTrader() {
   const fetchCalcPrice = async () => {
     if (!calcTicker) return;
     setIsCalcFetching(true);
+    setCalcError('');
     try {
       const response = await fetch('/api/gann-edge', {
         method: 'POST',
@@ -369,20 +371,27 @@ export default function VibeTrader() {
       
       if (data && !data.error) {
         const p = data.technical_indicators?.current_price || data.levels?.entry_price;
-        if (p) setCalcPrice(p.toString());
-        if (data.company_name) setCalcCompany(data.company_name);
-        
-        setCalcLastFetch(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
-        
-        // Add to recent
-        const tick = calcTicker.toUpperCase();
-        setCalcRecent(prev => {
-          const newRecent = [tick, ...prev.filter(t => t !== tick)].slice(0, 5);
-          return newRecent;
-        });
+        if (p) {
+          setCalcPrice(p.toString());
+          if (data.company_name) setCalcCompany(data.company_name);
+          
+          setCalcLastFetch(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+          
+          // Add to recent
+          const tick = calcTicker.toUpperCase();
+          setCalcRecent(prev => {
+            const newRecent = [tick, ...prev.filter(t => t !== tick)].slice(0, 5);
+            return newRecent;
+          });
+        } else {
+          setCalcError('Ticker not found or no price data available.');
+        }
+      } else {
+        setCalcError(data.error || 'Ticker not found.');
       }
     } catch (e) {
       console.error(e);
+      setCalcError('Failed to fetch ticker data.');
     } finally {
       setIsCalcFetching(false);
     }
@@ -2151,6 +2160,12 @@ export default function VibeTrader() {
               </div>
             </div>
 
+            {calcError && (
+              <div className="mb-6 p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-sm text-rose-400 flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
+                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                {calcError}
+              </div>
+            )}
             {calcCompany && (
               <div className="mb-4 flex flex-col gap-1 text-sm">
                 <span className="font-bold text-emerald-400">{calcCompany}</span>
@@ -2186,6 +2201,7 @@ export default function VibeTrader() {
                       setCalcTicker('');
                       setCalcPrice('');
                       setCalcCompany('');
+                      setCalcError('');
                     }}
                     className="p-1 text-zinc-500 hover:text-rose-400 transition ml-2"
                   >
