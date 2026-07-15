@@ -809,7 +809,6 @@ export default function VibeTrader() {
                               <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest block mb-1">Sniper Score</span>
                               <div className="flex items-baseline gap-1">
                                 <span className={`text-3xl font-black ${isBuy ? 'text-emerald-400' : 'text-amber-400'}`}>{score}</span>
-                                <span className="text-zinc-600 font-bold">/ 10</span>
                               </div>
                             </div>
                             <button

@@ -1312,7 +1312,7 @@ export default function BursaPage() {
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                       {customTopPicks.map((res, i) => {
-                        const score = res.score?.split('/')[0] || 0;
+                        const score = res.score || 0;
                         const price = parseFloat(res.currentPrice || res.price || 0);
                         const name = res.companyName || '';
                         
@@ -1352,7 +1352,6 @@ export default function BursaPage() {
                                   <span className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest block mb-1">Sniper Score</span>
                                   <div className="flex items-baseline gap-1">
                                     <span className="text-3xl font-black text-amber-400">{score}</span>
-                                    <span className="text-zinc-600 font-bold">/ 10</span>
                                   </div>
                                 </div>
                               </div>
