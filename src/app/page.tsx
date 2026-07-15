@@ -2237,7 +2237,7 @@ export default function VibeTrader() {
 
             {calcPrice && !isNaN(parseFloat(calcPrice)) && (
               <div className="grid grid-cols-2 md:grid-cols-5 border border-slate-800 rounded-xl overflow-hidden bg-slate-950/40">
-                {[-0.2, -0.3, -0.5, -0.7, -1, -1.5, -2, -2.5, -3, -3.5].map((pct, i) => {
+                {[-0.2, -0.3, -0.5, -0.7, -1, -1.5, -2, -2.5, -3, -3.5, -4, -4.5, -5, -6, -8].map((pct, i) => {
                   const price = parseFloat(calcPrice) * (1 + pct / 100);
                   return (
                     <div key={i} className="p-4 border-r border-b border-slate-800/50 flex flex-col items-center justify-center gap-1.5 hover:bg-slate-900/50 transition">
