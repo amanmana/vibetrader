@@ -116,7 +116,7 @@ export async function GET(req: NextRequest) {
       const basePrice = q?.lastWeekClose || row.price;
       const currentLivePrice = q?.currentLivePrice || row.price;
       const currentHigh = q?.currentHigh || currentLivePrice;
-      const newHighestPrice = Math.max(row.highest_price, currentHigh);
+      const newHighestPrice = currentHigh;
       
       return {
         symbol: row.symbol,
