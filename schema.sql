@@ -48,3 +48,10 @@ CREATE TABLE IF NOT EXISTS us_custom_picks (
   static_tp3_color TEXT NOT NULL,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS us_watchlist_sync (
+  id TEXT PRIMARY KEY,
+  tickers_json TEXT NOT NULL,
+  results_json TEXT NOT NULL,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);

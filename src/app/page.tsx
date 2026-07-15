@@ -78,18 +78,39 @@ export default function VibeTrader() {
           console.error('Failed to parse latest counters:', e);
         }
       }
-      const savedWatchlist = localStorage.getItem('vibe_watchlist');
-      if (savedWatchlist) {
+      const fetchWatchlist = async () => {
         try {
-          const parsed = JSON.parse(savedWatchlist);
-          if (Array.isArray(parsed)) setWatchlist(parsed);
+          const res = await fetch('/api/us-watchlist-portfolio');
+          const data = await res.json();
+          if (data.success) {
+            setWatchlist(data.tickers || []);
+            setWatchlistResults(data.results || []);
+          } else {
+            const savedWatchlist = localStorage.getItem('vibe_watchlist');
+            if (savedWatchlist) setWatchlist(JSON.parse(savedWatchlist));
+          }
         } catch (e) {
-          console.error('Failed to parse watchlist:', e);
+          console.error('Failed to fetch watchlist from DB', e);
+          const savedWatchlist = localStorage.getItem('vibe_watchlist');
+          if (savedWatchlist) setWatchlist(JSON.parse(savedWatchlist));
         }
-      }
-      setIsCheckingAuth(false);
+        setIsCheckingAuth(false);
+      };
+      fetchWatchlist();
     }
   }, []);
+
+  const syncWatchlistToDB = async (tickers: string[], results: any[]) => {
+    try {
+      await fetch('/api/us-watchlist-portfolio', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tickers, results })
+      });
+    } catch (e) {
+      console.error("Failed to sync watchlist to DB:", e);
+    }
+  };
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,16 +130,16 @@ export default function VibeTrader() {
 
   const toggleWatchlist = (symbol: string) => {
     if (!symbol) return;
-    setWatchlist((prev) => {
-      let updated;
-      if (prev.includes(symbol)) {
-        updated = prev.filter(t => t !== symbol);
-      } else {
-        updated = [...prev, symbol];
-      }
-      localStorage.setItem('vibe_watchlist', JSON.stringify(updated));
-      return updated;
-    });
+    const isAdding = !watchlist.includes(symbol);
+    const updatedWatchlist = isAdding ? [...watchlist, symbol] : watchlist.filter(t => t !== symbol);
+    
+    setWatchlist(updatedWatchlist);
+    localStorage.setItem('vibe_watchlist', JSON.stringify(updatedWatchlist));
+    
+    const updatedResults = isAdding ? watchlistResults : watchlistResults.filter(r => r.ticker !== symbol);
+    if (!isAdding) setWatchlistResults(updatedResults);
+
+    syncWatchlistToDB(updatedWatchlist, updatedResults);
   };
 
   const scanWatchlist = async () => {
@@ -142,6 +163,7 @@ export default function VibeTrader() {
       }
     }
     setWatchlistResults(results);
+    syncWatchlistToDB(watchlist, results);
     setIsScanning(false);
   };
 
@@ -795,8 +817,10 @@ export default function VibeTrader() {
                                         e.stopPropagation();
                                         const newList = watchlist.filter(t => t !== res.ticker);
                                         setWatchlist(newList);
-                                        setWatchlistResults(prev => prev.filter(r => r.ticker !== res.ticker));
+                                        const newResults = watchlistResults.filter(r => r.ticker !== res.ticker);
+                                        setWatchlistResults(newResults);
                                         localStorage.setItem('vibe_watchlist', JSON.stringify(newList));
+                                        syncWatchlistToDB(newList, newResults);
                                       }}
                                       className="p-1.5 rounded-lg text-zinc-600 hover:text-rose-400 hover:bg-rose-500/20 transition"
                                       title="Remove from Watchlist"
@@ -881,7 +905,7 @@ export default function VibeTrader() {
                               onClick={(e) => {
                                 e.stopPropagation();
                                 const isTracked = watchlist.includes(result.ticker);
-                                let newList = [];
+                                let newList: string[] = [];
                                 if (isTracked) {
                                   newList = watchlist.filter(t => t !== result.ticker);
                                 } else {
@@ -889,6 +913,10 @@ export default function VibeTrader() {
                                 }
                                 setWatchlist(newList);
                                 localStorage.setItem('vibe_watchlist', JSON.stringify(newList));
+                                
+                                const updatedResults = isTracked ? watchlistResults.filter(r => r.ticker !== result.ticker) : watchlistResults;
+                                if (isTracked) setWatchlistResults(updatedResults);
+                                syncWatchlistToDB(newList, updatedResults);
                               }}
                               className={`p-1.5 rounded-lg transition ${watchlist.includes(result.ticker) ? 'text-amber-400 bg-amber-400/10' : 'text-zinc-600 hover:text-zinc-300 hover:bg-zinc-800'}`}
                               title={watchlist.includes(result.ticker) ? "Remove from Watchlist" : "Add to Watchlist"}
