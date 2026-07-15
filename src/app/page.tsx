@@ -25,7 +25,10 @@ import {
   Radar,
   Trophy,
   ClipboardPaste,
-  X
+  X,
+  AlertCircle,
+  RefreshCcw,
+  Save
 } from 'lucide-react';
 import { getStaticGannTargets } from '@/utils/gann';
 
@@ -45,7 +48,16 @@ export default function VibeTrader() {
   const [loadingNews, setLoadingNews] = useState(false);
   
   // Screener State
-  const [activeTab, setActiveTab] = useState<'watchlist' | 'screener'>('watchlist');
+  const [activeTab, setActiveTab] = useState<'watchlist' | 'screener' | 'us-sniper'>('watchlist');
+  const [usSniperResults, setUsSniperResults] = useState<any[]>([]);
+  const [isFetchingUsSniper, setIsFetchingUsSniper] = useState(false);
+  const [usSniperType, setUsSniperType] = useState('top_swing_picks');
+  const [usSniperView, setUsSniperView] = useState<'scanner' | 'watchlist'>('scanner');
+  const [usWatchlist, setUsWatchlist] = useState<any[]>([]);
+  const [isFetchingUsWatchlist, setIsFetchingUsWatchlist] = useState(false);
+  const [isSavingUsWatchlist, setIsSavingUsWatchlist] = useState(false);
+  const [liveError, setLiveError] = useState('');
+  const [showDynamic, setShowDynamic] = useState(false);
   const [screenerResults, setScreenerResults] = useState<any[]>([]);
   const [isScreening, setIsScreening] = useState(false);
   const [screenerType, setScreenerType] = useState('day_gainers');
@@ -239,6 +251,99 @@ export default function VibeTrader() {
     setTopPicks(sorted.slice(0, 3));
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  const fetchUsSniper = async () => {
+    setIsFetchingUsSniper(true);
+    setLiveError('');
+    try {
+      const res = await fetch(`/api/screener?type=${usSniperType}`);
+      const data = await res.json();
+      if (data.results) {
+        setUsSniperResults(data.results);
+      } else {
+        setLiveError(data.error || 'Failed to fetch US Market data.');
+      }
+    } catch (e: any) {
+      console.error("Failed to fetch US Sniper:", e);
+      setLiveError(e.message || 'Failed to fetch US Market data.');
+    } finally {
+      setIsFetchingUsSniper(false);
+    }
+  };
+
+  const removeUsSniperResult = (ticker: string) => {
+    setUsSniperResults(prev => prev.filter(r => r.ticker !== ticker));
+  };
+
+  const fetchUsWatchlist = async () => {
+    setIsFetchingUsWatchlist(true);
+    try {
+      const res = await fetch(`/api/us-custom-picks`);
+      const data = await res.json();
+      if (data.success) {
+        setUsWatchlist(data.data);
+      }
+    } catch (e) {
+      console.error("Failed to fetch US Watchlist:", e);
+    } finally {
+      setIsFetchingUsWatchlist(false);
+    }
+  };
+
+  const saveToUsWatchlist = async (row: any) => {
+    setIsSavingUsWatchlist(true);
+    try {
+      const payload = {
+        ticker: row.ticker,
+        name: row.name,
+        price: row.price,
+        score: row.score,
+        highestPrice: row.highestPrice,
+        staticSL: row.staticSL,
+        staticSLColor: row.staticSLColor,
+        staticTP1: row.staticTP1,
+        staticTP1Color: row.staticTP1Color,
+        staticTP2: row.staticTP2,
+        staticTP2Color: row.staticTP2Color,
+        staticTP3: row.staticTP3,
+        staticTP3Color: row.staticTP3Color,
+      };
+      const res = await fetch('/api/us-custom-picks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (!data.success) {
+        console.error('Failed to save:', data.error);
+        return;
+      }
+      setUsWatchlist(prev => [...prev, payload]);
+    } catch (e) {
+      console.error("Failed to save to US Watchlist:", e);
+    } finally {
+      setIsSavingUsWatchlist(false);
+    }
+  };
+
+  const removeFromUsWatchlist = async (ticker: string) => {
+    try {
+      await fetch(`/api/us-custom-picks?ticker=${ticker}`, { method: 'DELETE' });
+      setUsWatchlist(prev => prev.filter(r => r.ticker !== ticker));
+    } catch (e) {
+      console.error("Failed to remove from US Watchlist:", e);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === 'us-sniper' && usSniperView === 'scanner' && usSniperResults.length === 0) {
+      fetchUsSniper();
+    }
+    if (activeTab === 'us-sniper' && usSniperView === 'watchlist' && usWatchlist.length === 0) {
+      fetchUsWatchlist();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, usSniperType, usSniperView]);
 
   const scanMarket = async () => {
     setIsScreening(true);
@@ -621,6 +726,20 @@ export default function VibeTrader() {
             >
               <Radar className="w-4 h-4" />
               Live Screener
+            </button>
+            <button
+              onClick={() => {
+                setActiveTab('us-sniper');
+                setTopPicks([]);
+                setIgnoredPicks([]);
+                if (usSniperResults.length === 0 && usSniperView === 'scanner') fetchUsSniper();
+                if (usWatchlist.length === 0 && usSniperView === 'watchlist') fetchUsWatchlist();
+              }}
+              className={`flex-1 py-4 text-sm font-bold flex items-center justify-center gap-2 transition border-b-2 ${
+                activeTab === 'us-sniper' ? 'border-rose-400 text-rose-400 bg-zinc-800/30' : 'border-transparent text-zinc-500 hover:bg-zinc-800/50 hover:text-zinc-300'
+              }`}
+            >
+              🇺🇸 US Sniper
             </button>
           </div>
 
@@ -1115,6 +1234,249 @@ export default function VibeTrader() {
               </>
             )}
           </div>
+        {/* US Sniper Tab */}
+        {activeTab === 'us-sniper' && (
+          <div className="space-y-6">
+            <div className="bg-zinc-900/40 border border-white/5 rounded-2xl p-6 backdrop-blur-md relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-32 bg-rose-500/5 rounded-full blur-[100px] pointer-events-none" />
+              <div className="relative z-10 flex flex-col md:flex-row gap-4 items-end">
+                <div className="flex-1">
+                  <h3 className="text-2xl font-bold text-zinc-200 mb-2">🇺🇸 US Market Sniper</h3>
+                  <p className="text-sm text-zinc-400">
+                    Sistem akan memilih saham US yang berpotensi tinggi dari screener terpilih dan menapis kaunter yang sedang <strong>Downtrend</strong> secara automatik.
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                    {usSniperView === 'scanner' ? (
+                      <select
+                        value={usSniperType}
+                        onChange={(e) => setUsSniperType(e.target.value)}
+                        className="bg-zinc-800 border border-zinc-700 text-zinc-200 px-4 py-2.5 rounded-xl outline-none focus:border-rose-500/50 transition-colors"
+                      >
+                        <option value="top_swing_picks">🔥 Top 3 Swing Picks (2-5 Days)</option>
+                        <option value="day_gainers">Top Gainers</option>
+                        <option value="most_actives">Most Actives</option>
+                        <option value="day_losers">Day Losers</option>
+                        <option value="fifty_two_wk_gainers">52-Week Highs</option>
+                        <option value="aggressive_small_caps">Aggressive Small Caps</option>
+                        <option value="growth_technology_stocks">Growth Tech Stocks</option>
+                      </select>
+                    ) : null}
+                    
+                    {usSniperView === 'scanner' ? (
+                      <button
+                        onClick={fetchUsSniper}
+                        disabled={isFetchingUsSniper}
+                        className="bg-rose-500 hover:bg-rose-600 disabled:opacity-50 text-white px-6 py-2.5 rounded-xl font-bold transition flex items-center gap-2 shadow-lg shadow-rose-500/20"
+                      >
+                        {isFetchingUsSniper ? (
+                          <><div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" /> Scanning...</>
+                        ) : (
+                          <><span className="text-lg">🎯</span> Scan US Market</>
+                        )}
+                      </button>
+                    ) : (
+                      <button
+                        onClick={fetchUsWatchlist}
+                        disabled={isFetchingUsWatchlist}
+                        className="bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white px-6 py-2.5 rounded-xl font-bold transition flex items-center gap-2 shadow-lg shadow-emerald-500/20"
+                      >
+                        {isFetchingUsWatchlist ? (
+                          <><RefreshCcw className="w-4 h-4 animate-spin" /> Refreshing...</>
+                        ) : (
+                          <><RefreshCcw className="w-4 h-4" /> Refresh Prices</>
+                        )}
+                      </button>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-1 bg-zinc-950/50 p-1 rounded-xl w-fit relative z-10 mt-4 border border-zinc-800/50">
+                  <button
+                    onClick={() => setUsSniperView('scanner')}
+                    className={`px-6 py-2.5 rounded-lg font-semibold text-sm transition-all duration-200 ${usSniperView === 'scanner' ? 'bg-zinc-800 text-white shadow-md' : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50'}`}
+                  >
+                    Live Scanner
+                  </button>
+                  <button
+                    onClick={() => setUsSniperView('watchlist')}
+                    className={`px-6 py-2.5 rounded-lg font-semibold text-sm transition-all duration-200 ${usSniperView === 'watchlist' ? 'bg-zinc-800 text-white shadow-md' : 'text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50'}`}
+                  >
+                    Saved Watchlist
+                  </button>
+                </div>
+              </div>
+
+            {liveError && (
+              <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 text-red-400 text-sm">
+                {liveError}
+              </div>
+            )}
+
+            {(usSniperView === 'scanner' ? usSniperResults : usWatchlist).length > 0 && (() => {
+              const dataSource = usSniperView === 'scanner' ? usSniperResults.slice(0, usSniperType === 'top_swing_picks' ? 3 : usSniperResults.length) : usWatchlist;
+              return (
+              <div className="border border-zinc-800 bg-zinc-950/80 rounded-3xl overflow-hidden backdrop-blur-xl shadow-2xl mt-6">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-zinc-900/80 border-b border-zinc-800 text-xs uppercase tracking-wider text-zinc-500">
+                        <th className="p-4 font-semibold pl-6 w-16">Rank</th>
+                        <th className="p-4 font-semibold w-48">Stock</th>
+                        <th className="p-4 font-semibold w-24">Score</th>
+                        {usSniperView !== 'scanner' && (
+                          <th className="p-4 font-semibold w-32">
+                            <div className="flex flex-col">
+                              <span>Last Done</span>
+                              <span className="text-[10px] text-zinc-500 font-normal capitalize">
+                                {usWatchlist.length > 0 ? usWatchlist[0].lastDoneDate : '(Date)'}
+                              </span>
+                            </div>
+                          </th>
+                        )}
+                        <th className="p-4 font-semibold w-24">Last Price</th>
+                        <th className="p-4 font-semibold text-rose-400/80 w-32">Stop Loss</th>
+                        <th className="p-4 font-semibold text-emerald-400/80 w-32">TP1</th>
+                        <th className="p-4 font-semibold text-emerald-400/80 w-32">TP2</th>
+                        {usSniperView !== 'scanner' && (
+                          <>
+                            <th className="p-4 font-semibold text-emerald-400/80 w-32">TP3</th>
+                            <th className="p-4 font-semibold text-emerald-400/80 w-32">TP4</th>
+                          </>
+                        )}
+                        
+                        <th className="p-4 font-semibold pr-6 w-32">Highest (This Week)</th>
+                        <th className="p-4 font-semibold w-12 text-center text-zinc-500">Act</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-zinc-800/50">
+                      {dataSource.map((row, idx) => (
+                        <tr key={idx} className="hover:bg-zinc-800/30 transition group">
+                          <td className="p-4 pl-6">
+                            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-rose-500/10 text-rose-500 font-bold text-xs border border-rose-500/20">
+                              #{idx + 1}
+                            </span>
+                          </td>
+                          <td className="p-4">
+                            <div className="flex flex-col">
+                              <a href={`https://www.tradingview.com/chart/S83uhZmn/?symbol=${row.ticker}`} target="_blank" rel="noopener noreferrer" className="font-bold text-zinc-200 hover:text-rose-400 hover:underline transition cursor-pointer">{row.name}</a>
+                              <div className="flex items-center gap-2 mt-0.5">
+                                <span className="text-[10px] text-zinc-500 font-mono bg-zinc-800/50 px-1.5 py-0.5 rounded">{row.ticker}</span>
+                                {row.category && (
+                                  <span className="text-[9px] font-bold text-indigo-400/80 uppercase tracking-wider bg-indigo-500/10 border border-indigo-500/20 px-1.5 py-0.5 rounded truncate max-w-[120px]">
+                                    {row.category}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="p-4">
+                            <span className={`font-bold ${parseFloat(row.score) >= 7.0 ? 'text-emerald-400' : 'text-amber-400'}`}>{row.score}/10</span>
+                          </td>
+                          {usSniperView !== 'scanner' && (
+                            <td className="p-4 font-mono text-sm text-zinc-300">
+                              ${row.price}
+                            </td>
+                          )}
+                          <td className="p-4">
+                            {(() => {
+                              const cur = parseFloat(row.currentPrice || row.price);
+                              const isGolden = cur > parseFloat(row.staticSL) && cur < parseFloat(row.staticTP1) && cur > parseFloat(row.price);
+                              return (
+                                <div className={`flex w-fit items-center gap-1.5 font-mono text-sm ${isGolden ? 'bg-emerald-600 text-white px-2 py-0.5 rounded-full animate-pulse shadow-[0_0_10px_rgba(5,150,105,0.6)]' : 'text-zinc-300'}`}>
+                                  <span className={isGolden ? 'font-bold' : ''}>${row.currentPrice || row.price}</span>
+                                  {cur > parseFloat(row.price) ? (
+                                    <TrendingUp className={`w-3.5 h-3.5 ${isGolden ? 'text-white' : 'text-emerald-400'}`} />
+                                  ) : cur < parseFloat(row.price) ? (
+                                    <TrendingDown className="w-3.5 h-3.5 text-rose-400" />
+                                  ) : null}
+                                </div>
+                              );
+                            })()}
+                          </td>
+                          <td className={`p-4`}>
+                            <div className="flex flex-col gap-1">
+                              <div className="flex items-center gap-1.5">
+                                <div className={`w-1.5 h-1.5 rounded-full ${row.staticSLColor === 'blue' ? 'bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.8)]' : 'bg-rose-500 shadow-[0_0_6px_rgba(244,63,94,0.8)]'}`} />
+                                <span className={`font-mono text-sm font-medium ${parseFloat(row.currentPrice || row.price) < parseFloat(row.staticSL) ? 'bg-rose-600 text-white px-2 py-0.5 rounded-full animate-pulse shadow-[0_0_10px_rgba(225,29,72,0.6)]' : 'text-rose-400'}`}>${row.staticSL}</span>
+                              </div>
+                              {showDynamic && <span className={`font-mono text-xs font-medium pl-3 ${parseFloat(row.currentPrice || row.price) <= parseFloat(row.stopLoss) ? 'text-rose-500' : 'text-rose-400/50'}`}>${row.stopLoss}</span>}
+                            </div>
+                          </td>
+                          <td className={`p-4`}>
+                            <div className="flex flex-col gap-1">
+                              <div className="flex items-center gap-1.5">
+                                <div className={`w-1.5 h-1.5 rounded-full ${row.staticTP1Color === 'blue' ? 'bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.8)]' : 'bg-rose-500 shadow-[0_0_6px_rgba(244,63,94,0.8)]'}`} />
+                                <span className={`font-mono text-sm font-medium ${parseFloat(row.highestPrice) >= parseFloat(row.staticTP1) ? 'bg-zinc-700/30 text-yellow-400 px-1 rounded' : 'text-emerald-400'}`}>${row.staticTP1}</span>
+                              </div>
+                              {showDynamic && <span className={`font-mono text-xs font-medium pl-3 ${parseFloat(row.highestPrice) >= parseFloat(row.tp1) || row.hitTp1 ? 'text-zinc-600' : 'text-emerald-500/50'}`}>${row.tp1}</span>}
+                            </div>
+                          </td>
+                          <td className={`p-4`}>
+                            <div className="flex flex-col gap-1">
+                              <div className="flex items-center gap-1.5">
+                                <div className={`w-1.5 h-1.5 rounded-full ${row.staticTP2Color === 'blue' ? 'bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.8)]' : 'bg-rose-500 shadow-[0_0_6px_rgba(244,63,94,0.8)]'}`} />
+                                <span className={`font-mono text-sm font-medium ${parseFloat(row.highestPrice) >= parseFloat(row.staticTP2) ? 'bg-zinc-700/30 text-yellow-400 px-1 rounded' : 'text-emerald-400'}`}>${row.staticTP2}</span>
+                              </div>
+                              {showDynamic && <span className={`font-mono text-xs font-medium pl-3 ${parseFloat(row.highestPrice) >= parseFloat(row.tp2) || row.hitTp2 ? 'text-zinc-600' : 'text-emerald-500/50'}`}>${row.tp2}</span>}
+                            </div>
+                          </td>
+                          {usSniperView !== 'scanner' && (
+                            <>
+                              <td className={`p-4`}>
+                                <div className="flex flex-col gap-1">
+                                  <div className="flex items-center gap-1.5">
+                                    <div className={`w-1.5 h-1.5 rounded-full ${row.staticTP3Color === 'blue' ? 'bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.8)]' : 'bg-rose-500 shadow-[0_0_6px_rgba(244,63,94,0.8)]'}`} />
+                                    <span className={`font-mono text-sm font-medium ${parseFloat(row.highestPrice) >= parseFloat(row.staticTP3) ? 'bg-zinc-700/30 text-yellow-400 px-1 rounded' : 'text-emerald-400'}`}>${row.staticTP3}</span>
+                                  </div>
+                                  {showDynamic && <span className={`font-mono text-xs font-medium pl-3 ${parseFloat(row.highestPrice) >= parseFloat(row.tp3) || row.hitTp3 ? 'text-zinc-600' : 'text-emerald-500/50'}`}>${row.tp3}</span>}
+                                </div>
+                              </td>
+                              <td className={`p-4`}>
+                                <div className="flex flex-col gap-1">
+                                  <div className="flex items-center gap-1.5">
+                                    <div className={`w-1.5 h-1.5 rounded-full ${row.staticTP4Color === 'blue' ? 'bg-blue-500 shadow-[0_0_6px_rgba(59,130,246,0.8)]' : 'bg-rose-500 shadow-[0_0_6px_rgba(244,63,94,0.8)]'}`} />
+                                    <span className={`font-mono text-sm font-medium ${parseFloat(row.highestPrice) >= parseFloat(row.staticTP4) ? 'bg-zinc-700/30 text-yellow-400 px-1 rounded' : 'text-emerald-400'}`}>${row.staticTP4}</span>
+                                  </div>
+                                  {showDynamic && <span className={`font-mono text-xs font-medium pl-3 ${parseFloat(row.highestPrice) >= parseFloat(row.tp4) || row.hitTp4 ? 'text-zinc-600' : 'text-emerald-500/50'}`}>${row.tp4}</span>}
+                                </div>
+                              </td>
+                            </>
+                          )}
+                          
+                          <td className="p-4 font-mono text-sm text-zinc-500 pr-6">${row.highestPrice}</td>
+                          <td className="p-4 text-center">
+                            <div className="flex items-center justify-center gap-2">
+                              {usSniperView === 'scanner' ? (
+                                <>
+                                  <button 
+                                    onClick={() => saveToUsWatchlist(row)} 
+                                    disabled={isSavingUsWatchlist || usWatchlist.some(w => w.ticker === row.ticker)} 
+                                    className={`transition-colors p-2 rounded-lg ${usWatchlist.some(w => w.ticker === row.ticker) ? 'text-emerald-500 bg-emerald-500/10' : 'text-zinc-600 hover:text-emerald-500 bg-zinc-800/50 hover:bg-emerald-500/10'} disabled:opacity-50`}
+                                  >
+                                    <Save className="w-4 h-4" />
+                                  </button>
+                                  <button onClick={() => removeUsSniperResult(row.ticker)} className="text-zinc-600 hover:text-red-500 transition-colors bg-zinc-800/50 hover:bg-red-500/10 p-2 rounded-lg">
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </>
+                              ) : (
+                                <button onClick={() => removeFromUsWatchlist(row.ticker)} className="text-zinc-600 hover:text-red-500 transition-colors bg-zinc-800/50 hover:bg-red-500/10 p-2 rounded-lg">
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              );
+            })()}
+          </div>
+        )}
         </div>
 
         {/* Results Screen */}
