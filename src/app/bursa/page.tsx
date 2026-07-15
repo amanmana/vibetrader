@@ -1385,7 +1385,14 @@ export default function BursaPage() {
                           <th className="p-4 font-semibold text-emerald-400/80 w-32">TP2</th>
                           
                           
-                          <th className="p-4 font-semibold pr-6 w-32">Highest (This Week)</th>
+                          <th className="p-4 font-semibold pr-6 w-32">
+                            <div className="flex flex-col">
+                              <span>Highest</span>
+                              <span className="text-[10px] text-slate-500 font-normal">
+                                (Since {searchedStock?.lastDoneDate || (customMasterResults.length > 0 ? customMasterResults[0].lastDoneDate : '') || '10 Jul'})
+                              </span>
+                            </div>
+                          </th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-800/50">
