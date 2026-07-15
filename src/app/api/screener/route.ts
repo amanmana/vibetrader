@@ -3,6 +3,7 @@ import { getRequestContext } from '@cloudflare/next-on-pages';
 import { getStaticGannTargets } from '@/utils/gann';
 
 export const runtime = 'edge';
+export const dynamic = 'force-dynamic';
 
 // Mappings for Bursa Malaysia stock symbols to Yahoo Finance symbols
 const BURSA_MAPPING: Record<string, string> = {

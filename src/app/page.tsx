@@ -277,7 +277,7 @@ export default function VibeTrader() {
     setIsFetchingUsSniper(true);
     setLiveError('');
     try {
-      const res = await fetch(`/api/screener?type=${usSniperType}`);
+      const res = await fetch(`/api/screener?type=${usSniperType}`, { cache: 'no-store' });
       const data = await res.json();
       if (data.results) {
         setUsSniperResults(data.results);
@@ -412,7 +412,7 @@ export default function VibeTrader() {
     setLiveError('');
     setScreenerResults([]);
     try {
-      const res = await fetch(`/api/screener?type=${screenerType}`);
+      const res = await fetch(`/api/screener?type=${screenerType}`, { cache: 'no-store' });
       const data = await res.json();
       if (data.results) {
         setScreenerResults(data.results);
@@ -431,7 +431,7 @@ export default function VibeTrader() {
     setIsScreening(true);
     setScreenerResults([]);
     try {
-      const res = await fetch(`/api/screener?type=${screenerType}`);
+      const res = await fetch(`/api/screener?type=${screenerType}`, { cache: 'no-store' });
       const data = await res.json();
       if (data.results) {
         setScreenerResults(data.results);
