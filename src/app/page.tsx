@@ -367,10 +367,10 @@ export default function VibeTrader() {
       });
       const data = await response.json();
       
-      if (data.success && data.data) {
-        const p = data.data.technical_indicators?.current_price;
+      if (data && !data.error) {
+        const p = data.technical_indicators?.current_price || data.levels?.entry_price;
         if (p) setCalcPrice(p.toString());
-        if (data.data.name) setCalcCompany(data.data.name);
+        if (data.company_name) setCalcCompany(data.company_name);
         
         setCalcLastFetch(new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
         
