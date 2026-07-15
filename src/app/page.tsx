@@ -98,8 +98,13 @@ export default function VibeTrader() {
                 }).catch(console.error);
               }
             } else {
+              const sortedResults = (data.results || []).sort((a: any, b: any) => {
+                const scoreA = parseFloat(a.adaptive_sniper?.score || a.score || 0);
+                const scoreB = parseFloat(b.adaptive_sniper?.score || b.score || 0);
+                return scoreB - scoreA;
+              });
               setWatchlist(data.tickers || []);
-              setWatchlistResults(data.results || []);
+              setWatchlistResults(sortedResults);
             }
           } else {
             const savedWatchlist = localStorage.getItem('vibe_watchlist');
@@ -178,6 +183,11 @@ export default function VibeTrader() {
         console.error(`Failed to analyze ${sym}:`, err);
       }
     }
+    results.sort((a: any, b: any) => {
+      const scoreA = parseFloat(a.adaptive_sniper?.score || a.score || 0);
+      const scoreB = parseFloat(b.adaptive_sniper?.score || b.score || 0);
+      return scoreB - scoreA;
+    });
     setWatchlistResults(results);
     syncWatchlistToDB(watchlist, results);
     setIsScanning(false);
@@ -189,8 +199,13 @@ export default function VibeTrader() {
       const res = await fetch('/api/us-watchlist-portfolio', { cache: 'no-store' });
       const data = await res.json();
       if (data.success) {
+        const sortedResults = (data.results || []).sort((a: any, b: any) => {
+          const scoreA = parseFloat(a.adaptive_sniper?.score || a.score || 0);
+          const scoreB = parseFloat(b.adaptive_sniper?.score || b.score || 0);
+          return scoreB - scoreA;
+        });
         setWatchlist(data.tickers || []);
-        setWatchlistResults(data.results || []);
+        setWatchlistResults(sortedResults);
       }
     } catch (e) {
       console.error('Failed to refresh table', e);
