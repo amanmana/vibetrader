@@ -87,6 +87,8 @@ export default function BursaPage() {
   const [lastCustomMasterUpdate, setLastCustomMasterUpdate] = useState<string | null>(null);
   const [isSavingCustom, setIsSavingCustom] = useState(false);
   const [addingSymbol, setAddingSymbol] = useState<string | null>(null);
+  const [cmSortColumn, setCmSortColumn] = useState<string>('score'); // Sort by Sniper Score by default
+  const [cmSortDirection, setCmSortDirection] = useState<'asc' | 'desc'>('desc');
   const [isFetchingCustomMaster, setIsFetchingCustomMaster] = useState(false);
 
   const [showDynamic, setShowDynamic] = useState(false);
@@ -118,7 +120,7 @@ export default function BursaPage() {
     }
   };
 
-  const addToCustomText = async (symbol: string, companyName?: string) => {
+  const addToCustomText = async (symbol: string, companyName?: string, isahamScore?: number, ltsScore?: number) => {
     const cleanSym = symbol.replace('.KL', '').replace('MYX:', '');
     try {
       setAddingSymbol(cleanSym);
@@ -127,7 +129,13 @@ export default function BursaPage() {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ action: 'add', symbol: cleanSym, name: companyName })
+        body: JSON.stringify({ 
+          action: 'add', 
+          symbol: cleanSym, 
+          name: companyName,
+          isaham_score: isahamScore,
+          lts_score: ltsScore
+        })
       });
       const data = await res.json();
       if (data.success) {
@@ -146,6 +154,20 @@ export default function BursaPage() {
     } finally {
       setAddingSymbol(null);
     }
+  };
+
+  const handleCmSort = (column: string) => {
+    if (cmSortColumn === column) {
+      setCmSortDirection(cmSortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setCmSortColumn(column);
+      setCmSortDirection('desc');
+    }
+  };
+
+  const renderCmSortIcon = (column: string) => {
+    if (cmSortColumn !== column) return <span className="text-slate-600 ml-1">⇅</span>;
+    return cmSortDirection === 'asc' ? <span className="text-amber-500 ml-1">▲</span> : <span className="text-amber-500 ml-1">▼</span>;
   };
 
   const findCustomTopPicks = (ignoredList: string[] = ignoredCustomPicks) => {
@@ -1466,7 +1488,24 @@ export default function BursaPage() {
                         <tr className="bg-slate-900/80 border-b border-slate-800 text-xs uppercase tracking-wider text-slate-500">
                           <th className="p-4 font-semibold w-16 pl-6">Rank</th>
                           <th className="p-4 font-semibold w-48">Stock</th>
-                          <th className="p-4 font-semibold w-24">Score</th>
+                          <th 
+                            className="p-4 font-semibold w-24 cursor-pointer hover:text-slate-300 transition select-none"
+                            onClick={() => handleCmSort('score')}
+                          >
+                            Score {renderCmSortIcon('score')}
+                          </th>
+                          <th 
+                            className="p-4 font-semibold text-blue-400/80 w-24 cursor-pointer hover:text-slate-300 transition select-none"
+                            onClick={() => handleCmSort('ltsScore')}
+                          >
+                            LTS {renderCmSortIcon('ltsScore')}
+                          </th>
+                          <th 
+                            className="p-4 font-semibold text-amber-400/80 w-28 cursor-pointer hover:text-slate-300 transition select-none"
+                            onClick={() => handleCmSort('isahamScore')}
+                          >
+                            iSaham {renderCmSortIcon('isahamScore')}
+                          </th>
                           <th className="p-4 font-semibold w-32">
                             <div className="flex flex-col">
                               <span>Last Done</span>
@@ -1475,7 +1514,12 @@ export default function BursaPage() {
                               </span>
                             </div>
                           </th>
-                          <th className="p-4 font-semibold w-24">Last Price</th>
+                          <th 
+                            className="p-4 font-semibold w-24 cursor-pointer hover:text-slate-300 transition select-none"
+                            onClick={() => handleCmSort('currentPrice')}
+                          >
+                            Last Price {renderCmSortIcon('currentPrice')}
+                          </th>
                           <th className="p-4 font-semibold text-rose-400/80 w-32">Stop Loss</th>
                           <th className="p-4 font-semibold text-emerald-400/80 w-32">TP1</th>
                           <th className="p-4 font-semibold text-emerald-400/80 w-32">TP2</th>
@@ -1508,6 +1552,12 @@ export default function BursaPage() {
                             </td>
                             <td className="p-4">
                               <span className="font-bold text-amber-400">{searchedStock.score}/10</span>
+                            </td>
+                            <td className="p-4">
+                              <span className="text-slate-600 font-mono text-sm">-</span>
+                            </td>
+                            <td className="p-4">
+                              <span className="text-slate-600 font-mono text-sm">-</span>
                             </td>
                             <td className="p-4 font-mono text-sm text-slate-300">
                               {searchedStock.price}
@@ -1560,25 +1610,59 @@ export default function BursaPage() {
                             <td className="p-4 font-mono text-sm text-slate-500 pr-6">{searchedStock.highestPrice}</td>
                           </tr>
                         )}
-                        {customMasterResults.map((row, idx) => (
-                          <tr key={idx} className="hover:bg-slate-800/30 transition group">
-                            <td className="p-4 pl-6">
-                              <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-500/10 text-blue-500 font-bold text-xs border border-blue-500/20">
-                                #{idx + 1}
-                              </span>
-                            </td>
-                            <td className="p-4">
-                              <div className="flex flex-col">
-                                <a href={`https://www.tradingview.com/chart/S83uhZmn/?symbol=MYX:${row.symbol.replace('.KL', '')}`} target="_blank" rel="noopener noreferrer" className="font-bold text-slate-200 hover:text-blue-400 hover:underline transition cursor-pointer">{row.companyName}</a>
-                                <span className="text-[10px] text-slate-500 font-mono">{row.symbol}</span>
-                              </div>
-                            </td>
-                            <td className="p-4">
-                              <span className="font-bold text-blue-400">{row.score}/10</span>
-                            </td>
-                            <td className="p-4 font-mono text-sm text-slate-300">
-                              {row.price}
-                            </td>
+                        {(() => {
+                          const sortedCMResults = [...customMasterResults].sort((a, b) => {
+                            let valA = a[cmSortColumn];
+                            let valB = b[cmSortColumn];
+                            
+                            if (cmSortColumn === 'score') {
+                              valA = parseFloat(a.score || 0);
+                              valB = parseFloat(b.score || 0);
+                            } else if (cmSortColumn === 'isahamScore') {
+                              valA = a.isahamScore === '-' ? -1 : parseFloat(a.isahamScore || 0);
+                              valB = b.isahamScore === '-' ? -1 : parseFloat(b.isahamScore || 0);
+                            } else if (cmSortColumn === 'ltsScore') {
+                              valA = a.ltsScore === '-' ? -1 : parseFloat(a.ltsScore || 0);
+                              valB = b.ltsScore === '-' ? -1 : parseFloat(b.ltsScore || 0);
+                            } else if (cmSortColumn === 'currentPrice') {
+                              valA = parseFloat(a.currentPrice || a.price || 0);
+                              valB = parseFloat(b.currentPrice || b.price || 0);
+                            }
+                            
+                            if (valA < valB) return cmSortDirection === 'asc' ? -1 : 1;
+                            if (valA > valB) return cmSortDirection === 'asc' ? 1 : -1;
+                            return 0;
+                          });
+
+                          return sortedCMResults.map((row, idx) => (
+                            <tr key={idx} className="hover:bg-slate-800/30 transition group">
+                              <td className="p-4 pl-6">
+                                <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-500/10 text-blue-500 font-bold text-xs border border-blue-500/20">
+                                  #{idx + 1}
+                                </span>
+                              </td>
+                              <td className="p-4">
+                                <div className="flex flex-col">
+                                  <a href={`https://www.tradingview.com/chart/S83uhZmn/?symbol=MYX:${row.symbol.replace('.KL', '')}`} target="_blank" rel="noopener noreferrer" className="font-bold text-slate-200 hover:text-blue-400 hover:underline transition cursor-pointer">{row.companyName}</a>
+                                  <span className="text-[10px] text-slate-500 font-mono">{row.symbol}</span>
+                                </div>
+                              </td>
+                              <td className="p-4">
+                                <span className="font-bold text-blue-400">{row.score}/10</span>
+                              </td>
+                              <td className="p-4">
+                                <span className={`font-mono text-sm font-bold ${row.ltsScore !== '-' && parseFloat(row.ltsScore) > 0 ? 'text-blue-400' : 'text-slate-600'}`}>
+                                  {row.ltsScore}
+                                </span>
+                              </td>
+                              <td className="p-4">
+                                <span className={`font-mono text-sm font-bold ${row.isahamScore !== '-' && parseFloat(row.isahamScore) > 0 ? 'text-amber-400' : 'text-slate-600'}`}>
+                                  {row.isahamScore}
+                                </span>
+                              </td>
+                              <td className="p-4 font-mono text-sm text-slate-300">
+                                {row.price}
+                              </td>
                             <td className="p-4">
                               {(() => {
                                 const cur = parseFloat(row.currentPrice || row.price);
@@ -1626,7 +1710,8 @@ export default function BursaPage() {
                             
                             <td className="p-4 font-mono text-sm text-slate-500 pr-6">{row.highestPrice}</td>
                           </tr>
-                        ))}
+                        ))
+                        })()}
                       </tbody>
                     </table>
                   </div>
@@ -1753,7 +1838,7 @@ export default function BursaPage() {
                             </td>
                             <td className="p-4 pr-6 text-right">
                               <button
-                                onClick={() => addToCustomText(row.symbol, row.name)}
+                                onClick={() => addToCustomText(row.symbol, row.name, row.isahamScore, row.ltsScore)}
                                 disabled={addingSymbol !== null}
                                 className={`p-2 rounded-xl border transition inline-flex items-center justify-center cursor-pointer ${
                                   addingSymbol === row.symbol.replace('.KL', '').replace('MYX:', '')
