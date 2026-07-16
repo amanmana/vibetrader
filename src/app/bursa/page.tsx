@@ -25,9 +25,60 @@ export default function BursaPage() {
   const [top5Results, setTop5Results] = useState<any[]>([]);
   const [top5Error, setTop5Error] = useState('');
   
-  const [activeTab, setActiveTab] = useState<'ocr' | 'live' | 'custom' | 'customMaster' | 'us'>('customMaster');
+  const [activeTab, setActiveTab] = useState<'ocr' | 'live' | 'custom' | 'customMaster' | 'us' | 'topActive'>('customMaster');
   const [customText, setCustomText] = useState('');
   const [isLiveScanning, setIsLiveScanning] = useState(false);
+
+  // iSaham Top Active states
+  const [topActiveResults, setTopActiveResults] = useState<any[]>([]);
+  const [isFetchingTopActive, setIsFetchingTopActive] = useState(false);
+  const [topActiveError, setTopActiveError] = useState('');
+
+  // Load customText from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('bursa_custom_text');
+    if (saved) {
+      setCustomText(saved);
+    }
+  }, []);
+
+  const fetchTopActive = async () => {
+    setIsFetchingTopActive(true);
+    setTopActiveError('');
+    try {
+      const res = await fetch('/api/bursa-top-active');
+      const data = await res.json();
+      if (data.success && data.results) {
+        setTopActiveResults(data.results);
+      } else {
+        setTopActiveError(data.error || 'Gagal memuatkan data Top Active.');
+      }
+    } catch (err: any) {
+      console.error(err);
+      setTopActiveError(err.message || 'Ralat sambungan.');
+    } finally {
+      setIsFetchingTopActive(false);
+    }
+  };
+
+  const addToCustomText = (symbol: string) => {
+    const cleanSym = symbol.replace('.KL', '').replace('MYX:', '');
+    let current = customText.trim();
+    if (!current) {
+      current = cleanSym;
+    } else {
+      const tokens = current.split(/[\s,]+/).map(t => t.trim().toUpperCase());
+      if (tokens.includes(cleanSym.toUpperCase())) {
+        alert(`${cleanSym} sudah ada di dalam Custom List.`);
+        return;
+      }
+      current += `, ${cleanSym}`;
+    }
+    setCustomText(current);
+    localStorage.setItem('bursa_custom_text', current);
+    setActiveTab('custom');
+    alert(`Kaunter "${cleanSym}" telah dimasukkan ke dalam Custom List input!\nAnda boleh klik "Scan Custom List" untuk memproses.`);
+  };
   const [isUpdatingMaster, setIsUpdatingMaster] = useState(false);
   const [liveResults, setLiveResults] = useState<any[]>([]);
   const [liveError, setLiveError] = useState('');
@@ -188,6 +239,13 @@ export default function BursaPage() {
     }
     fetchCustomMasterPicks();
   // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
+
+  // Fetch iSaham Top Active picks on tab change
+  useEffect(() => {
+    if (activeTab === 'topActive' && topActiveResults.length === 0) {
+      fetchTopActive();
+    }
   }, [activeTab]);
 
 
@@ -531,6 +589,13 @@ export default function BursaPage() {
             >
               <div className={`w-2 h-2 rounded-full ${activeTab === 'customMaster' ? 'bg-blue-400 animate-pulse' : 'bg-slate-600'}`} />
               Custom Master
+            </button>
+            <button
+              onClick={() => setActiveTab('topActive')}
+              className={`px-6 py-2.5 rounded-xl text-sm font-bold transition flex items-center gap-2 ${activeTab === 'topActive' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.1)]' : 'text-slate-500 hover:text-slate-300'}`}
+            >
+              <div className={`w-2 h-2 rounded-full ${activeTab === 'topActive' ? 'bg-emerald-400 animate-pulse' : 'bg-slate-600'}`} />
+              iSaham Top Active
             </button>
 
           </div>
@@ -1535,6 +1600,117 @@ export default function BursaPage() {
                     </table>
                   </div>
                 </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* iSaham Top Active Tab */}
+        {activeTab === 'topActive' && (
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                  <TrendingUp className="w-5 h-5 text-emerald-400" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-slate-100">Top Active Volume (iSaham)</h3>
+                  <p className="text-sm text-slate-500">Senarai 20 kaunter paling aktif didagang hari ini di Bursa Malaysia.</p>
+                </div>
+              </div>
+              
+              <button
+                onClick={fetchTopActive}
+                disabled={isFetchingTopActive}
+                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold transition flex items-center gap-2 w-fit disabled:opacity-50"
+              >
+                <RefreshCcw className={`w-3.5 h-3.5 ${isFetchingTopActive ? 'animate-spin' : ''}`} /> Refresh
+              </button>
+            </div>
+
+            {topActiveError && (
+              <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-xl text-center mb-6">
+                {topActiveError}
+              </div>
+            )}
+
+            {isFetchingTopActive ? (
+              <div className="flex flex-col items-center justify-center py-20 bg-slate-900/30 rounded-3xl border border-slate-800/50 backdrop-blur-sm">
+                <Loader2 className="w-10 h-10 animate-spin text-emerald-400 mb-4" />
+                <p className="text-sm text-slate-400">Menarik data dari iSaham...</p>
+              </div>
+            ) : topActiveResults.length > 0 ? (
+              <div className="border border-slate-800 bg-slate-950/80 rounded-3xl overflow-hidden backdrop-blur-xl shadow-2xl">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-slate-900/80 border-b border-slate-800 text-xs uppercase tracking-wider text-slate-500">
+                        <th className="p-4 font-semibold w-16 pl-6">Rank</th>
+                        <th className="p-4 font-semibold w-48">Stock</th>
+                        <th className="p-4 font-semibold w-24">Last Price</th>
+                        <th className="p-4 font-semibold w-24">Change %</th>
+                        <th className="p-4 font-semibold w-32">Volume</th>
+                        <th className="p-4 font-semibold w-32">Market Cap</th>
+                        <th className="p-4 font-semibold pr-6 text-right w-24">Act</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-800/50">
+                      {topActiveResults.map((row, idx) => {
+                        const changeColor = row.change > 0 ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' : row.change < 0 ? 'text-rose-400 bg-rose-500/10 border-rose-500/20' : 'text-slate-400 bg-slate-800/50 border-slate-700/50';
+                        return (
+                          <tr key={idx} className="hover:bg-slate-800/30 transition group">
+                            <td className="p-4 pl-6">
+                              <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-emerald-500/10 text-emerald-400 font-bold text-xs border border-emerald-500/20">
+                                #{row.rank || idx + 1}
+                              </span>
+                            </td>
+                            <td className="p-4">
+                              <div className="flex flex-col">
+                                <a 
+                                  href={`https://www.tradingview.com/chart/S83uhZmn/?symbol=MYX:${row.symbol}`} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer" 
+                                  className="font-bold text-slate-200 hover:text-emerald-400 hover:underline transition cursor-pointer"
+                                >
+                                  {row.name || row.symbol}
+                                </a>
+                                <span className="text-[10px] text-slate-500 font-mono mt-0.5">{row.symbol}</span>
+                              </div>
+                            </td>
+                            <td className="p-4 font-mono text-sm text-slate-300">
+                              RM {row.price.toFixed(3)}
+                            </td>
+                            <td className="p-4">
+                              <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border ${changeColor}`}>
+                                {row.change > 0 ? '+' : ''}{row.change.toFixed(2)}%
+                              </span>
+                            </td>
+                            <td className="p-4 font-mono text-sm text-slate-400">
+                              {row.volume.toLocaleString('en-US')}
+                            </td>
+                            <td className="p-4 font-mono text-sm text-slate-400">
+                              RM {row.marketCap.toLocaleString('en-US')} M
+                            </td>
+                            <td className="p-4 pr-6 text-right">
+                              <button
+                                onClick={() => addToCustomText(row.symbol)}
+                                className="p-2 bg-slate-800 hover:bg-emerald-600 hover:text-white text-emerald-400 border border-slate-700 hover:border-emerald-500 rounded-xl transition inline-flex items-center justify-center cursor-pointer"
+                                title="Tambah ke Custom Watchlist"
+                              >
+                                <span className="text-xs font-bold px-1 flex items-center gap-1">➕ Add</span>
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-20 bg-slate-900/30 rounded-3xl border border-slate-800/50 backdrop-blur-sm">
+                <Loader2 className="w-10 h-10 text-slate-600 mb-4" />
+                <p className="text-sm text-slate-500">Tiada data dijumpai.</p>
               </div>
             )}
           </div>
