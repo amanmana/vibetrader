@@ -117,7 +117,7 @@ export default function BursaPage() {
     }
   };
 
-  const addToCustomText = async (symbol: string) => {
+  const addToCustomText = async (symbol: string, companyName?: string) => {
     const cleanSym = symbol.replace('.KL', '').replace('MYX:', '');
     try {
       setIsSavingCustom(true);
@@ -126,7 +126,7 @@ export default function BursaPage() {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ action: 'add', symbol: cleanSym })
+        body: JSON.stringify({ action: 'add', symbol: cleanSym, name: companyName })
       });
       const data = await res.json();
       if (data.success) {
@@ -1752,7 +1752,7 @@ export default function BursaPage() {
                             </td>
                             <td className="p-4 pr-6 text-right">
                               <button
-                                onClick={() => addToCustomText(row.symbol)}
+                                onClick={() => addToCustomText(row.symbol, row.name)}
                                 className="p-2 bg-slate-800 hover:bg-emerald-600 hover:text-white text-emerald-400 border border-slate-700 hover:border-emerald-500 rounded-xl transition inline-flex items-center justify-center cursor-pointer"
                                 title="Tambah ke Custom Watchlist"
                               >

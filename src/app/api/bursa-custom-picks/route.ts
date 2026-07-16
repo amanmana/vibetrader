@@ -32,26 +32,50 @@ const HARDCODED_MAPPING: Record<string, string> = {
   'OGX': '0327.KL'
 };
 
-async function resolveSymbol(name: string): Promise<string | null> {
-  let query = name.trim().toUpperCase();
-  if (HARDCODED_MAPPING[query]) return HARDCODED_MAPPING[query];
+async function resolveSymbol(symbol: string, name?: string): Promise<string | null> {
+  const cleanSym = symbol.trim().toUpperCase();
+  if (HARDCODED_MAPPING[cleanSym]) return HARDCODED_MAPPING[cleanSym];
   
-  if (/^\d{4}$/.test(query)) return `${query}.KL`;
+  if (/^\d{4}$/.test(cleanSym)) return `${cleanSym}.KL`;
 
+  // Try to search by company name first
+  if (name && name.trim()) {
+    try {
+      const cleanName = name.trim().toUpperCase()
+        .replace(/[-\s]+BHD/i, '')
+        .replace(/[-\s]+BERHAD/i, '');
+      const searchUrl = `https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(cleanName)}&quotesCount=5&newsCount=0`;
+      const res = await fetch(searchUrl, {
+        headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" }
+      });
+      if (res.ok) {
+        const data: any = await res.json();
+        const quotes = data.quotes || [];
+        const klseStock = quotes.find((q: any) => q.exchange === 'KLS' || q.symbol.endsWith('.KL'));
+        if (klseStock) return klseStock.symbol;
+      }
+    } catch (e) {
+      console.warn("Failed to resolve via name search:", name, e);
+    }
+  }
+
+  // Fallback to searching by symbol
   try {
-    const searchUrl = `https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(query)}&quotesCount=5&newsCount=0`;
+    const searchUrl = `https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(cleanSym)}&quotesCount=5&newsCount=0`;
     const res = await fetch(searchUrl, {
       headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" }
     });
-    if (!res.ok) return null;
-    const data: any = await res.json();
-    const quotes = data.quotes || [];
-    const klseStock = quotes.find((q: any) => q.exchange === 'KLS' || q.symbol.endsWith('.KL'));
-    if (klseStock) return klseStock.symbol;
-    if (quotes[0]?.symbol?.endsWith('.KL')) return quotes[0].symbol;
+    if (res.ok) {
+      const data: any = await res.json();
+      const quotes = data.quotes || [];
+      const klseStock = quotes.find((q: any) => q.exchange === 'KLS' || q.symbol.endsWith('.KL'));
+      if (klseStock) return klseStock.symbol;
+      if (quotes[0]?.symbol?.endsWith('.KL')) return quotes[0].symbol;
+    }
   } catch (e) {
-    console.error("Search API Error for", name, e);
+    console.error("Search API Error for symbol", cleanSym, e);
   }
+
   return null;
 }
 
@@ -222,11 +246,11 @@ function getSwingLow(lows: number[], index: number, lookback: number): number {
 }
 
 // Calculate indicators and targets for manual stock (bypassing liquidity/trend filters)
-async function calculateStockTargets(originalName: string) {
-  const symbol = await resolveSymbol(originalName);
-  if (!symbol) return null;
+async function calculateStockTargets(symbol: string, companyName?: string) {
+  const resolved = await resolveSymbol(symbol, companyName);
+  if (!resolved) return null;
 
-  const data = await fetchYahooPrice(symbol);
+  const data = await fetchYahooPrice(resolved);
   if (!data || data.candles.length < 15) return null;
 
   const candles = data.candles;
@@ -440,30 +464,23 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { action, symbol, results } = body;
+    const { action, symbol, name, results } = body;
     const timestamp = new Date().toISOString();
 
     // 1. ADD SINGLE STOCK ACTION
     if (action === 'add' && symbol) {
       const cleanSym = symbol.trim().toUpperCase();
       
-      // Check if stock already exists in custom_picks
-      const existing = await db.prepare('SELECT id FROM custom_picks WHERE symbol = ? OR id = ?').bind(cleanSym, cleanSym).first();
-      
-      // Calculate indicators and targets
-      const calculated = await calculateStockTargets(cleanSym);
+      // Resolve & calculate targets using symbol AND company name
+      const calculated = await calculateStockTargets(cleanSym, name);
       if (!calculated) {
         return NextResponse.json({ success: false, error: `Gagal menganalisis kaunter ${cleanSym}. Sila pastikan kod betul.` }, { status: 400 });
       }
 
-      // If resolved symbol is different, check duplicates again
-      if (calculated.symbol !== cleanSym) {
-        const existingResolved = await db.prepare('SELECT id FROM custom_picks WHERE symbol = ?').bind(calculated.symbol).first();
-        if (existingResolved) {
-          return NextResponse.json({ success: false, error: `Kaunter ${calculated.symbol} sudah berada di dalam Watchlist.` }, { status: 400 });
-        }
-      } else if (existing) {
-        return NextResponse.json({ success: false, error: `Kaunter ${cleanSym} sudah berada di dalam Watchlist.` }, { status: 400 });
+      // Check duplicates with resolved symbol
+      const existing = await db.prepare('SELECT id FROM custom_picks WHERE symbol = ? OR id = ?').bind(calculated.symbol, calculated.symbol).first();
+      if (existing) {
+        return NextResponse.json({ success: false, error: `Kaunter ${calculated.symbol} sudah berada di dalam Watchlist.` }, { status: 400 });
       }
 
       // Save to D1 database
@@ -514,7 +531,7 @@ export async function POST(req: NextRequest) {
         parseFloat(pick.tp1),
         parseFloat(pick.tp2),
         parseFloat(pick.tp3),
-        parseFloat(pick.tp4),
+        pick.tp4 ? parseFloat(pick.tp4) : 0,
         parseFloat(pick.highestPrice || pick.price)
       );
     });
