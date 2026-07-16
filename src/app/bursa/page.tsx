@@ -94,6 +94,17 @@ export default function BursaPage() {
   const [isSavingCustom, setIsSavingCustom] = useState(false);
   const [addingSymbol, setAddingSymbol] = useState<string | null>(null);
   const [isFetchingCustomMaster, setIsFetchingCustomMaster] = useState(false);
+  const [labelPickerOpen, setLabelPickerOpen] = useState<string | null>(null); // symbol of row with open picker
+  const [savingLabel, setSavingLabel] = useState<string | null>(null);
+
+  const LABEL_COLORS = [
+    { id: 'red', bg: '#ef4444', label: 'Merah' },
+    { id: 'green', bg: '#22c55e', label: 'Hijau' },
+    { id: 'orange', bg: '#f97316', label: 'Oren' },
+    { id: 'yellow', bg: '#eab308', label: 'Kuning' },
+    { id: 'blue', bg: '#3b82f6', label: 'Biru' },
+    { id: 'purple', bg: '#a855f7', label: 'Ungu' },
+  ];
 
   const [showDynamic, setShowDynamic] = useState(false);
   const [showSniperDynamic, setShowSniperDynamic] = useState(false);
@@ -176,6 +187,26 @@ export default function BursaPage() {
     } catch (err: any) {
       console.error(err);
       alert('Ralat sambungan: ' + err.message);
+    }
+  };
+
+  const setStockLabelColor = async (symbol: string, color: string | null) => {
+    setSavingLabel(symbol);
+    // Optimistic update — immediately reflect in UI without waiting for API
+    setCustomMasterResults((prev: any[]) =>
+      prev.map((r: any) => r.symbol === symbol ? { ...r, labelColor: color } : r)
+    );
+    setLabelPickerOpen(null);
+    try {
+      await fetch('/api/bursa-custom-picks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'label', symbol, color }),
+      });
+    } catch (err) {
+      console.error('Failed to save label:', err);
+    } finally {
+      setSavingLabel(null);
     }
   };
 
@@ -310,6 +341,13 @@ export default function BursaPage() {
     }
   }, [activeTab]);
 
+  // Close label picker when clicking outside
+  useEffect(() => {
+    if (!labelPickerOpen) return;
+    const handler = () => setLabelPickerOpen(null);
+    document.addEventListener('click', handler);
+    return () => document.removeEventListener('click', handler);
+  }, [labelPickerOpen]);
 
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -1277,10 +1315,41 @@ export default function BursaPage() {
                         )}
                         {liveResults.map((row, idx) => (
                           <tr key={idx} className="hover:bg-slate-900/30 transition group">
-                            <td className="p-4 pl-6">
-                              <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-amber-500/10 text-amber-500 font-bold text-xs border border-amber-500/20">
-                                #{idx + 1}
-                              </span>
+                            <td className="p-4 pl-6 relative">
+                              <div className="flex items-center gap-2">
+                                {/* Label flag */}
+                                <div className="relative">
+                                  <button
+                                    onClick={() => setLabelPickerOpen(labelPickerOpen === row.symbol ? null : row.symbol)}
+                                    className={`w-5 h-5 flex items-center justify-center transition rounded opacity-0 group-hover:opacity-100 ${row.labelColor ? '!opacity-100' : ''}`}
+                                    title={row.labelColor ? 'Tukar label warna' : 'Tambah label warna'}
+                                  >
+                                    <svg viewBox="0 0 12 16" fill={row.labelColor || '#64748b'} className="w-3.5 h-4 drop-shadow-sm" xmlns="http://www.w3.org/2000/svg">
+                                      <path d="M0 0h12v16l-6-4-6 4z"/>
+                                    </svg>
+                                  </button>
+                                  {/* Color Picker Popup */}
+                                  {labelPickerOpen === row.symbol && (
+                                    <div className="absolute left-0 top-7 z-50 bg-slate-900 border border-slate-700 rounded-2xl p-3 shadow-2xl flex items-center gap-2 animate-in fade-in slide-in-from-top-2 duration-150" onClick={e => e.stopPropagation()}>
+                                      {LABEL_COLORS.map(c => (
+                                        <button
+                                          key={c.id}
+                                          onClick={() => setStockLabelColor(row.symbol, row.labelColor === c.bg ? null : c.bg)}
+                                          className={`w-6 h-6 rounded-full transition hover:scale-125 focus:outline-none border-2 ${row.labelColor === c.bg ? 'border-white scale-110' : 'border-transparent'}`}
+                                          style={{ backgroundColor: c.bg }}
+                                          title={c.label}
+                                        />
+                                      ))}
+                                      {row.labelColor && (
+                                        <button onClick={() => setStockLabelColor(row.symbol, null)} className="w-6 h-6 rounded-full bg-slate-700 hover:bg-slate-600 flex items-center justify-center text-slate-400 hover:text-white transition text-xs border-2 border-transparent" title="Padam label">✕</button>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                                <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-amber-500/10 text-amber-500 font-bold text-xs border border-amber-500/20">
+                                  #{idx + 1}
+                                </span>
+                              </div>
                             </td>
                             <td className="p-4">
                               <div className="flex flex-col">
@@ -1660,10 +1729,41 @@ export default function BursaPage() {
                         )}
                         {customMasterResults.map((row, idx) => (
                           <tr key={idx} className="hover:bg-slate-800/30 transition group">
-                            <td className="p-4 pl-6">
-                              <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-500/10 text-blue-500 font-bold text-xs border border-blue-500/20">
-                                #{idx + 1}
-                              </span>
+                            <td className="p-4 pl-6 relative">
+                              <div className="flex items-center gap-2">
+                                {/* Label flag */}
+                                <div className="relative">
+                                  <button
+                                    onClick={() => setLabelPickerOpen(labelPickerOpen === row.symbol ? null : row.symbol)}
+                                    className={`w-5 h-5 flex items-center justify-center transition rounded opacity-0 group-hover:opacity-100 ${row.labelColor ? '!opacity-100' : ''}`}
+                                    title={row.labelColor ? 'Tukar label warna' : 'Tambah label warna'}
+                                  >
+                                    <svg viewBox="0 0 12 16" fill={row.labelColor || '#64748b'} className="w-3.5 h-4 drop-shadow-sm" xmlns="http://www.w3.org/2000/svg">
+                                      <path d="M0 0h12v16l-6-4-6 4z"/>
+                                    </svg>
+                                  </button>
+                                  {/* Color Picker Popup */}
+                                  {labelPickerOpen === row.symbol && (
+                                    <div className="absolute left-0 top-7 z-50 bg-slate-900 border border-slate-700 rounded-2xl p-3 shadow-2xl flex items-center gap-2 animate-in fade-in slide-in-from-top-2 duration-150" onClick={e => e.stopPropagation()}>
+                                      {LABEL_COLORS.map(c => (
+                                        <button
+                                          key={c.id}
+                                          onClick={() => setStockLabelColor(row.symbol, row.labelColor === c.bg ? null : c.bg)}
+                                          className={`w-6 h-6 rounded-full transition hover:scale-125 focus:outline-none border-2 ${row.labelColor === c.bg ? 'border-white scale-110' : 'border-transparent'}`}
+                                          style={{ backgroundColor: c.bg }}
+                                          title={c.label}
+                                        />
+                                      ))}
+                                      {row.labelColor && (
+                                        <button onClick={() => setStockLabelColor(row.symbol, null)} className="w-6 h-6 rounded-full bg-slate-700 hover:bg-slate-600 flex items-center justify-center text-slate-400 hover:text-white transition text-xs border-2 border-transparent" title="Padam label">✕</button>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                                <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-500/10 text-blue-500 font-bold text-xs border border-blue-500/20">
+                                  #{idx + 1}
+                                </span>
+                              </div>
                             </td>
                             <td className="p-4">
                               <div className="flex flex-col">

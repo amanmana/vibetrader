@@ -445,6 +445,7 @@ export async function GET(req: NextRequest) {
         hitTp3: currentHigh >= row.tp3,
         hitTp4: currentHigh >= row.tp4,
         isManual: row.is_manual === 1,
+        labelColor: row.label_color || null,
       };
     });
 
@@ -468,7 +469,19 @@ export async function POST(req: NextRequest) {
     const { action, symbol, name, results, isManual } = body;
     const timestamp = new Date().toISOString();
 
-    // 0. DELETE SINGLE STOCK ACTION
+    // 0a. LABEL ACTION — Set or clear a label color for a stock
+    if (action === 'label' && symbol) {
+      const cleanSym = symbol.trim().toUpperCase();
+      const baseSym = cleanSym.replace('.KL', '');
+      const klSym = baseSym + '.KL';
+      const color = body.color || null; // null = clear label
+      await db.prepare('UPDATE custom_picks SET label_color = ? WHERE symbol = ? OR id = ? OR symbol = ? OR id = ?')
+        .bind(color, cleanSym, cleanSym, klSym, klSym)
+        .run();
+      return NextResponse.json({ success: true, symbol: cleanSym, color });
+    }
+
+    // 0b. DELETE SINGLE STOCK ACTION
     if (action === 'delete' && symbol) {
       const cleanSym = symbol.trim().toUpperCase();
       const baseSym = cleanSym.replace('.KL', '');
