@@ -30,7 +30,7 @@ export default function BursaPage() {
   const [isLiveScanning, setIsLiveScanning] = useState(false);
 
   // iSaham Top Active states
-  const [selectedScreener, setSelectedScreener] = useState<'top-active' | 'jerung-x'>('top-active');
+  const [selectedScreener, setSelectedScreener] = useState<'top-active' | 'jerung-x' | 'isaham-super-short-term'>('top-active');
   const [topActiveResults, setTopActiveResults] = useState<any[]>([]);
   const [isFetchingTopActive, setIsFetchingTopActive] = useState(false);
   const [topActiveError, setTopActiveError] = useState('');
@@ -79,7 +79,7 @@ export default function BursaPage() {
     }
   };
 
-  const handleScreenerChange = (val: 'top-active' | 'jerung-x') => {
+  const handleScreenerChange = (val: 'top-active' | 'jerung-x' | 'isaham-super-short-term') => {
     setSelectedScreener(val);
     fetchTopActive(val);
   };
@@ -1688,12 +1688,18 @@ export default function BursaPage() {
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-slate-100">
-                    {selectedScreener === 'top-active' ? 'Top Active Volume (iSaham)' : 'Jerung X Screener (iSaham Pro)'}
+                    {selectedScreener === 'top-active' 
+                      ? 'Top Active Volume (iSaham)' 
+                      : selectedScreener === 'jerung-x' 
+                      ? 'Jerung X Screener (iSaham Pro)'
+                      : 'Super Short Term Screener (iSaham Pro)'}
                   </h3>
                   <p className="text-sm text-slate-500">
                     {selectedScreener === 'top-active'
                       ? `Senarai 20 kaunter paling aktif didagang. ${hasUnlockedScores ? '✨ Pro Unlocked: Disusun mengikut iSaham Score' : 'Log masuk tetapan untuk susunan Pro.'}`
-                      : 'Mengesan kaunter yang sedang dikumpul secara aktif/senyap oleh pelabur institusi (Jerung).'}
+                      : selectedScreener === 'jerung-x'
+                      ? 'Mengesan kaunter yang sedang dikumpul secara aktif/senyap oleh pelabur institusi (Jerung).'
+                      : 'Mengesan kaunter yang mempunyai momentum kenaikan jangka pendek yang sangat kuat (Super Short Term).'}
                   </p>
                 </div>
               </div>
@@ -1701,11 +1707,12 @@ export default function BursaPage() {
               <div className="flex items-center gap-2">
                 <select
                   value={selectedScreener}
-                  onChange={(e) => handleScreenerChange(e.target.value as 'top-active' | 'jerung-x')}
+                  onChange={(e) => handleScreenerChange(e.target.value as 'top-active' | 'jerung-x' | 'isaham-super-short-term')}
                   className="px-3 py-2 bg-slate-900 border border-slate-700 text-slate-200 rounded-xl text-xs font-bold transition focus:outline-none focus:border-emerald-500 cursor-pointer"
                 >
                   <option value="top-active">📈 Top Active Volume</option>
                   <option value="jerung-x">🐋 Jerung X (Whales)</option>
+                  <option value="isaham-super-short-term">⚡ Super Short Term</option>
                 </select>
 
                 <button
@@ -1799,7 +1806,7 @@ export default function BursaPage() {
                             <td className="p-4 font-mono text-sm text-slate-400">
                               {row.ltsScore > 0 ? (
                                 <span className="text-blue-400 font-bold">{row.ltsScore.toFixed(2)}</span>
-                              ) : selectedScreener === 'jerung-x' ? (
+                              ) : selectedScreener !== 'top-active' ? (
                                 <span className="text-slate-600">-</span>
                               ) : (
                                 <span className="text-slate-600" title="Pro Session Required">🔒 Locked</span>
@@ -1808,7 +1815,7 @@ export default function BursaPage() {
                             <td className="p-4 font-mono text-sm text-slate-400">
                               {row.isahamScore > 0 ? (
                                 <span className="text-amber-400 font-bold">{row.isahamScore.toFixed(1)}</span>
-                              ) : selectedScreener === 'jerung-x' ? (
+                              ) : selectedScreener !== 'top-active' ? (
                                 <span className="text-slate-600">-</span>
                               ) : (
                                 <span className="text-slate-600" title="Pro Session Required">🔒 Locked</span>

@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const screener = searchParams.get('screener') || 'top-active';
-    const allowedScreeners = ['top-active', 'jerung-x'];
+    const allowedScreeners = ['top-active', 'jerung-x', 'isaham-super-short-term'];
     const activeScreener = allowedScreeners.includes(screener) ? screener : 'top-active';
 
     let cookieString = '';
