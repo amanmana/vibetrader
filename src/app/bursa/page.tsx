@@ -152,14 +152,13 @@ export default function BursaPage() {
     if (!confirm(`Adakah anda pasti untuk memadam kaunter "${symbol}" (${companyName || ''}) daripada Custom Master List?`)) {
       return;
     }
-    const cleanSym = symbol.replace('.KL', '').replace('MYX:', '');
     try {
       const res = await fetch('/api/bursa-custom-picks', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ action: 'delete', symbol: cleanSym })
+        body: JSON.stringify({ action: 'delete', symbol: symbol })
       });
       const data = await res.json();
       if (data.success) {

@@ -470,7 +470,11 @@ export async function POST(req: NextRequest) {
     // 0. DELETE SINGLE STOCK ACTION
     if (action === 'delete' && symbol) {
       const cleanSym = symbol.trim().toUpperCase();
-      await db.prepare('DELETE FROM custom_picks WHERE symbol = ? OR id = ?').bind(cleanSym, cleanSym).run();
+      const baseSym = cleanSym.replace('.KL', '');
+      const klSym = baseSym + '.KL';
+      await db.prepare('DELETE FROM custom_picks WHERE symbol = ? OR id = ? OR symbol = ? OR id = ? OR symbol = ? OR id = ?')
+        .bind(cleanSym, cleanSym, baseSym, baseSym, klSym, klSym)
+        .run();
       console.log(`[Bursa Custom Picks] Manually deleted ${cleanSym} from database`);
       return NextResponse.json({ success: true, symbol: cleanSym });
     }
