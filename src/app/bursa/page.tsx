@@ -78,24 +78,6 @@ export default function BursaPage() {
     }
   };
 
-  const addToCustomText = (symbol: string) => {
-    const cleanSym = symbol.replace('.KL', '').replace('MYX:', '');
-    let current = customText.trim();
-    if (!current) {
-      current = cleanSym;
-    } else {
-      const tokens = current.split(/[\s,]+/).map(t => t.trim().toUpperCase());
-      if (tokens.includes(cleanSym.toUpperCase())) {
-        alert(`${cleanSym} sudah ada di dalam Custom List.`);
-        return;
-      }
-      current += `, ${cleanSym}`;
-    }
-    setCustomText(current);
-    localStorage.setItem('bursa_custom_text', current);
-    setActiveTab('custom');
-    alert(`Kaunter "${cleanSym}" telah dimasukkan ke dalam Custom List input!\nAnda boleh klik "Scan Custom List" untuk memproses.`);
-  };
   const [isUpdatingMaster, setIsUpdatingMaster] = useState(false);
   const [liveResults, setLiveResults] = useState<any[]>([]);
   const [liveError, setLiveError] = useState('');
@@ -116,6 +98,55 @@ export default function BursaPage() {
   const [customTopPicks, setCustomTopPicks] = useState<any[]>([]);
   const [ignoredCustomPicks, setIgnoredCustomPicks] = useState<string[]>([]);
   
+  const loadCustomMasterPicks = async (force = false) => {
+    if (!force && customMasterResults.length > 0) return;
+    setIsFetchingCustomMaster(true);
+    try {
+      const res = await fetch('/api/bursa-custom-picks');
+      const data = await res.json();
+      if (data.success && data.data) {
+        setCustomMasterResults(data.data);
+        setLastCustomMasterUpdate(new Date().toISOString());
+      } else if (data.lastUpdated) {
+        setLastCustomMasterUpdate(data.lastUpdated);
+      }
+    } catch (e) {
+      console.error("Failed to fetch custom picks:", e);
+    } finally {
+      setIsFetchingCustomMaster(false);
+    }
+  };
+
+  const addToCustomText = async (symbol: string) => {
+    const cleanSym = symbol.replace('.KL', '').replace('MYX:', '');
+    try {
+      setIsSavingCustom(true);
+      const res = await fetch('/api/bursa-custom-picks', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ action: 'add', symbol: cleanSym })
+      });
+      const data = await res.json();
+      if (data.success) {
+        alert(`Berjaya menambah kaunter "${data.symbol || cleanSym}" (${data.companyName || ''}) ke dalam Custom Master List!`);
+        
+        // Switch tab to customMaster and force reload
+        setActiveTab('customMaster');
+        setCustomMasterResults([]);
+        await loadCustomMasterPicks(true);
+      } else {
+        alert(data.error || 'Gagal menambah kaunter.');
+      }
+    } catch (err: any) {
+      console.error(err);
+      alert('Ralat sambungan: ' + err.message);
+    } finally {
+      setIsSavingCustom(false);
+    }
+  };
+
   const findCustomTopPicks = (ignoredList: string[] = ignoredCustomPicks) => {
     if (!customMasterResults || customMasterResults.length === 0) return;
     
@@ -234,27 +265,9 @@ export default function BursaPage() {
 
   // Fetch custom master picks on mount
   useEffect(() => {
-    async function fetchCustomMasterPicks() {
-      if (activeTab !== 'customMaster') return;
-      if (customMasterResults.length > 0) return;
-      
-      setIsFetchingCustomMaster(true);
-      try {
-        const res = await fetch('/api/bursa-custom-picks');
-        const data = await res.json();
-        if (data.success && data.data && data.data.length > 0) {
-          setCustomMasterResults(data.data);
-          setLastCustomMasterUpdate(new Date().toISOString());
-        } else if (data.lastUpdated) {
-          setLastCustomMasterUpdate(data.lastUpdated);
-        }
-      } catch (e) {
-        console.error("Failed to fetch custom picks:", e);
-      } finally {
-        setIsFetchingCustomMaster(false);
-      }
+    if (activeTab === 'customMaster') {
+      loadCustomMasterPicks();
     }
-    fetchCustomMasterPicks();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
