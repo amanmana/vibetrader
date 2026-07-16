@@ -16,8 +16,13 @@ interface CleanItem {
   ltsScore: number;
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    const { searchParams } = new URL(req.url);
+    const screener = searchParams.get('screener') || 'top-active';
+    const allowedScreeners = ['top-active', 'jerung-x'];
+    const activeScreener = allowedScreeners.includes(screener) ? screener : 'top-active';
+
     let cookieString = '';
     
     // Retrieve cookie from D1 system_settings
@@ -31,12 +36,12 @@ export async function GET() {
       console.warn('[Bursa Top Active] Failed to read cookie from D1:', e);
     }
 
-    const url = 'https://www.isaham.my/screener/v2/api/top-active';
+    const url = `https://www.isaham.my/screener/v2/api/${activeScreener}`;
     
     const headers: Record<string, string> = {
       'Content-Type': 'application/x-www-form-urlencoded',
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-      'Referer': 'https://www.isaham.my/screener/top-active',
+      'Referer': `https://www.isaham.my/screener/${activeScreener}`,
       'Origin': 'https://www.isaham.my'
     };
 
@@ -44,7 +49,7 @@ export async function GET() {
       headers['Cookie'] = cookieString.trim();
     }
 
-    // Fetch top active stocks from iSaham via urlencoded POST
+    // Fetch stocks from iSaham via urlencoded POST
     const res = await fetch(url, {
       method: 'POST',
       headers,

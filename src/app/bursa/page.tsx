@@ -30,6 +30,7 @@ export default function BursaPage() {
   const [isLiveScanning, setIsLiveScanning] = useState(false);
 
   // iSaham Top Active states
+  const [selectedScreener, setSelectedScreener] = useState<'top-active' | 'jerung-x'>('top-active');
   const [topActiveResults, setTopActiveResults] = useState<any[]>([]);
   const [isFetchingTopActive, setIsFetchingTopActive] = useState(false);
   const [topActiveError, setTopActiveError] = useState('');
@@ -58,17 +59,17 @@ export default function BursaPage() {
     loadDatabaseSettings();
   }, []);
 
-  const fetchTopActive = async () => {
+  const fetchTopActive = async (screenerName = selectedScreener) => {
     setIsFetchingTopActive(true);
     setTopActiveError('');
     try {
-      const res = await fetch('/api/bursa-top-active');
+      const res = await fetch(`/api/bursa-top-active?screener=${screenerName}`);
       const data = await res.json();
       if (data.success && data.results) {
         setTopActiveResults(data.results);
         setHasUnlockedScores(data.hasUnlockedScores || false);
       } else {
-        setTopActiveError(data.error || 'Gagal memuatkan data Top Active.');
+        setTopActiveError(data.error || 'Gagal memuatkan data.');
       }
     } catch (err: any) {
       console.error(err);
@@ -76,6 +77,11 @@ export default function BursaPage() {
     } finally {
       setIsFetchingTopActive(false);
     }
+  };
+
+  const handleScreenerChange = (val: 'top-active' | 'jerung-x') => {
+    setSelectedScreener(val);
+    fetchTopActive(val);
   };
 
   const [isUpdatingMaster, setIsUpdatingMaster] = useState(false);
@@ -651,7 +657,7 @@ export default function BursaPage() {
               className={`px-6 py-2.5 rounded-xl text-sm font-bold transition flex items-center gap-2 ${activeTab === 'topActive' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.1)]' : 'text-slate-500 hover:text-slate-300'}`}
             >
               <div className={`w-2 h-2 rounded-full ${activeTab === 'topActive' ? 'bg-emerald-400 animate-pulse' : 'bg-slate-600'}`} />
-              iSaham Top Active
+              iSaham Screener
             </button>
 
           </div>
@@ -1681,21 +1687,34 @@ export default function BursaPage() {
                   <TrendingUp className="w-5 h-5 text-emerald-400" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-slate-100">Top Active Volume (iSaham)</h3>
+                  <h3 className="text-xl font-bold text-slate-100">
+                    {selectedScreener === 'top-active' ? 'Top Active Volume (iSaham)' : 'Jerung X Screener (iSaham Pro)'}
+                  </h3>
                   <p className="text-sm text-slate-500">
-                    Senarai 20 kaunter paling aktif didagang. {hasUnlockedScores ? <span className="text-emerald-400 font-bold">✨ Pro Unlocked: Disusun mengikut iSaham Score</span> : <span className="text-slate-500">Log masuk tetapan untuk susunan Pro.</span>}
+                    {selectedScreener === 'top-active'
+                      ? `Senarai 20 kaunter paling aktif didagang. ${hasUnlockedScores ? '✨ Pro Unlocked: Disusun mengikut iSaham Score' : 'Log masuk tetapan untuk susunan Pro.'}`
+                      : 'Mengesan kaunter yang sedang dikumpul secara aktif/senyap oleh pelabur institusi (Jerung).'}
                   </p>
                 </div>
               </div>
               
-              <div className="flex gap-2">
+              <div className="flex items-center gap-2">
+                <select
+                  value={selectedScreener}
+                  onChange={(e) => handleScreenerChange(e.target.value as 'top-active' | 'jerung-x')}
+                  className="px-3 py-2 bg-slate-900 border border-slate-700 text-slate-200 rounded-xl text-xs font-bold transition focus:outline-none focus:border-emerald-500 cursor-pointer"
+                >
+                  <option value="top-active">📈 Top Active Volume</option>
+                  <option value="jerung-x">🐋 Jerung X (Whales)</option>
+                </select>
+
                 <button
                   onClick={() => setShowCookieModal(true)}
                   className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${isahamCookie.trim() ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-[0_0_12px_rgba(16,185,129,0.05)]' : 'bg-slate-800 hover:bg-slate-700 text-slate-300'}`}
                 >
                   {/* Settings gear icon */}
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                  ⚙️ iSaham Settings
+                  ⚙️ Settings
                 </button>
                 
                 <button
@@ -1763,19 +1782,25 @@ export default function BursaPage() {
                               RM {row.price.toFixed(3)}
                             </td>
                             <td className="p-4">
-                              <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border ${changeColor}`}>
-                                {row.change > 0 ? '+' : ''}{row.change.toFixed(2)}%
-                              </span>
+                              {row.change !== 0 ? (
+                                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border ${changeColor}`}>
+                                  {row.change > 0 ? '+' : ''}{row.change.toFixed(2)}%
+                                </span>
+                              ) : (
+                                <span className="text-slate-600 font-mono text-sm">-</span>
+                              )}
                             </td>
                             <td className="p-4 font-mono text-sm text-slate-400">
-                              {row.volume.toLocaleString('en-US')}
+                              {row.volume > 0 ? row.volume.toLocaleString('en-US') : '-'}
                             </td>
                             <td className="p-4 font-mono text-sm text-slate-400">
-                              RM {row.marketCap.toLocaleString('en-US')} M
+                              {row.marketCap > 0 ? `RM ${row.marketCap.toLocaleString('en-US')} M` : '-'}
                             </td>
                             <td className="p-4 font-mono text-sm text-slate-400">
                               {row.ltsScore > 0 ? (
                                 <span className="text-blue-400 font-bold">{row.ltsScore.toFixed(2)}</span>
+                              ) : selectedScreener === 'jerung-x' ? (
+                                <span className="text-slate-600">-</span>
                               ) : (
                                 <span className="text-slate-600" title="Pro Session Required">🔒 Locked</span>
                               )}
@@ -1783,6 +1808,8 @@ export default function BursaPage() {
                             <td className="p-4 font-mono text-sm text-slate-400">
                               {row.isahamScore > 0 ? (
                                 <span className="text-amber-400 font-bold">{row.isahamScore.toFixed(1)}</span>
+                              ) : selectedScreener === 'jerung-x' ? (
+                                <span className="text-slate-600">-</span>
                               ) : (
                                 <span className="text-slate-600" title="Pro Session Required">🔒 Locked</span>
                               )}
