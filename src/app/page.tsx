@@ -325,20 +325,23 @@ export default function VibeTrader() {
   const saveToUsWatchlist = async (row: any) => {
     setIsSavingUsWatchlist(true);
     try {
+      const basePrice = parseFloat(row.price || row.technical_indicators?.current_price || '0');
+      const gann = getStaticGannTargets(basePrice, 1);
+
       const payload = {
         ticker: row.ticker,
-        name: row.name,
-        price: row.price,
-        score: row.score,
-        highestPrice: row.highestPrice,
-        staticSL: row.staticSL,
-        staticSLColor: row.staticSLColor,
-        staticTP1: row.staticTP1,
-        staticTP1Color: row.staticTP1Color,
-        staticTP2: row.staticTP2,
-        staticTP2Color: row.staticTP2Color,
-        staticTP3: row.staticTP3,
-        staticTP3Color: row.staticTP3Color,
+        name: row.name || row.company_name || row.ticker,
+        price: basePrice.toString(),
+        score: (row.score || row.adaptive_sniper?.score || '0').toString(),
+        highestPrice: (row.highestPrice || basePrice).toString(),
+        staticSL: (row.staticSL || gann.staticSL || '0').toString(),
+        staticSLColor: row.staticSLColor || 'blue',
+        staticTP1: (row.staticTP1 || gann.staticTP1 || '0').toString(),
+        staticTP1Color: row.staticTP1Color || 'blue',
+        staticTP2: (row.staticTP2 || gann.staticTP2 || '0').toString(),
+        staticTP2Color: row.staticTP2Color || 'blue',
+        staticTP3: (row.staticTP3 || gann.staticTP3 || '0').toString(),
+        staticTP3Color: row.staticTP3Color || 'blue',
       };
       const res = await fetch('/api/us-custom-picks', {
         method: 'POST',
@@ -1350,21 +1353,17 @@ export default function VibeTrader() {
                                     <button
                                       onClick={(e) => {
                                         e.stopPropagation();
-                                        const isTracked = watchlist.includes(res.ticker);
-                                        let newList: string[] = [];
+                                        const isTracked = usWatchlist.some(w => w.ticker === res.ticker);
                                         if (isTracked) {
-                                          newList = watchlist.filter(t => t !== res.ticker);
+                                          removeFromUsWatchlist(res.ticker);
                                         } else {
-                                          newList = [...watchlist, res.ticker];
+                                          saveToUsWatchlist(res);
                                         }
-                                        setWatchlist(newList);
-                                        localStorage.setItem('vibe_watchlist', JSON.stringify(newList));
-                                        syncWatchlistToDB(newList, watchlistResults);
                                       }}
-                                      className="p-1.5 bg-slate-900 border border-slate-800 rounded-lg text-slate-400 hover:text-amber-400 hover:bg-slate-800 transition"
-                                      title={watchlist.includes(res.ticker) ? "Remove from Watchlist" : "Add to Watchlist"}
+                                      className={`p-1.5 rounded-lg border transition ${usWatchlist.some(w => w.ticker === res.ticker) ? 'bg-amber-500/10 border-amber-500/30 text-amber-500 hover:bg-red-500/10 hover:border-red-500/30 hover:text-red-500' : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-amber-400 hover:bg-slate-800'} cursor-pointer`}
+                                      title={usWatchlist.some(w => w.ticker === res.ticker) ? "Remove from Saved Watchlist" : "Add to Saved Watchlist"}
                                     >
-                                      <Star className={`w-4 h-4 ${watchlist.includes(res.ticker) ? 'fill-amber-400' : ''}`} />
+                                      <Star className={`w-4 h-4 ${usWatchlist.some(w => w.ticker === res.ticker) ? 'fill-amber-500' : ''}`} />
                                     </button>
                                   </div>
                                 </td>
