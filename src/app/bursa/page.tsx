@@ -1284,7 +1284,12 @@ export default function BursaPage() {
                             </td>
                             <td className="p-4">
                               <div className="flex flex-col">
-                                <a href={`https://www.tradingview.com/chart/S83uhZmn/?symbol=MYX:${row.symbol.replace('.KL', '')}`} target="_blank" rel="noopener noreferrer" className="font-bold text-slate-200 hover:text-slate-100 hover:underline transition cursor-pointer">{row.companyName}</a>
+                                <div className="flex items-center gap-1.5">
+                                  <a href={`https://www.tradingview.com/chart/S83uhZmn/?symbol=MYX:${row.symbol.replace('.KL', '')}`} target="_blank" rel="noopener noreferrer" className="font-bold text-slate-200 hover:text-slate-100 hover:underline transition cursor-pointer">{row.companyName}</a>
+                                  {row.isManual && (
+                                    <span title="Ditambah secara manual" className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-400 text-[9px] leading-none" style={{fontSize:'8px'}}>★</span>
+                                  )}
+                                </div>
                                 <span className="text-[10px] text-slate-500">{row.symbol}</span>
                               </div>
                             </td>
@@ -1662,7 +1667,12 @@ export default function BursaPage() {
                             </td>
                             <td className="p-4">
                               <div className="flex flex-col">
-                                <a href={`https://www.tradingview.com/chart/S83uhZmn/?symbol=MYX:${row.symbol.replace('.KL', '')}`} target="_blank" rel="noopener noreferrer" className="font-bold text-slate-200 hover:text-blue-400 hover:underline transition cursor-pointer">{row.companyName}</a>
+                                <div className="flex items-center gap-1.5">
+                                  <a href={`https://www.tradingview.com/chart/S83uhZmn/?symbol=MYX:${row.symbol.replace('.KL', '')}`} target="_blank" rel="noopener noreferrer" className="font-bold text-slate-200 hover:text-blue-400 hover:underline transition cursor-pointer">{row.companyName}</a>
+                                  {row.isManual && (
+                                    <span title="Ditambah secara manual" className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-400 text-[9px] leading-none" style={{fontSize:'8px'}}>★</span>
+                                  )}
+                                </div>
                                 <span className="text-[10px] text-slate-500 font-mono">{row.symbol}</span>
                               </div>
                             </td>

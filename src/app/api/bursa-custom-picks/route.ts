@@ -444,6 +444,7 @@ export async function GET(req: NextRequest) {
         hitTp2: currentHigh >= row.tp2,
         hitTp3: currentHigh >= row.tp3,
         hitTp4: currentHigh >= row.tp4,
+        isManual: row.is_manual === 1,
       };
     });
 
@@ -497,8 +498,8 @@ export async function POST(req: NextRequest) {
 
       // Save to D1 database
       await db.prepare(`
-        INSERT INTO custom_picks (id, date, symbol, company_name, price, score, stop_loss, tp1, tp2, tp3, tp4, highest_price)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO custom_picks (id, date, symbol, company_name, price, score, stop_loss, tp1, tp2, tp3, tp4, highest_price, is_manual)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
       `).bind(
         calculated.symbol,
         timestamp,
@@ -527,8 +528,8 @@ export async function POST(req: NextRequest) {
     await db.prepare('DELETE FROM custom_picks').run();
     
     const stmt = db.prepare(`
-      INSERT INTO custom_picks (id, date, symbol, company_name, price, score, stop_loss, tp1, tp2, tp3, tp4, highest_price)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO custom_picks (id, date, symbol, company_name, price, score, stop_loss, tp1, tp2, tp3, tp4, highest_price, is_manual)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
     `);
 
     const batch = results.map((pick: any) => {
