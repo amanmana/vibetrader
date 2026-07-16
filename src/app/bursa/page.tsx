@@ -33,23 +33,38 @@ export default function BursaPage() {
   const [topActiveResults, setTopActiveResults] = useState<any[]>([]);
   const [isFetchingTopActive, setIsFetchingTopActive] = useState(false);
   const [topActiveError, setTopActiveError] = useState('');
+  const [isahamCookie, setIsahamCookie] = useState('');
+  const [showCookieModal, setShowCookieModal] = useState(false);
+  const [hasUnlockedScores, setHasUnlockedScores] = useState(false);
 
-  // Load customText from localStorage on mount
+  // Load customText and isahamCookie from localStorage on mount
   useEffect(() => {
     const saved = localStorage.getItem('bursa_custom_text');
     if (saved) {
       setCustomText(saved);
     }
+    const savedCookie = localStorage.getItem('bursa_isaham_cookie');
+    if (savedCookie) {
+      setIsahamCookie(savedCookie);
+    }
   }, []);
 
-  const fetchTopActive = async () => {
+  const fetchTopActive = async (cookieOverride?: string) => {
     setIsFetchingTopActive(true);
     setTopActiveError('');
+    const cookieToUse = cookieOverride !== undefined ? cookieOverride : isahamCookie;
     try {
-      const res = await fetch('/api/bursa-top-active');
+      const res = await fetch('/api/bursa-top-active', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ cookieString: cookieToUse })
+      });
       const data = await res.json();
       if (data.success && data.results) {
         setTopActiveResults(data.results);
+        setHasUnlockedScores(data.hasUnlockedScores || false);
       } else {
         setTopActiveError(data.error || 'Gagal memuatkan data Top Active.');
       }
@@ -1615,17 +1630,30 @@ export default function BursaPage() {
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-slate-100">Top Active Volume (iSaham)</h3>
-                  <p className="text-sm text-slate-500">Senarai 20 kaunter paling aktif didagang hari ini di Bursa Malaysia.</p>
+                  <p className="text-sm text-slate-500">
+                    Senarai 20 kaunter paling aktif didagang. {hasUnlockedScores ? <span className="text-emerald-400 font-bold">✨ Pro Unlocked: Disusun mengikut iSaham Score</span> : <span className="text-slate-500">Log masuk tetapan untuk susunan Pro.</span>}
+                  </p>
                 </div>
               </div>
               
-              <button
-                onClick={fetchTopActive}
-                disabled={isFetchingTopActive}
-                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold transition flex items-center gap-2 w-fit disabled:opacity-50"
-              >
-                <RefreshCcw className={`w-3.5 h-3.5 ${isFetchingTopActive ? 'animate-spin' : ''}`} /> Refresh
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setShowCookieModal(true)}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${isahamCookie.trim() ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-[0_0_12px_rgba(16,185,129,0.05)]' : 'bg-slate-800 hover:bg-slate-700 text-slate-300'}`}
+                >
+                  {/* Settings gear icon */}
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                  ⚙️ iSaham Settings
+                </button>
+                
+                <button
+                  onClick={() => fetchTopActive()}
+                  disabled={isFetchingTopActive}
+                  className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold transition flex items-center gap-2 w-fit disabled:opacity-50 cursor-pointer"
+                >
+                  <RefreshCcw className={`w-3.5 h-3.5 ${isFetchingTopActive ? 'animate-spin' : ''}`} /> Refresh
+                </button>
+              </div>
             </div>
 
             {topActiveError && (
@@ -1649,8 +1677,10 @@ export default function BursaPage() {
                         <th className="p-4 font-semibold w-48">Stock</th>
                         <th className="p-4 font-semibold w-24">Last Price</th>
                         <th className="p-4 font-semibold w-24">Change %</th>
-                        <th className="p-4 font-semibold w-32">Volume</th>
-                        <th className="p-4 font-semibold w-32">Market Cap</th>
+                        <th className="p-4 font-semibold w-28">Volume</th>
+                        <th className="p-4 font-semibold w-28">Market Cap</th>
+                        <th className="p-4 font-semibold w-24">LTS Score</th>
+                        <th className="p-4 font-semibold w-24">iSaham Score</th>
                         <th className="p-4 font-semibold pr-6 text-right w-24">Act</th>
                       </tr>
                     </thead>
@@ -1691,6 +1721,20 @@ export default function BursaPage() {
                             <td className="p-4 font-mono text-sm text-slate-400">
                               RM {row.marketCap.toLocaleString('en-US')} M
                             </td>
+                            <td className="p-4 font-mono text-sm text-slate-400">
+                              {row.ltsScore > 0 ? (
+                                <span className="text-blue-400 font-bold">{row.ltsScore.toFixed(2)}</span>
+                              ) : (
+                                <span className="text-slate-600" title="Pro Session Required">🔒 Locked</span>
+                              )}
+                            </td>
+                            <td className="p-4 font-mono text-sm text-slate-400">
+                              {row.isahamScore > 0 ? (
+                                <span className="text-amber-400 font-bold">{row.isahamScore.toFixed(1)}</span>
+                              ) : (
+                                <span className="text-slate-600" title="Pro Session Required">🔒 Locked</span>
+                              )}
+                            </td>
                             <td className="p-4 pr-6 text-right">
                               <button
                                 onClick={() => addToCustomText(row.symbol)}
@@ -1711,6 +1755,61 @@ export default function BursaPage() {
               <div className="flex flex-col items-center justify-center py-20 bg-slate-900/30 rounded-3xl border border-slate-800/50 backdrop-blur-sm">
                 <Loader2 className="w-10 h-10 text-slate-600 mb-4" />
                 <p className="text-sm text-slate-500">Tiada data dijumpai.</p>
+              </div>
+            )}
+
+            {/* Cookie Modal */}
+            {showCookieModal && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+                <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 w-full max-w-lg shadow-2xl relative">
+                  <button 
+                    onClick={() => setShowCookieModal(false)}
+                    className="absolute top-4 right-4 text-slate-400 hover:text-slate-200 transition"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                  <h4 className="text-lg font-bold text-slate-100 mb-2 flex items-center gap-2">
+                    🔑 iSaham Pro Cookies Settings
+                  </h4>
+                  <p className="text-xs text-slate-400 mb-4 leading-relaxed">
+                    Tampal <strong>Cookie String</strong> lengkap daripada Chrome Console anda di bawah untuk membolehkan sistem menarik <em>iSaham Score</em> &amp; <em>LTS Score</em> serta membuat susunan pintar.
+                  </p>
+                  
+                  <textarea
+                    value={isahamCookie}
+                    onChange={(e) => setIsahamCookie(e.target.value)}
+                    placeholder="Tampal cookie di sini... (cth: _fbp=...; username=...; login=...)"
+                    className="w-full h-32 bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-slate-300 font-mono focus:outline-none focus:border-emerald-500 resize-none mb-4"
+                  />
+
+                  <div className="bg-slate-950/50 rounded-xl p-3 border border-slate-800/40 mb-5 text-[11px] text-slate-400 leading-relaxed">
+                    <strong className="text-amber-400">Cara dapatkan:</strong> Di laman iSaham (log masuk), buka <strong>Chrome Console (F12)</strong>, taip <code>copy(document.cookie)</code> dan tekan Enter. Kemudian <strong>Paste (Ctrl+V)</strong> di atas.
+                  </div>
+
+                  <div className="flex justify-end gap-2">
+                    <button
+                      onClick={() => {
+                        setIsahamCookie('');
+                        localStorage.removeItem('bursa_isaham_cookie');
+                        setShowCookieModal(false);
+                        fetchTopActive('');
+                      }}
+                      className="px-4 py-2 bg-slate-800 hover:bg-red-900/30 text-slate-400 hover:text-red-400 rounded-xl text-xs font-bold transition"
+                    >
+                      Clear Cookie
+                    </button>
+                    <button
+                      onClick={() => {
+                        localStorage.setItem('bursa_isaham_cookie', isahamCookie);
+                        setShowCookieModal(false);
+                        fetchTopActive(isahamCookie);
+                      }}
+                      className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white rounded-xl text-xs font-bold transition shadow-md shadow-emerald-900/20"
+                    >
+                      Save &amp; Reload
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
           </div>

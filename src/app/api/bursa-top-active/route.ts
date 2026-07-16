@@ -11,21 +11,37 @@ interface CleanItem {
   change: number;
   volume: number;
   marketCap: number;
+  isahamScore: number;
+  ltsScore: number;
 }
 
-export async function GET() {
+export async function POST(req: NextRequest) {
   try {
+    let cookieString = '';
+    try {
+      const body = await req.json();
+      cookieString = body?.cookieString || '';
+    } catch (e) {
+      // Body might be empty or invalid, ignore
+    }
+
     const url = 'https://www.isaham.my/screener/v2/api/top-active';
     
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+      'Referer': 'https://www.isaham.my/screener/top-active',
+      'Origin': 'https://www.isaham.my'
+    };
+
+    if (cookieString.trim()) {
+      headers['Cookie'] = cookieString.trim();
+    }
+
     // Fetch top active stocks from iSaham via urlencoded POST
     const res = await fetch(url, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Referer': 'https://www.isaham.my/screener/top-active',
-        'Origin': 'https://www.isaham.my'
-      },
+      headers,
       body: 'market=klse'
     });
 
@@ -69,6 +85,22 @@ export async function GET() {
       // 6. Market Cap
       const marketCap = parseInt(item.market_cap, 10) || 0;
 
+      // 7. Parse iSaham Score (total_score)
+      let isahamScore = 0;
+      if (typeof item.total_score === 'number') {
+        isahamScore = item.total_score;
+      } else if (typeof item.total_score === 'string') {
+        isahamScore = parseFloat(item.total_score) || 0;
+      }
+
+      // 8. Parse LTS Score (lts_score)
+      let ltsScore = 0;
+      if (typeof item.lts_score === 'number') {
+        ltsScore = item.lts_score;
+      } else if (typeof item.lts_score === 'string') {
+        ltsScore = parseFloat(item.lts_score) || 0;
+      }
+
       cleanedList.push({
         rank,
         symbol,
@@ -76,13 +108,22 @@ export async function GET() {
         price,
         change,
         volume,
-        marketCap
+        marketCap,
+        isahamScore,
+        ltsScore
       });
+    }
+
+    // If scores are unlocked, sort the entire list by iSaham Score descending
+    const hasUnlockedScores = cleanedList.some(item => item.isahamScore > 0);
+    if (hasUnlockedScores) {
+      cleanedList.sort((a, b) => b.isahamScore - a.isahamScore);
     }
 
     return NextResponse.json({
       success: true,
       count: cleanedList.length,
+      hasUnlockedScores,
       results: cleanedList
     });
 
