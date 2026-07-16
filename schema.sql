@@ -27,8 +27,6 @@ CREATE TABLE IF NOT EXISTS custom_picks (
   tp3 REAL NOT NULL,
   tp4 REAL NOT NULL,
   highest_price REAL NOT NULL,
-  isaham_score REAL DEFAULT 0,
-  lts_score REAL DEFAULT 0,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 

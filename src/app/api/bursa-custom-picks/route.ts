@@ -422,8 +422,6 @@ export async function GET(req: NextRequest) {
         currentPrice: currentLivePrice.toFixed(3),
         lastDoneDate: q?.lastWeekDateStr || '',
         score: row.score.toFixed(1),
-        isahamScore: row.isaham_score !== undefined && row.isaham_score !== null ? row.isaham_score.toFixed(1) : '-',
-        ltsScore: row.lts_score !== undefined && row.lts_score !== null ? row.lts_score.toFixed(2) : '-',
         stopLoss: row.stop_loss.toFixed(3),
         tp1: row.tp1.toFixed(3),
         tp2: row.tp2.toFixed(3),
@@ -466,7 +464,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { action, symbol, name, isaham_score, lts_score, results } = body;
+    const { action, symbol, name, results } = body;
     const timestamp = new Date().toISOString();
 
     // 1. ADD SINGLE STOCK ACTION
@@ -487,8 +485,8 @@ export async function POST(req: NextRequest) {
 
       // Save to D1 database
       await db.prepare(`
-        INSERT INTO custom_picks (id, date, symbol, company_name, price, score, stop_loss, tp1, tp2, tp3, tp4, highest_price, isaham_score, lts_score)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO custom_picks (id, date, symbol, company_name, price, score, stop_loss, tp1, tp2, tp3, tp4, highest_price)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `).bind(
         calculated.symbol,
         timestamp,
@@ -501,9 +499,7 @@ export async function POST(req: NextRequest) {
         parseFloat(calculated.tp2),
         parseFloat(calculated.tp3),
         parseFloat(calculated.tp4),
-        parseFloat(calculated.highest),
-        parseFloat(isaham_score || 0),
-        parseFloat(lts_score || 0)
+        parseFloat(calculated.highest)
       ).run();
 
       console.log(`[Bursa Custom Picks] Manually added ${calculated.symbol} to database`);
@@ -519,8 +515,8 @@ export async function POST(req: NextRequest) {
     await db.prepare('DELETE FROM custom_picks').run();
     
     const stmt = db.prepare(`
-      INSERT INTO custom_picks (id, date, symbol, company_name, price, score, stop_loss, tp1, tp2, tp3, tp4, highest_price, isaham_score, lts_score)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO custom_picks (id, date, symbol, company_name, price, score, stop_loss, tp1, tp2, tp3, tp4, highest_price)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
 
     const batch = results.map((pick: any) => {
@@ -536,9 +532,7 @@ export async function POST(req: NextRequest) {
         parseFloat(pick.tp2),
         parseFloat(pick.tp3),
         pick.tp4 ? parseFloat(pick.tp4) : 0,
-        parseFloat(pick.highestPrice || pick.price),
-        parseFloat(pick.isahamScore || pick.isaham_score || 0),
-        parseFloat(pick.ltsScore || pick.lts_score || 0)
+        parseFloat(pick.highestPrice || pick.price)
       );
     });
 
