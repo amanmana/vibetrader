@@ -51,7 +51,7 @@ export default function VibeTrader() {
   const [loadingNews, setLoadingNews] = useState(false);
   
   // Screener State
-  const [activeTab, setActiveTab] = useState<'watchlist' | 'screener' | 'us-sniper' | 'us-watchlist' | 'calculator'>('watchlist');
+  const [activeTab, setActiveTab] = useState<'watchlist' | 'screener' | 'us-sniper' | 'us-watchlist' | 'calculator'>('us-watchlist');
 
   // Calculator state
   const [calcTicker, setCalcTicker] = useState('');
