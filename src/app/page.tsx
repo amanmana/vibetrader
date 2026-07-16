@@ -1524,10 +1524,10 @@ export default function VibeTrader() {
                                 <button 
                                   onClick={() => saveToUsWatchlist(row)} 
                                   disabled={isSavingUsWatchlist || usWatchlist.some(w => w.ticker === row.ticker)} 
-                                  className={`transition-colors p-2 rounded-lg ${usWatchlist.some(w => w.ticker === row.ticker) ? 'text-emerald-500 bg-emerald-500/10' : 'text-slate-600 hover:text-emerald-500 bg-slate-800/50 hover:bg-emerald-500/10'} disabled:opacity-50 cursor-pointer`}
-                                  title="Save to Watchlist"
+                                  className={`transition-colors p-2 rounded-lg ${usWatchlist.some(w => w.ticker === row.ticker) ? 'text-amber-500 bg-amber-500/10' : 'text-slate-600 hover:text-amber-500 bg-slate-800/50 hover:bg-amber-500/10'} disabled:opacity-50 cursor-pointer`}
+                                  title="Add to Watchlist"
                                 >
-                                  <Save className="w-4 h-4" />
+                                  <Star className={`w-4 h-4 ${usWatchlist.some(w => w.ticker === row.ticker) ? 'fill-amber-500' : ''}`} />
                                 </button>
                                 <button onClick={() => removeUsSniperResult(row.ticker)} className="text-slate-600 hover:text-red-500 transition-colors bg-slate-800/50 hover:bg-red-500/10 p-2 rounded-lg cursor-pointer" title="Remove from list">
                                   <Trash2 className="w-4 h-4" />
