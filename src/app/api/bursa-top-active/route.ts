@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getRequestContext } from '@cloudflare/next-on-pages';
 
 export const runtime = 'edge';
 export const dynamic = 'force-dynamic';
@@ -15,14 +16,19 @@ interface CleanItem {
   ltsScore: number;
 }
 
-export async function POST(req: NextRequest) {
+export async function GET() {
   try {
     let cookieString = '';
+    
+    // Retrieve cookie from D1 system_settings
     try {
-      const body = await req.json();
-      cookieString = body?.cookieString || '';
+      const db = (getRequestContext().env as unknown as CloudflareEnv).DB;
+      if (db) {
+        const setting = await db.prepare('SELECT value FROM system_settings WHERE key = ?').bind('isaham_cookie').first();
+        cookieString = setting ? (setting.value as string) : '';
+      }
     } catch (e) {
-      // Body might be empty or invalid, ignore
+      console.warn('[Bursa Top Active] Failed to read cookie from D1:', e);
     }
 
     const url = 'https://www.isaham.my/screener/v2/api/top-active';

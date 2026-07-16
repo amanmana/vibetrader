@@ -37,30 +37,32 @@ export default function BursaPage() {
   const [showCookieModal, setShowCookieModal] = useState(false);
   const [hasUnlockedScores, setHasUnlockedScores] = useState(false);
 
-  // Load customText and isahamCookie from localStorage on mount
+  // Load customText from localStorage, and isaham_cookie from D1 on mount
   useEffect(() => {
     const saved = localStorage.getItem('bursa_custom_text');
     if (saved) {
       setCustomText(saved);
     }
-    const savedCookie = localStorage.getItem('bursa_isaham_cookie');
-    if (savedCookie) {
-      setIsahamCookie(savedCookie);
+    
+    async function loadDatabaseSettings() {
+      try {
+        const res = await fetch('/api/system-settings?key=isaham_cookie');
+        const data = await res.json();
+        if (data.success && data.value) {
+          setIsahamCookie(data.value);
+        }
+      } catch (e) {
+        console.error('Failed to load isaham cookie from database:', e);
+      }
     }
+    loadDatabaseSettings();
   }, []);
 
-  const fetchTopActive = async (cookieOverride?: string) => {
+  const fetchTopActive = async () => {
     setIsFetchingTopActive(true);
     setTopActiveError('');
-    const cookieToUse = cookieOverride !== undefined ? cookieOverride : isahamCookie;
     try {
-      const res = await fetch('/api/bursa-top-active', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ cookieString: cookieToUse })
-      });
+      const res = await fetch('/api/bursa-top-active');
       const data = await res.json();
       if (data.success && data.results) {
         setTopActiveResults(data.results);
@@ -1788,23 +1790,49 @@ export default function BursaPage() {
 
                   <div className="flex justify-end gap-2">
                     <button
-                      onClick={() => {
-                        setIsahamCookie('');
-                        localStorage.removeItem('bursa_isaham_cookie');
-                        setShowCookieModal(false);
-                        fetchTopActive('');
+                      onClick={async () => {
+                        try {
+                          const res = await fetch('/api/system-settings', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ key: 'isaham_cookie', value: '' })
+                          });
+                          const data = await res.json();
+                          if (data.success) {
+                            setIsahamCookie('');
+                            setShowCookieModal(false);
+                            fetchTopActive();
+                          } else {
+                            alert('Gagal membersihkan cookie dari database: ' + data.error);
+                          }
+                        } catch (err: any) {
+                          alert('Ralat sambungan: ' + err.message);
+                        }
                       }}
-                      className="px-4 py-2 bg-slate-800 hover:bg-red-900/30 text-slate-400 hover:text-red-400 rounded-xl text-xs font-bold transition"
+                      className="px-4 py-2 bg-slate-800 hover:bg-red-900/30 text-slate-400 hover:text-red-400 rounded-xl text-xs font-bold transition cursor-pointer"
                     >
                       Clear Cookie
                     </button>
                     <button
-                      onClick={() => {
-                        localStorage.setItem('bursa_isaham_cookie', isahamCookie);
-                        setShowCookieModal(false);
-                        fetchTopActive(isahamCookie);
+                      onClick={async () => {
+                        try {
+                          const res = await fetch('/api/system-settings', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ key: 'isaham_cookie', value: isahamCookie })
+                          });
+                          const data = await res.json();
+                          if (data.success) {
+                            setShowCookieModal(false);
+                            fetchTopActive();
+                          } else {
+                            alert('Gagal menyimpan cookie ke database: ' + data.error);
+                          }
+                        } catch (err: any) {
+                          alert('Ralat sambungan: ' + err.message);
+                        }
                       }}
-                      className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white rounded-xl text-xs font-bold transition shadow-md shadow-emerald-900/20"
+                      className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white rounded-xl text-xs font-bold transition shadow-md shadow-emerald-900/20 cursor-pointer"
                     >
                       Save &amp; Reload
                     </button>
