@@ -465,7 +465,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { action, symbol, name, results } = body;
+    const { action, symbol, name, results, isManual } = body;
     const timestamp = new Date().toISOString();
 
     // 0. DELETE SINGLE STOCK ACTION
@@ -499,7 +499,7 @@ export async function POST(req: NextRequest) {
       // Save to D1 database
       await db.prepare(`
         INSERT INTO custom_picks (id, date, symbol, company_name, price, score, stop_loss, tp1, tp2, tp3, tp4, highest_price, is_manual)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `).bind(
         calculated.symbol,
         timestamp,
@@ -512,7 +512,8 @@ export async function POST(req: NextRequest) {
         parseFloat(calculated.tp2),
         parseFloat(calculated.tp3),
         parseFloat(calculated.tp4),
-        parseFloat(calculated.highest)
+        parseFloat(calculated.highest),
+        isManual === true ? 1 : 0
       ).run();
 
       console.log(`[Bursa Custom Picks] Manually added ${calculated.symbol} to database`);

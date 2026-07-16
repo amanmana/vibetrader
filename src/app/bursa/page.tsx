@@ -124,7 +124,7 @@ export default function BursaPage() {
     }
   };
 
-  const addToCustomText = async (symbol: string, companyName?: string) => {
+  const addToCustomText = async (symbol: string, companyName?: string, isManual: boolean = false) => {
     const cleanSym = symbol.replace('.KL', '').replace('MYX:', '');
     try {
       setAddingSymbol(cleanSym);
@@ -133,7 +133,7 @@ export default function BursaPage() {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ action: 'add', symbol: cleanSym, name: companyName })
+        body: JSON.stringify({ action: 'add', symbol: cleanSym, name: companyName, isManual })
       });
       const data = await res.json();
       if (data.success) {
@@ -1635,7 +1635,7 @@ export default function BursaPage() {
                             <td className="p-4 pr-6 text-right">
                               <button
                                 onClick={async () => {
-                                  await addToCustomText(searchedStock.symbol, searchedStock.companyName);
+                                  await addToCustomText(searchedStock.symbol, searchedStock.companyName, true);
                                   setSearchedStock(null);
                                   setSearchQuery('');
                                 }}
