@@ -882,7 +882,8 @@ export default function BursaPage() {
                           <th className="p-4 font-semibold text-emerald-400/80">TP2<br/>{showSniperDynamic && <span className="text-[10px] text-slate-600">Gann / Dyn</span>}</th>
                           
                           
-                          <th className="p-4 font-semibold pr-6">Highest (5D)</th>
+                          <th className="p-4 font-semibold">Highest (5D)</th>
+                          <th className="p-4 font-semibold pr-6 text-right">Action</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-800/50">
@@ -930,7 +931,27 @@ export default function BursaPage() {
                             </td>
                             
                             
-                            <td className="p-4 font-mono text-sm text-slate-400 pr-6">{stock.highest}</td>
+                            <td className="p-4 font-mono text-sm text-slate-400">{stock.highest}</td>
+                            <td className="p-4 pr-6 text-right">
+                              <button
+                                onClick={() => addToCustomText(stock.symbol, stock.originalName || stock.companyName)}
+                                disabled={addingSymbol !== null}
+                                className={`p-2 rounded-xl border transition inline-flex items-center justify-center cursor-pointer ${
+                                  addingSymbol === stock.symbol.replace('.KL', '').replace('MYX:', '')
+                                    ? 'bg-slate-800 text-slate-500 border-slate-700 cursor-not-allowed'
+                                    : 'bg-slate-800 hover:bg-emerald-600 hover:text-white text-emerald-400 border-slate-700 hover:border-emerald-500'
+                                }`}
+                                title="Tambah ke Custom Master List"
+                              >
+                                <span className="text-xs font-bold px-1 flex items-center gap-1">
+                                  {addingSymbol === stock.symbol.replace('.KL', '').replace('MYX:', '') ? (
+                                    <><Loader2 className="w-3 h-3 animate-spin" /> Adding</>
+                                  ) : (
+                                    <>➕ Add</>
+                                  )}
+                                </span>
+                              </button>
+                            </td>
                           </tr>
                         ))}
                       </tbody>
