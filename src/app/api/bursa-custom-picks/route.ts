@@ -467,6 +467,14 @@ export async function POST(req: NextRequest) {
     const { action, symbol, name, results } = body;
     const timestamp = new Date().toISOString();
 
+    // 0. DELETE SINGLE STOCK ACTION
+    if (action === 'delete' && symbol) {
+      const cleanSym = symbol.trim().toUpperCase();
+      await db.prepare('DELETE FROM custom_picks WHERE symbol = ? OR id = ?').bind(cleanSym, cleanSym).run();
+      console.log(`[Bursa Custom Picks] Manually deleted ${cleanSym} from database`);
+      return NextResponse.json({ success: true, symbol: cleanSym });
+    }
+
     // 1. ADD SINGLE STOCK ACTION
     if (action === 'add' && symbol) {
       const cleanSym = symbol.trim().toUpperCase();

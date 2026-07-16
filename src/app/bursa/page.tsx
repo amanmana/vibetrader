@@ -148,6 +148,32 @@ export default function BursaPage() {
     }
   };
 
+  const deleteFromCustom = async (symbol: string, companyName?: string) => {
+    if (!confirm(`Adakah anda pasti untuk memadam kaunter "${symbol}" (${companyName || ''}) daripada Custom Master List?`)) {
+      return;
+    }
+    const cleanSym = symbol.replace('.KL', '').replace('MYX:', '');
+    try {
+      const res = await fetch('/api/bursa-custom-picks', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ action: 'delete', symbol: cleanSym })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setCustomMasterResults([]);
+        await loadCustomMasterPicks(true);
+      } else {
+        alert(data.error || 'Gagal memadam kaunter.');
+      }
+    } catch (err: any) {
+      console.error(err);
+      alert('Ralat sambungan: ' + err.message);
+    }
+  };
+
   const findCustomTopPicks = (ignoredList: string[] = ignoredCustomPicks) => {
     if (!customMasterResults || customMasterResults.length === 0) return;
     
@@ -1481,7 +1507,7 @@ export default function BursaPage() {
                           <th className="p-4 font-semibold text-emerald-400/80 w-32">TP2</th>
                           
                           
-                          <th className="p-4 font-semibold pr-6 w-32">
+                          <th className="p-4 font-semibold w-32">
                             <div className="flex flex-col">
                               <span>Highest</span>
                               <span className="text-[10px] text-slate-500 font-normal">
@@ -1489,6 +1515,7 @@ export default function BursaPage() {
                               </span>
                             </div>
                           </th>
+                          <th className="p-4 font-semibold pr-6 text-right w-20">Action</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-800/50">
@@ -1557,7 +1584,8 @@ export default function BursaPage() {
                             </td>
                             
                             
-                            <td className="p-4 font-mono text-sm text-slate-500 pr-6">{searchedStock.highestPrice}</td>
+                            <td className="p-4 font-mono text-sm text-slate-500">{searchedStock.highestPrice}</td>
+                            <td className="p-4 pr-6 text-right"></td>
                           </tr>
                         )}
                         {customMasterResults.map((row, idx) => (
@@ -1624,7 +1652,16 @@ export default function BursaPage() {
                             </td>
                             
                             
-                            <td className="p-4 font-mono text-sm text-slate-500 pr-6">{row.highestPrice}</td>
+                            <td className="p-4 font-mono text-sm text-slate-500">{row.highestPrice}</td>
+                            <td className="p-4 pr-6 text-right">
+                              <button
+                                onClick={() => deleteFromCustom(row.symbol, row.companyName)}
+                                className="p-2 text-rose-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition inline-flex items-center justify-center cursor-pointer"
+                                title="Padam kaunter dari Watchlist"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </td>
                           </tr>
                         ))}
                       </tbody>
