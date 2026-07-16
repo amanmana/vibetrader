@@ -134,6 +134,7 @@ export async function GET(req: NextRequest) {
         staticTP3Color: gann.staticTP3Color,
         staticTP4: gann.staticTP4,
         staticTP4Color: gann.staticTP4Color,
+        labelColor: row.label_color || null,
       };
     });
 
@@ -153,7 +154,17 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { ticker, name, price, score, highestPrice, staticSL, staticSLColor, staticTP1, staticTP1Color, staticTP2, staticTP2Color, staticTP3, staticTP3Color } = body;
+    const { action, color, ticker, name, price, score, highestPrice, staticSL, staticSLColor, staticTP1, staticTP1Color, staticTP2, staticTP2Color, staticTP3, staticTP3Color } = body;
+
+    // Handle Label Color update
+    if (action === 'label' && ticker) {
+      const cleanSym = ticker.trim().toUpperCase();
+      const labelColor = color || null;
+      await db.prepare('UPDATE us_custom_picks SET label_color = ? WHERE symbol = ?')
+        .bind(labelColor, cleanSym)
+        .run();
+      return NextResponse.json({ success: true, ticker: cleanSym, color: labelColor });
+    }
 
     if (!ticker || !name) {
       return NextResponse.json({ success: false, error: "Missing required fields" }, { status: 400 });
