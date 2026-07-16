@@ -19,7 +19,7 @@ const HARDCODED_MAPPING: Record<string, string> = {
   'INARI': '0166.KL',
   'UEMS': '5148.KL',
   'GENETEC': '0104.KL',
-  'ZETRIX': '0128.KL',
+  'ZETRIX': '0138.KL',
   'GIIB': '7192.KL',
   'SFPTECH': '0251.KL',
   'SUM': '0209.KL',

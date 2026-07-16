@@ -86,6 +86,7 @@ export default function BursaPage() {
   const [customMasterResults, setCustomMasterResults] = useState<any[]>([]);
   const [lastCustomMasterUpdate, setLastCustomMasterUpdate] = useState<string | null>(null);
   const [isSavingCustom, setIsSavingCustom] = useState(false);
+  const [addingSymbol, setAddingSymbol] = useState<string | null>(null);
   const [isFetchingCustomMaster, setIsFetchingCustomMaster] = useState(false);
 
   const [showDynamic, setShowDynamic] = useState(false);
@@ -120,7 +121,7 @@ export default function BursaPage() {
   const addToCustomText = async (symbol: string, companyName?: string) => {
     const cleanSym = symbol.replace('.KL', '').replace('MYX:', '');
     try {
-      setIsSavingCustom(true);
+      setAddingSymbol(cleanSym);
       const res = await fetch('/api/bursa-custom-picks', {
         method: 'POST',
         headers: {
@@ -143,7 +144,7 @@ export default function BursaPage() {
       console.error(err);
       alert('Ralat sambungan: ' + err.message);
     } finally {
-      setIsSavingCustom(false);
+      setAddingSymbol(null);
     }
   };
 
@@ -1753,10 +1754,21 @@ export default function BursaPage() {
                             <td className="p-4 pr-6 text-right">
                               <button
                                 onClick={() => addToCustomText(row.symbol, row.name)}
-                                className="p-2 bg-slate-800 hover:bg-emerald-600 hover:text-white text-emerald-400 border border-slate-700 hover:border-emerald-500 rounded-xl transition inline-flex items-center justify-center cursor-pointer"
+                                disabled={addingSymbol !== null}
+                                className={`p-2 rounded-xl border transition inline-flex items-center justify-center cursor-pointer ${
+                                  addingSymbol === row.symbol.replace('.KL', '').replace('MYX:', '')
+                                    ? 'bg-slate-800 text-slate-500 border-slate-700 cursor-not-allowed'
+                                    : 'bg-slate-800 hover:bg-emerald-600 hover:text-white text-emerald-400 border-slate-700 hover:border-emerald-500'
+                                }`}
                                 title="Tambah ke Custom Watchlist"
                               >
-                                <span className="text-xs font-bold px-1 flex items-center gap-1">➕ Add</span>
+                                <span className="text-xs font-bold px-1 flex items-center gap-1">
+                                  {addingSymbol === row.symbol.replace('.KL', '').replace('MYX:', '') ? (
+                                    <><Loader2 className="w-3 h-3 animate-spin" /> Adding</>
+                                  ) : (
+                                    <>➕ Add</>
+                                  )}
+                                </span>
                               </button>
                             </td>
                           </tr>
