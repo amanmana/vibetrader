@@ -1793,11 +1793,18 @@ export default function VibeTrader() {
                         {result.ticker}
                       </h2>
                       <button
-                        onClick={() => toggleWatchlist(result.ticker)}
-                        className={`p-2 rounded-xl transition ${watchlist.includes(result.ticker) ? 'bg-amber-500/20 text-amber-400' : 'bg-slate-800/50 text-slate-500 hover:bg-slate-800 hover:text-slate-300'}`}
-                        title={watchlist.includes(result.ticker) ? 'Remove from Watchlist' : 'Add to Watchlist'}
+                        onClick={() => {
+                          const isTracked = usWatchlist.some(w => w.ticker === result.ticker);
+                          if (isTracked) {
+                            removeFromUsWatchlist(result.ticker);
+                          } else {
+                            saveToUsWatchlist(result);
+                          }
+                        }}
+                        className={`p-2 rounded-xl transition ${usWatchlist.some(w => w.ticker === result.ticker) ? 'bg-amber-500/20 text-amber-400 hover:bg-red-500/10 hover:text-red-400' : 'bg-slate-800/50 text-slate-500 hover:bg-slate-800 hover:text-slate-300'} cursor-pointer`}
+                        title={usWatchlist.some(w => w.ticker === result.ticker) ? 'Remove from Saved Watchlist' : 'Add to Saved Watchlist'}
                       >
-                        <Star className={`w-5 h-5 ${watchlist.includes(result.ticker) ? 'fill-amber-400' : ''}`} />
+                        <Star className={`w-5 h-5 ${usWatchlist.some(w => w.ticker === result.ticker) ? 'fill-amber-400' : ''}`} />
                       </button>
                       <div className="flex items-center gap-2">
                         <span className={`px-4 py-1.5 rounded-xl text-xs font-extrabold uppercase tracking-widest shadow-md ${styles.badge}`}>
