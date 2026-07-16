@@ -1590,7 +1590,30 @@ export default function BursaPage() {
                             
                             
                             <td className="p-4 font-mono text-sm text-slate-500">{searchedStock.highestPrice}</td>
-                            <td className="p-4 pr-6 text-right"></td>
+                            <td className="p-4 pr-6 text-right">
+                              <button
+                                onClick={async () => {
+                                  await addToCustomText(searchedStock.symbol, searchedStock.companyName);
+                                  setSearchedStock(null);
+                                  setSearchQuery('');
+                                }}
+                                disabled={addingSymbol !== null}
+                                className={`p-2 rounded-xl border transition inline-flex items-center justify-center cursor-pointer ${
+                                  addingSymbol === searchedStock.symbol.replace('.KL', '').replace('MYX:', '')
+                                    ? 'bg-slate-800 text-slate-500 border-slate-700 cursor-not-allowed'
+                                    : 'bg-slate-800 hover:bg-emerald-600 hover:text-white text-emerald-400 border-slate-700 hover:border-emerald-500'
+                                }`}
+                                title="Tambah ke Custom Watchlist"
+                              >
+                                <span className="text-xs font-bold px-1 flex items-center gap-1">
+                                  {addingSymbol === searchedStock.symbol.replace('.KL', '').replace('MYX:', '') ? (
+                                    <><Loader2 className="w-3 h-3 animate-spin" /> Adding</>
+                                  ) : (
+                                    <>➕ Add</>
+                                  )}
+                                </span>
+                              </button>
+                            </td>
                           </tr>
                         )}
                         {customMasterResults.map((row, idx) => (
