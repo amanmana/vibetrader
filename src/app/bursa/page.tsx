@@ -970,7 +970,23 @@ export default function BursaPage() {
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="border border-slate-800 bg-slate-900/30 rounded-3xl p-8 backdrop-blur-sm mb-8">
               <h2 className="text-xl font-bold text-slate-200 mb-4">Manual Text Input</h2>
-              <p className="text-sm text-slate-500 mb-6">Paste a list of stock codes or names (e.g. 2429, 4456, YTL). You can separate them by commas, spaces, or newlines.</p>
+              <p className="text-sm text-slate-500 mb-4">Paste a list of stock codes or names (e.g. 2429, 4456, YTL). You can separate them by commas, spaces, or newlines.</p>
+
+              {/* Info note */}
+              <div className="flex items-start gap-3 bg-blue-500/5 border border-blue-500/20 rounded-2xl p-4 mb-6">
+                <div className="mt-0.5 flex-shrink-0">
+                  <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </div>
+                <div className="text-xs text-slate-400 leading-relaxed">
+                  <span className="font-semibold text-blue-300">Cara mudah mendapatkan senarai kaunter:</span>
+                  <ol className="mt-2 space-y-1 list-decimal list-inside text-slate-500">
+                    <li>Buka halaman <a href="https://www.bursamalaysia.com/market_information/equities_prices" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300 underline underline-offset-2 transition">Bursa Malaysia — Equities Prices</a></li>
+                    <li>Pilih paparan <span className="text-slate-300 font-medium">Top Active</span> dan salin kandungan halaman (boleh salin beberapa halaman)</li>
+                    <li>Tampal (<span className="text-slate-300 font-medium">Paste</span>) teks yang disalin ke dalam kotak di bawah</li>
+                    <li>Sistem akan mengenal pasti kod saham secara automatik dan mengimbas kesemua kaunter</li>
+                  </ol>
+                </div>
+              </div>
               
               <textarea
                 value={customText}
