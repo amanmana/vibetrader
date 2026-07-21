@@ -60,31 +60,47 @@ export async function POST(req: NextRequest) {
     ];
 
     try {
-      const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+      // Stage 1: Try the latest gemini-3.5-flash
+      const model = genAI.getGenerativeModel({ model: 'gemini-3.5-flash' });
       result = await model.generateContent([prompt, ...imageParts]);
     } catch (err: any) {
-      if (err.message && (err.message.includes('404') || err.message.includes('not found'))) {
-        // Fallback: fetch available models to find a working one
-        const modelsRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
-        const modelsData = await modelsRes.json();
+      console.warn('Gemini 3.5 Flash failed, attempting Stage 2 fallback (Gemini 3.1 Flash)...', err.message || err);
+      
+      try {
+        // Stage 2: Try the highly stable gemini-3.1-flash
+        const model31 = genAI.getGenerativeModel({ model: 'gemini-3.1-flash' });
+        result = await model31.generateContent([prompt, ...imageParts]);
+      } catch (err31: any) {
+        console.warn('Gemini 3.1 Flash failed, querying available models list...', err31.message || err31);
         
-        const availableModels = modelsData.models
-          ?.filter((m: any) => m.supportedGenerationMethods?.includes('generateContent'))
-          .map((m: any) => m.name.replace('models/', '')) || [];
+        // Stage 3: Dynamic fallback using Google's available models list
+        try {
+          const modelsRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+          const modelsData = await modelsRes.json();
           
-        if (availableModels.length === 0) {
-          throw new Error('No supported Gemini models found for this API key.');
+          const availableModels = modelsData.models
+            ?.filter((m: any) => m.supportedGenerationMethods?.includes('generateContent'))
+            .map((m: any) => m.name.replace('models/', ''))
+            .filter((name: string) => !name.includes('1.5') && !name.includes('2.0') && !name.includes('2.5')) || [];
+            
+          if (availableModels.length === 0) {
+            throw new Error('No supported Gemini models found for this API key.');
+          }
+          
+          // Select the best available model, preferring flash models
+          const fallbackModelName = availableModels.find((m: string) => m.includes('3.5-flash')) ||
+                                    availableModels.find((m: string) => m.includes('3.1-flash')) ||
+                                    availableModels.find((m: string) => m.includes('flash')) || 
+                                    availableModels.find((m: string) => m.includes('pro')) || 
+                                    availableModels[0];
+                                    
+          console.log(`Using dynamically resolved fallback model: ${fallbackModelName}`);
+          const fallbackModel = genAI.getGenerativeModel({ model: fallbackModelName });
+          result = await fallbackModel.generateContent([prompt, ...imageParts]);
+        } catch (dynamicErr: any) {
+          // If everything fails, throw a clear consolidated error
+          throw new Error(`All Gemini models (3.5-flash, 3.1-flash, and dynamic fallbacks) failed. Last error: ${dynamicErr.message || dynamicErr}`);
         }
-        
-        // Prefer a flash model, then a pro model, else whatever is first
-        const fallbackModelName = availableModels.find((m: string) => m.includes('flash')) || 
-                                  availableModels.find((m: string) => m.includes('pro')) || 
-                                  availableModels[0];
-                                  
-        const fallbackModel = genAI.getGenerativeModel({ model: fallbackModelName });
-        result = await fallbackModel.generateContent([prompt, ...imageParts]);
-      } else {
-        throw err;
       }
     }
     
