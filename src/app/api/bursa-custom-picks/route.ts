@@ -4,6 +4,61 @@ import { getStaticGannTargets } from '@/utils/gann';
 
 export const runtime = 'edge';
 
+function getLatestBursaFridayCloseMs(): { fridayMs: number } {
+  const now = new Date();
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Kuala_Lumpur',
+    year: 'numeric', month: 'numeric', day: 'numeric',
+    hour: 'numeric', minute: 'numeric', second: 'numeric',
+    hour12: false
+  });
+  
+  const parts = formatter.formatToParts(now);
+  const partMap = Object.fromEntries(parts.map(p => [p.type, parseInt(p.value, 10)]));
+  
+  const y = partMap.year;
+  const m = partMap.month - 1;
+  const d = partMap.day;
+  const h = partMap.hour;
+  
+  const klTimeMs = Date.UTC(y, m, d, h);
+  const klDate = new Date(klTimeMs);
+  const dayOfWeek = klDate.getUTCDay(); // 0 = Sun, 1 = Mon, ..., 5 = Fri, 6 = Sat
+  
+  let daysToSubtract = 0;
+  if (dayOfWeek === 6) {
+    daysToSubtract = 1;
+  } else if (dayOfWeek === 0) {
+    daysToSubtract = 2;
+  } else if (dayOfWeek === 5) {
+    daysToSubtract = h < 17 ? 7 : 0; // Bursa closes at 5:00 PM (17:00) MYT
+  } else {
+    daysToSubtract = dayOfWeek + 2;
+  }
+  
+  const targetFridayDate = new Date(klTimeMs);
+  targetFridayDate.setUTCDate(targetFridayDate.getUTCDate() - daysToSubtract);
+  
+  const fridayEndKL = Date.UTC(
+    targetFridayDate.getUTCFullYear(),
+    targetFridayDate.getUTCMonth(),
+    targetFridayDate.getUTCDate(),
+    23, 59, 59
+  );
+  
+  let absoluteMs = fridayEndKL;
+  for (let i = 0; i < 3; i++) {
+    const testDate = new Date(absoluteMs);
+    const testParts = formatter.formatToParts(testDate);
+    const testMap = Object.fromEntries(testParts.map(p => [p.type, parseInt(p.value, 10)]));
+    const testKlUtcMs = Date.UTC(testMap.year, testMap.month - 1, testMap.day, testMap.hour, testMap.minute, testMap.second);
+    const diff = testKlUtcMs - fridayEndKL;
+    absoluteMs -= diff;
+  }
+  
+  return { fridayMs: absoluteMs };
+}
+
 // Map some known names just in case search fails or is ambiguous
 const HARDCODED_MAPPING: Record<string, string> = {
   'MYEG': '0138.KL',
@@ -29,7 +84,9 @@ const HARDCODED_MAPPING: Record<string, string> = {
   'MCLEAN': '0167.KL',
   'ICENTS': '0200.KL',
   'CPETECH': '5317.KL',
-  'OGX': '0327.KL'
+  'OGX': '0327.KL',
+  'MNHLDG': '0245.KL',
+  'MNRB': '6459.KL'
 };
 
 async function resolveSymbol(symbol: string, name?: string): Promise<string | null> {
@@ -353,14 +410,7 @@ export async function GET(req: NextRequest) {
           const currentLivePrice = result.meta.regularMarketPrice;
           const currentHigh = result.meta.regularMarketDayHigh;
 
-          const now = new Date();
-          const myTime = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Kuala_Lumpur' }));
-          const currentDay = myTime.getDay();
-          const daysSinceMonday = currentDay === 0 ? 6 : currentDay - 1;
-          const mondayStart = new Date(myTime);
-          mondayStart.setDate(myTime.getDate() - daysSinceMonday);
-          mondayStart.setHours(0, 0, 0, 0);
-          const mondayStartMs = mondayStart.getTime();
+          const { fridayMs } = getLatestBursaFridayCloseMs();
 
           let lastWeekClose = currentLivePrice;
           let lastWeekDateStr = '';
@@ -368,7 +418,7 @@ export async function GET(req: NextRequest) {
 
           for (let i = timestamps.length - 1; i >= 0; i--) {
             const ts = timestamps[i] * 1000;
-            if (ts >= mondayStartMs) {
+            if (ts > fridayMs) {
               if (highs[i] && highs[i] > currentWeekHighest) {
                 currentWeekHighest = highs[i];
               }

@@ -45,7 +45,9 @@ const HARDCODED_MAPPING: Record<string, string> = {
   'MCLEAN': '0167.KL',
   'ICENTS': '0200.KL',
   'CPETECH': '5317.KL',
-  'OGX': '0327.KL'
+  'OGX': '0327.KL',
+  'MNHLDG': '0245.KL',
+  'MNRB': '6459.KL'
 };
 
 async function resolveSymbol(name: string): Promise<string | null> {

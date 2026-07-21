@@ -37,6 +37,12 @@ export default function BursaPage() {
   const [isahamCookie, setIsahamCookie] = useState('');
   const [showCookieModal, setShowCookieModal] = useState(false);
   const [hasUnlockedScores, setHasUnlockedScores] = useState(false);
+  const [showPasteModal, setShowPasteModal] = useState(false);
+  const [pasteText, setPasteText] = useState('');
+  const [isSavingPaste, setIsSavingPaste] = useState(false);
+  const [isFallback, setIsFallback] = useState(false);
+  const [lastScreenerUpdate, setLastScreenerUpdate] = useState<string | null>(null);
+
 
   // Load customText from localStorage, and isaham_cookie from D1 on mount
   useEffect(() => {
@@ -62,12 +68,15 @@ export default function BursaPage() {
   const fetchTopActive = async (screenerName = selectedScreener) => {
     setIsFetchingTopActive(true);
     setTopActiveError('');
+    setIsFallback(false);
     try {
       const res = await fetch(`/api/bursa-top-active?screener=${screenerName}`);
       const data = await res.json();
       if (data.success && data.results) {
         setTopActiveResults(data.results);
         setHasUnlockedScores(data.hasUnlockedScores || false);
+        setIsFallback(data.isFallback || false);
+        setLastScreenerUpdate(data.updatedAt || null);
       } else {
         setTopActiveError(data.error || 'Gagal memuatkan data.');
       }
@@ -79,10 +88,182 @@ export default function BursaPage() {
     }
   };
 
+
   const handleScreenerChange = (val: 'top-active' | 'jerung-x' | 'isaham-super-short-term') => {
     setSelectedScreener(val);
     fetchTopActive(val);
   };
+
+  const handleSavePastedData = async () => {
+    if (!pasteText.trim()) return;
+    setIsSavingPaste(true);
+    try {
+      let cleanedList = [];
+      let rawText = pasteText.trim();
+      
+      // 1. Try parsing JSON
+      if (rawText.startsWith('{') || rawText.startsWith('[')) {
+        try {
+          const parsed = JSON.parse(rawText);
+          const rawList = Array.isArray(parsed) ? parsed : (parsed.data || parsed.results || []);
+          cleanedList = rawList.map((item: any, idx: number) => {
+            let symbol = '';
+            let name = '';
+            let rank = idx + 1;
+            let price = 0;
+            let change = 0;
+            let volume = 0;
+            let marketCap = 0;
+            let isahamScore = 0;
+            let ltsScore = 0;
+
+            if (item.s_symbol) {
+              const symbolMatch = item.s_symbol.match(/<div><div>([A-Z0-9&._-]+)<\/div>/i);
+              symbol = symbolMatch ? symbolMatch[1].toUpperCase() : '';
+              const nameMatch = item.s_symbol.match(/<small[^>]*>([^<]+)<\/small>/);
+              name = nameMatch ? nameMatch[1].trim() : '';
+            } else {
+              symbol = item.symbol || item.ticker || '';
+              name = item.name || item.companyName || symbol;
+            }
+
+            if (item.sort_order) {
+              const rankMatch = item.sort_order.match(/>(\d+)</);
+              rank = rankMatch ? parseInt(rankMatch[1], 10) : rank;
+            } else {
+              rank = item.rank || rank;
+            }
+
+            price = parseFloat(item.lp1 || item.price || item.last_price) || 0;
+            change = parseFloat(item.perf_1d || item.change || item.change_percent) || 0;
+            volume = parseInt(item.volume, 10) || 0;
+            marketCap = parseInt(item.market_cap || item.marketCap, 10) || 0;
+            isahamScore = parseFloat(item.total_score || item.isahamScore) || 0;
+            ltsScore = parseFloat(item.lts_score || item.ltsScore) || 0;
+
+            return { rank, symbol, name, price, change, volume, marketCap, isahamScore, ltsScore };
+          }).filter((item: any) => item.symbol);
+        } catch (e) {
+          console.warn("Failed parsing paste as JSON:", e);
+        }
+      }
+
+      // 2. Try parsing plain text if JSON parsing yielded nothing
+      if (cleanedList.length === 0) {
+        const lines = rawText.split('\n');
+        let rankCounter = 1;
+
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          
+          let parts = line.split('\t').map(p => p.trim()).filter(Boolean);
+          if (parts.length < 3) {
+            parts = line.split(/ {2,}/).map(p => p.trim()).filter(Boolean);
+          }
+          if (parts.length < 3) continue;
+
+          // Skip headers
+          if (line.toLowerCase().includes('stock') || line.toLowerCase().includes('price') || line.toLowerCase().includes('volume')) {
+            continue;
+          }
+
+          let rank = rankCounter++;
+          let symbol = '';
+          let name = '';
+          let price = 0;
+          let change = 0;
+          let volume = 0;
+          let marketCap = 0;
+          let ltsScore = 0;
+          let isahamScore = 0;
+
+          let priceIdx = -1;
+          let changeIdx = -1;
+
+          // Find price and change
+          for (let i = 0; i < parts.length; i++) {
+            const part = parts[i];
+            if (part.includes('%')) {
+              changeIdx = i;
+            } else if (priceIdx === -1 && /^\d+\.\d+$/.test(part.replace(/RM\s*/i, ''))) {
+              priceIdx = i;
+            }
+          }
+
+          if (priceIdx !== -1) {
+            price = parseFloat(parts[priceIdx].replace(/[^\d.]/g, '')) || 0;
+            let beforePrice = parts.slice(0, priceIdx);
+            
+            if (/^\d+$/.test(beforePrice[0])) {
+              rank = parseInt(beforePrice[0], 10);
+              beforePrice.shift();
+            }
+
+            if (beforePrice.length > 0) {
+              if (/^\d{4}$/.test(beforePrice[0])) {
+                symbol = beforePrice[0];
+                name = beforePrice[1] || beforePrice[0];
+              } else {
+                symbol = beforePrice[0];
+                name = beforePrice.join(' ');
+              }
+            } else {
+              symbol = parts[0];
+              name = parts[0];
+            }
+
+            if (changeIdx !== -1) {
+              change = parseFloat(parts[changeIdx].replace(/[%+]/g, '')) || 0;
+            }
+
+            const afterChange = parts.slice(Math.max(priceIdx, changeIdx) + 1);
+            if (afterChange.length > 0) {
+              volume = parseInt(afterChange[0].replace(/,/g, ''), 10) || 0;
+            }
+            if (afterChange.length > 1) {
+              marketCap = parseInt(afterChange[1].replace(/,/g, ''), 10) || 0;
+            }
+            if (afterChange.length > 2) {
+              ltsScore = parseFloat(afterChange[2]) || 0;
+            }
+            if (afterChange.length > 3) {
+              isahamScore = parseFloat(afterChange[3]) || 0;
+            }
+
+            if (symbol) {
+              cleanedList.push({ rank, symbol, name, price, change, volume, marketCap, ltsScore, isahamScore });
+            }
+          }
+        }
+      }
+
+      if (cleanedList.length === 0) {
+        alert("Gagal mengesan data saham. Sila pastikan format yang disalin adalah betul.");
+        setIsSavingPaste(false);
+        return;
+      }
+
+      // Save to D1
+      const res = await fetch('/api/bursa-top-active', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ screener: selectedScreener, results: cleanedList })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setPasteText('');
+        setShowPasteModal(false);
+        fetchTopActive(selectedScreener);
+      } else {
+        alert("Gagal menyimpan ke database: " + data.error);
+      }
+    } catch (e: any) {
+      alert("Ralat: " + e.message);
+    } finally {
+      setIsSavingPaste(false);
+    }
+  };
+
 
   const [isUpdatingMaster, setIsUpdatingMaster] = useState(false);
   const [liveResults, setLiveResults] = useState<any[]>([]);
@@ -272,23 +453,11 @@ export default function BursaPage() {
       try {
         const res = await fetch('/api/bursa-ocr-picks');
         const data = await res.json();
-        if (data.success && data.data && data.data.length > 0) {
+        if (data.success && data.data) {
           setResults(data.data);
-          localStorage.setItem('bursaOcrResults', JSON.stringify(data.data));
-          return;
         }
       } catch (e) {
         console.error("Failed to fetch OCR picks from D1:", e);
-      }
-
-      // Fallback to localStorage if D1 is empty or fails
-      const savedResults = localStorage.getItem('bursaOcrResults');
-      if (savedResults) {
-        try {
-          setResults(JSON.parse(savedResults));
-        } catch (e) {
-          console.error("Failed to parse saved results");
-        }
       }
     }
     loadOcrResults();
@@ -427,7 +596,6 @@ export default function BursaPage() {
 
       if (data.success && data.data) {
         setResults(data.data);
-        localStorage.setItem('bursaOcrResults', JSON.stringify(data.data));
         
         // Save to D1 database in the background
         fetch('/api/bursa-ocr-picks', {
@@ -790,7 +958,6 @@ export default function BursaPage() {
                onClick={() => {
                  setResults([]);
                  setTop5Results([]);
-                 localStorage.removeItem('bursaOcrResults');
                  
                  // Clear from D1 database in the background
                  fetch('/api/bursa-ocr-picks', {
@@ -1387,7 +1554,7 @@ export default function BursaPage() {
                                     <span title="Ditambah secara manual" className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-400 text-[9px] leading-none" style={{fontSize:'8px'}}>★</span>
                                   )}
                                 </div>
-                                <span className="text-[10px] text-slate-500">{row.symbol}</span>
+                                <span className="text-[10px] text-slate-500">{row.companyName} ({row.symbol})</span>
                               </div>
                             </td>
                             <td className="p-4">
@@ -1595,7 +1762,7 @@ export default function BursaPage() {
                                     {i === 2 && <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-700 text-slate-100">#3</span>}
                                   </div>
                                   <span className="block text-sm text-slate-400 mt-1">RM {price ? price.toFixed(3) : '-'}</span>
-                                  <span className="block text-xs font-mono text-slate-600 mt-1">{res.symbol}</span>
+                                  <span className="block text-xs font-mono text-slate-600 mt-1">{res.companyName} ({res.symbol})</span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                   <button
@@ -1923,6 +2090,13 @@ export default function BursaPage() {
                 </button>
                 
                 <button
+                  onClick={() => setShowPasteModal(true)}
+                  className="px-4 py-2 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 hover:from-emerald-500/20 hover:to-teal-500/20 border border-emerald-500/20 text-emerald-400 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-lg shadow-emerald-950/20"
+                >
+                  📋 Paste Data
+                </button>
+
+                <button
                   onClick={() => fetchTopActive()}
                   disabled={isFetchingTopActive}
                   className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold transition flex items-center gap-2 w-fit disabled:opacity-50 cursor-pointer"
@@ -1932,11 +2106,35 @@ export default function BursaPage() {
               </div>
             </div>
 
-            {topActiveError && (
-              <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-xl text-center mb-6">
-                {topActiveError}
+            {isFallback && lastScreenerUpdate && (
+              <div className="bg-amber-500/10 border border-amber-500/20 text-amber-400 p-4 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-3 mb-6 animate-pulse">
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0 text-amber-400" />
+                  <span className="text-xs">
+                    Screener live disekat oleh iSaham (403). Memaparkan data terakhir disimpan: <strong>{new Date(lastScreenerUpdate).toLocaleString('ms-MY')}</strong>
+                  </span>
+                </div>
+                <button
+                  onClick={() => setShowPasteModal(true)}
+                  className="px-3 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 rounded-xl text-[10px] font-bold border border-amber-500/30 transition shrink-0 cursor-pointer"
+                >
+                  Kemaskini Manual (Paste)
+                </button>
               </div>
             )}
+
+            {topActiveError && (
+              <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-xl text-center mb-6 flex flex-col items-center justify-center gap-2">
+                <p>{topActiveError}</p>
+                <button
+                  onClick={() => setShowPasteModal(true)}
+                  className="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-300 rounded-xl text-xs font-bold border border-red-500/30 transition cursor-pointer"
+                >
+                  Tampal (Paste) Data Secara Manual
+                </button>
+              </div>
+            )}
+
 
             {isFetchingTopActive ? (
               <div className="flex flex-col items-center justify-center py-20 bg-slate-900/30 rounded-3xl border border-slate-800/50 backdrop-blur-sm">
@@ -2128,6 +2326,75 @@ export default function BursaPage() {
                       className="px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white rounded-xl text-xs font-bold transition shadow-md shadow-emerald-900/20 cursor-pointer"
                     >
                       Save &amp; Reload
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Paste Data Modal */}
+            {showPasteModal && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+                <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 w-full max-w-2xl shadow-2xl relative">
+                  <button 
+                    onClick={() => setShowPasteModal(false)}
+                    className="absolute top-4 right-4 text-slate-400 hover:text-slate-200 transition"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                  <h4 className="text-lg font-bold text-slate-100 mb-2 flex items-center gap-2">
+                    📋 Tampal Data Screener iSaham
+                  </h4>
+                  <p className="text-xs text-slate-400 mb-4 leading-relaxed">
+                    Sila salin (*copy*) jadual atau respons API dari iSaham dan tampalkan di bawah. Sistem akan menganalisis data secara automatik dan menyimpannya ke pangkalan data D1.
+                  </p>
+                  
+                  <textarea
+                    value={pasteText}
+                    onChange={(e) => setPasteText(e.target.value)}
+                    placeholder="Tampal data di sini... (Salin dari jadual laman web iSaham secara terus, atau salin respons JSON dari Network tab)"
+                    className="w-full h-48 bg-slate-950 border border-slate-800 rounded-xl p-4 text-xs text-slate-300 font-mono focus:outline-none focus:border-emerald-500 resize-none mb-4"
+                  />
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-5">
+                    <div className="bg-slate-950/50 rounded-xl p-3 border border-slate-800/40 text-[11px] text-slate-400 leading-relaxed">
+                      <strong className="text-emerald-400">💡 Cara A (Paling Mudah):</strong>
+                      <ol className="list-decimal pl-4 mt-1 space-y-0.5">
+                        <li>Buka screener pilihan di iSaham (cth: Jerung X).</li>
+                        <li>Tekan <strong>Ctrl+A / Cmd+A</strong> untuk select semua kandungan, atau drag &amp; select jadual saham.</li>
+                        <li><strong>Copy (Ctrl+C)</strong> dan <strong>Paste (Ctrl+V)</strong> dalam kotak di atas.</li>
+                      </ol>
+                    </div>
+                    <div className="bg-slate-950/50 rounded-xl p-3 border border-slate-800/40 text-[11px] text-slate-400 leading-relaxed">
+                      <strong className="text-emerald-400">⚡ Cara B (Sangat Tepat):</strong>
+                      <ol className="list-decimal pl-4 mt-1 space-y-0.5">
+                        <li>Buka <strong>Inspect &rarr; Network</strong> tab di Chrome.</li>
+                        <li>Reload screener iSaham. Cari request API yang dipanggil (cth: <code>jerung-x</code>).</li>
+                        <li>Right-click &rarr; <strong>Copy response</strong>, tampal di atas.</li>
+                      </ol>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end gap-2">
+                    <button
+                      onClick={() => {
+                        setPasteText('');
+                        setShowPasteModal(false);
+                      }}
+                      className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-400 rounded-xl text-xs font-bold transition cursor-pointer"
+                    >
+                      Batal
+                    </button>
+                    <button
+                      onClick={handleSavePastedData}
+                      disabled={isSavingPaste || !pasteText.trim()}
+                      className="px-5 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white rounded-xl text-xs font-bold transition shadow-md shadow-emerald-900/20 flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
+                    >
+                      {isSavingPaste ? (
+                        <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Menyimpan...</>
+                      ) : (
+                        <>Simpan &amp; Kemaskini</>
+                      )}
                     </button>
                   </div>
                 </div>

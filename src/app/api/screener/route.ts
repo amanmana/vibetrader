@@ -589,14 +589,6 @@ export async function GET(request: Request) {
       })).slice(0, 30);
       
     } else {
-      let fetchUrl = `https://query1.finance.yahoo.com/v1/finance/screener/predefined/saved?formatted=false&scrIds=${filterType}&count=25`;
-      const res = await fetch(fetchUrl, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-        }
-      });
-      const data = await res.json();
-      const quotes = data.finance?.result?.[0]?.quotes || [];
       const labelMap: any = {
         'day_gainers': 'Day Gainers',
         'most_actives': 'Most Actives',
@@ -605,13 +597,53 @@ export async function GET(request: Request) {
         'aggressive_small_caps': 'Small Caps',
         'growth_technology_stocks': 'Growth Tech'
       };
-      tickersToScan = quotes.map((q: any) => ({ symbol: q.symbol, category: labelMap[filterType] || filterType })).slice(0, 25);
+      const categoryLabel = labelMap[filterType] || filterType;
+
+      // Curated fallback lists per category (used if API returns < 5 results)
+      const curatedFallbacks: Record<string, string[]> = {
+        'most_actives':          ['NVDA', 'TSLA', 'AAPL', 'AMZN', 'META', 'MSFT', 'AMD', 'PLTR', 'SOFI', 'RIVN', 'INTC', 'BAC', 'F', 'UBER', 'GOOGL'],
+        'day_gainers':           ['NVDA', 'AMD', 'PLTR', 'TSLA', 'ASTS', 'IONQ', 'RGTI', 'SMCI', 'MU', 'CRWD', 'SNOW', 'MSTR', 'COIN', 'ARM', 'HOOD'],
+        'day_losers':            ['INTC', 'PFE', 'BABA', 'NIO', 'LCID', 'RIVN', 'F', 'GM', 'WBA', 'CVS', 'DIS', 'T', 'VZ', 'MPW', 'PARA'],
+        'fifty_two_wk_gainers':  ['NVDA', 'PLTR', 'ARM', 'MSTR', 'HOOD', 'COIN', 'ASTS', 'IONQ', 'SMR', 'OKLO', 'VST', 'CEG', 'GEV', 'APP', 'AXON'],
+        'aggressive_small_caps': ['ASTS', 'IONQ', 'RGTI', 'SMCI', 'OKLO', 'SMR', 'LUNR', 'RDW', 'RKLB', 'ACHR', 'JOBY', 'LILM', 'SPCE', 'OPEN', 'LMND'],
+        'growth_technology_stocks': ['NVDA', 'AMD', 'ARM', 'MRVL', 'AVGO', 'TSM', 'ASML', 'AMAT', 'LRCX', 'KLAC', 'CDNS', 'SNPS', 'ANSS', 'FTNT', 'CRWD']
+      };
+
+      // Try primary endpoint: Yahoo Finance v1 predefined screener
+      try {
+        const primaryUrl = `https://query1.finance.yahoo.com/v1/finance/screener/predefined/saved?formatted=false&scrIds=${filterType}&count=25`;
+        const res = await fetch(primaryUrl, {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            'Accept': 'application/json',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Referer': 'https://finance.yahoo.com/',
+            'Origin': 'https://finance.yahoo.com'
+          }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          const quotes = data.finance?.result?.[0]?.quotes || [];
+          if (quotes.length >= 5) {
+            tickersToScan = quotes.map((q: any) => ({ symbol: q.symbol, category: categoryLabel })).slice(0, 25);
+          }
+        }
+      } catch (e) {
+        console.warn(`[Screener] Primary fetch failed for ${filterType}:`, e);
+      }
+
+      // Fallback: use curated list if API returned too few results
+      if (tickersToScan.length < 5) {
+        console.warn(`[Screener] API returned ${tickersToScan.length} results for ${filterType}. Using curated fallback.`);
+        const fallbackSymbols = curatedFallbacks[filterType] || curatedFallbacks['most_actives'];
+        tickersToScan = fallbackSymbols.map(symbol => ({ symbol, category: categoryLabel }));
+      }
     }
-    
-    // Add some interesting hardcoded US/MY stocks as backup or extra?
+
+    // Final safety net fallback
     if (tickersToScan.length === 0) {
-      const fallbacks = ['AAPL', 'MSFT', 'NVDA', 'TSLA', 'AMZN', 'META', 'GOOGL', 'PLTR', 'SNOW', 'CRWD'];
-      tickersToScan = fallbacks.map(symbol => ({ symbol, category: 'Fallback' }));
+      const fallbacks = ['NVDA', 'TSLA', 'AAPL', 'AMZN', 'META', 'MSFT', 'AMD', 'PLTR', 'GOOGL', 'CRWD'];
+      tickersToScan = fallbacks.map(symbol => ({ symbol, category: 'Top US Stocks' }));
     }
 
     console.log("[Screener] Scanning tickers:", tickersToScan.map(t => t.symbol));
@@ -619,21 +651,22 @@ export async function GET(request: Request) {
     // 2. Process concurrently
     const results = await Promise.all(tickersToScan.map(t => processTicker(t.symbol, t.category)));
     
-    // 3. Filter only BUY or HOLD or high scores and ensure price >= 20 for US
+    // 3. Filter: remove nulls and penny stocks only (show all scored US stocks)
     const validResults = results.filter((r: any) => {
       if (r === null) return false;
       const isBursa = r.ticker.endsWith('.KL') || r.ticker.endsWith('.MY') || /^\d{4}$/.test(r.ticker);
-      if (!isBursa && parseFloat(r.price) < 20) return false;
-      return r.action === 'BUY' || r.action === 'HOLD' || parseFloat(r.score) >= 7.0;
+      const minPrice = isBursa ? 0.01 : 5;
+      if (parseFloat(r.price) < minPrice) return false;
+      return true; // show all scanned stocks, sorted by score below
     });
     
     // 4. Sort by score descending
     validResults.sort((a: any, b: any) => parseFloat(b.score) - parseFloat(a.score));
 
-    return NextResponse.json({
-        count: validResults.length,
-        results: validResults
-    });
+    return NextResponse.json(
+      { count: validResults.length, results: validResults },
+      { headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0' } }
+    );
 
   } catch (error: any) {
     console.error('[Screener] API Handler Crash:', error);

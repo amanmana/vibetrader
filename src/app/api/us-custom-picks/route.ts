@@ -4,6 +4,61 @@ import { getStaticGannTargets } from '@/utils/gann';
 
 export const runtime = 'edge';
 
+function getLatestUSFridayCloseMs(): { fridayMs: number } {
+  const now = new Date();
+  const formatter = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/New_York',
+    year: 'numeric', month: 'numeric', day: 'numeric',
+    hour: 'numeric', minute: 'numeric', second: 'numeric',
+    hour12: false
+  });
+  
+  const parts = formatter.formatToParts(now);
+  const partMap = Object.fromEntries(parts.map(p => [p.type, parseInt(p.value, 10)]));
+  
+  const y = partMap.year;
+  const m = partMap.month - 1;
+  const d = partMap.day;
+  const h = partMap.hour;
+  
+  const nyTimeMs = Date.UTC(y, m, d, h);
+  const nyDate = new Date(nyTimeMs);
+  const dayOfWeek = nyDate.getUTCDay(); // 0 = Sun, 1 = Mon, ..., 5 = Fri, 6 = Sat
+  
+  let daysToSubtract = 0;
+  if (dayOfWeek === 6) {
+    daysToSubtract = 1;
+  } else if (dayOfWeek === 0) {
+    daysToSubtract = 2;
+  } else if (dayOfWeek === 5) {
+    daysToSubtract = h < 16 ? 7 : 0;
+  } else {
+    daysToSubtract = dayOfWeek + 2;
+  }
+  
+  const targetFridayDate = new Date(nyTimeMs);
+  targetFridayDate.setUTCDate(targetFridayDate.getUTCDate() - daysToSubtract);
+  
+  const fridayEndNY = Date.UTC(
+    targetFridayDate.getUTCFullYear(),
+    targetFridayDate.getUTCMonth(),
+    targetFridayDate.getUTCDate(),
+    23, 59, 59
+  );
+  
+  let absoluteMs = fridayEndNY;
+  for (let i = 0; i < 3; i++) {
+    const testDate = new Date(absoluteMs);
+    const testParts = formatter.formatToParts(testDate);
+    const testMap = Object.fromEntries(testParts.map(p => [p.type, parseInt(p.value, 10)]));
+    const testNyUtcMs = Date.UTC(testMap.year, testMap.month - 1, testMap.day, testMap.hour, testMap.minute, testMap.second);
+    const diff = testNyUtcMs - fridayEndNY;
+    absoluteMs -= diff;
+  }
+  
+  return { fridayMs: absoluteMs };
+}
+
 // 1. GET: Retrieve all saved picks and fetch their LIVE prices dynamically
 export async function GET(req: NextRequest) {
   try {
@@ -44,15 +99,7 @@ export async function GET(req: NextRequest) {
           const currentLivePrice = result.meta.regularMarketPrice;
           const currentHigh = result.meta.regularMarketDayHigh;
 
-          // find last week's close (last trading day before current week's Monday)
-          const now = new Date();
-          const myTime = new Date(now.toLocaleString('en-US', { timeZone: 'America/New_York' }));
-          const currentDay = myTime.getDay();
-          const daysSinceMonday = currentDay === 0 ? 6 : currentDay - 1;
-          const mondayStart = new Date(myTime);
-          mondayStart.setDate(myTime.getDate() - daysSinceMonday);
-          mondayStart.setHours(0, 0, 0, 0);
-          const mondayStartMs = mondayStart.getTime();
+          const { fridayMs } = getLatestUSFridayCloseMs();
 
           let lastWeekClose = currentLivePrice;
           let lastWeekDateStr = '';
@@ -61,7 +108,7 @@ export async function GET(req: NextRequest) {
           for (let i = timestamps.length - 1; i >= 0; i--) {
             // Yahoo timestamps are in seconds
             const ts = timestamps[i] * 1000;
-            if (ts >= mondayStartMs) {
+            if (ts > fridayMs) {
               // Day in current week, track the highest high
               if (highs[i] && highs[i] > currentWeekHighest) {
                 currentWeekHighest = highs[i];

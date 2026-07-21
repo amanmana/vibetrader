@@ -88,6 +88,10 @@ export default function VibeTrader() {
   // Top Picks State
   const [topPicks, setTopPicks] = useState<any[]>([]);
   const [ignoredPicks, setIgnoredPicks] = useState<string[]>([]);
+  const [topPicksSentiment, setTopPicksSentiment] = useState<Record<string, 'Bullish' | 'Bearish' | 'Neutral'>>({});
+  const [isFindingTopPicks, setIsFindingTopPicks] = useState(false);
+  const [watchlistSentiment, setWatchlistSentiment] = useState<Record<string, 'Bullish' | 'Bearish' | 'Neutral'>>({});
+  const [isFetchingWatchlistSentiment, setIsFetchingWatchlistSentiment] = useState(false);
 
   // Import State
   const [showImportModal, setShowImportModal] = useState(false);
@@ -257,14 +261,14 @@ export default function VibeTrader() {
     setIsRefreshingTable(false);
   };
 
-  const findTopPicks = (ignoredList: string[] = ignoredPicks) => {
+  const findTopPicks = async (ignoredList: string[] = ignoredPicks) => {
     const currentResults = activeTab === 'watchlist' ? watchlistResults : screenerResults;
     if (!currentResults || currentResults.length === 0) return;
+    setIsFindingTopPicks(true);
     
     // Filter for BUY or HOLD >= 9.0 and NOT in ignoredPicks
-    const filtered = currentResults.filter(res => {
+    const candidates = currentResults.filter((res: any) => {
       if (ignoredList.includes(res.ticker)) return false;
-
       const action = res.trading_decision?.action || res.action;
       const score = res.adaptive_sniper?.score || res.score;
       if (action === 'BUY') return true;
@@ -272,16 +276,81 @@ export default function VibeTrader() {
       return false;
     });
 
-    // Sort descending by score
-    const sorted = filtered.sort((a, b) => {
+    // Sort by score first — always show Top 3 regardless of sentiment
+    const sorted = [...candidates].sort((a: any, b: any) => {
       const scoreA = parseFloat(a.adaptive_sniper?.score || a.score);
       const scoreB = parseFloat(b.adaptive_sniper?.score || b.score);
       return scoreB - scoreA;
     });
-
-    // Get top 3
-    setTopPicks(sorted.slice(0, 3));
+    const top3 = sorted.slice(0, 3);
+    setTopPicks(top3);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // Now fetch sentiment for those top 3 and update UI with warnings
+    const fetchSentiment = async (ticker: string): Promise<'Bullish' | 'Bearish' | 'Neutral'> => {
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          const r = await fetch('/api/news-sentiment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ticker }),
+          });
+          if (!r.ok) continue;
+          const data = await r.json();
+          const s = data.sentiment;
+          if (s === 'Bullish' || s === 'Bearish' || s === 'Neutral') return s;
+        } catch {
+          // retry
+        }
+      }
+      return 'Neutral';
+    };
+
+    const sentimentResults = await Promise.all(
+      top3.map(async (res: any) => ({
+        ticker: res.ticker,
+        sentiment: await fetchSentiment(res.ticker),
+      }))
+    );
+
+    const sentimentMap: Record<string, 'Bullish' | 'Bearish' | 'Neutral'> = {};
+    for (const s of sentimentResults) {
+      sentimentMap[s.ticker] = s.sentiment;
+    }
+    setTopPicksSentiment(sentimentMap);
+    setIsFindingTopPicks(false);
+  };
+
+  const fetchWatchlistSentiment = async (stocks?: any[]) => {
+    const list = stocks || usWatchlist;
+    if (!list || list.length === 0) return;
+    setIsFetchingWatchlistSentiment(true);
+    const fetchSentiment = async (ticker: string): Promise<'Bullish' | 'Bearish' | 'Neutral'> => {
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          const r = await fetch('/api/news-sentiment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ticker }),
+          });
+          if (!r.ok) continue;
+          const data = await r.json();
+          const s = data.sentiment;
+          if (s === 'Bullish' || s === 'Bearish' || s === 'Neutral') return s;
+        } catch { /* retry */ }
+      }
+      return 'Neutral';
+    };
+    const results = await Promise.all(
+      list.map(async (row: any) => ({
+        ticker: row.ticker,
+        sentiment: await fetchSentiment(row.ticker),
+      }))
+    );
+    const map: Record<string, 'Bullish' | 'Bearish' | 'Neutral'> = {};
+    for (const r of results) map[r.ticker] = r.sentiment;
+    setWatchlistSentiment(map);
+    setIsFetchingWatchlistSentiment(false);
   };
 
   const fetchUsSniper = async () => {
@@ -314,6 +383,8 @@ export default function VibeTrader() {
       const data = await res.json();
       if (data.success) {
         setUsWatchlist(data.data);
+        // Auto-fetch sentiment after prices load
+        fetchWatchlistSentiment(data.data);
       }
     } catch (e) {
       console.error("Failed to fetch US Watchlist:", e);
@@ -902,7 +973,11 @@ export default function VibeTrader() {
                   </div>
                   <div>
                     <h3 className="text-xl font-bold text-amber-400">Top 3 Sniper Picks 🎯</h3>
-                    <p className="text-sm text-amber-500/70">The absolute best setups from your current scan.</p>
+                    <p className="text-sm text-amber-500/70 flex items-center gap-1">
+                      {isFindingTopPicks
+                        ? <><Loader2 className="w-3 h-3 animate-spin" />Checking AI news sentiment...</>
+                        : 'Sentiment analysis complete. Check warnings below.'}
+                    </p>
                   </div>
                   <button 
                     onClick={() => setTopPicks([])}
@@ -920,10 +995,41 @@ export default function VibeTrader() {
                     const price = res.technical_indicators?.current_price || res.price || 0;
                     const name = res.name || '';
                     
+                    const tickerSentiment = topPicksSentiment[res.ticker];
+                    const isBearishPick = tickerSentiment === 'Bearish';
+                    const isBullishPick = tickerSentiment === 'Bullish';
+
                     return (
                       <div key={i} className="relative group">
-                        <div className="absolute -inset-0.5 bg-gradient-to-br from-amber-500/40 to-orange-600/10 rounded-3xl blur opacity-30 group-hover:opacity-60 transition duration-500" />
-                        <div className="relative p-6 rounded-2xl border border-amber-500/30 bg-slate-950/80 backdrop-blur-sm flex flex-col gap-4">
+                        {/* Glow border: red for bearish, amber for normal */}
+                        <div className={`absolute -inset-0.5 rounded-3xl blur opacity-30 group-hover:opacity-60 transition duration-500 ${
+                          isBearishPick
+                            ? 'bg-gradient-to-br from-rose-600/60 to-red-900/30'
+                            : 'bg-gradient-to-br from-amber-500/40 to-orange-600/10'
+                        }`} />
+                        <div className={`relative p-6 rounded-2xl border bg-slate-950/80 backdrop-blur-sm flex flex-col gap-4 ${
+                          isBearishPick ? 'border-rose-500/50' : 'border-amber-500/30'
+                        }`}>
+
+                          {/* ⚠️ BEARISH WARNING BANNER */}
+                          {isBearishPick && (
+                            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-rose-500/15 border border-rose-500/40 -mx-1">
+                              <span className="text-rose-400 text-base">⚠️</span>
+                              <div>
+                                <p className="text-[11px] font-bold text-rose-400 uppercase tracking-wider">Bearish News Detected</p>
+                                <p className="text-[10px] text-rose-400/70">Score adjusted −1.5 due to negative market sentiment</p>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* ✅ BULLISH BADGE */}
+                          {isBullishPick && (
+                            <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/30 -mx-1">
+                              <span className="text-emerald-400 text-base">✅</span>
+                              <p className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider">Bullish News Confirmed</p>
+                            </div>
+                          )}
+
                           <div className="flex justify-between items-start">
                             <div>
                               <div className="flex items-center gap-2">
@@ -958,7 +1064,9 @@ export default function VibeTrader() {
                             <div>
                               <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest block mb-1">Sniper Score</span>
                               <div className="flex items-baseline gap-1">
-                                <span className={`text-3xl font-black ${isBuy ? 'text-emerald-400' : 'text-amber-400'}`}>{score}</span>
+                                <span className={`text-3xl font-black ${isBuy ? 'text-emerald-400' : 'text-amber-400'}`}>
+                                  {typeof res._adjustedScore === 'number' ? res._adjustedScore.toFixed(1) : score}
+                                </span>
                               </div>
                             </div>
                             <button
@@ -1028,11 +1136,15 @@ export default function VibeTrader() {
                     {watchlistResults.length > 0 && (
                       <button
                         onClick={() => findTopPicks()}
-                        className="bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 border border-amber-500/30 px-4 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2"
+                        disabled={isFindingTopPicks}
+                        className="bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 border border-amber-500/30 px-4 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
                         title="Find Top 3 Sniper Picks"
                       >
-                        <Trophy className="w-4 h-4" />
-                        Top 3 Picks
+                        {isFindingTopPicks ? (
+                          <><Loader2 className="w-4 h-4 animate-spin" />Analysing Sentiment...</>
+                        ) : (
+                          <><Trophy className="w-4 h-4" />Top 3 Picks</>
+                        )}
                       </button>
                     )}
                   </div>
@@ -1227,11 +1339,15 @@ export default function VibeTrader() {
                     {screenerResults.length > 0 && (
                       <button
                         onClick={() => findTopPicks()}
-                        className="bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 border border-amber-500/30 px-4 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2 shrink-0"
+                        disabled={isFindingTopPicks}
+                        className="bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 border border-amber-500/30 px-4 py-2 rounded-xl text-sm font-bold transition flex items-center gap-2 shrink-0 disabled:opacity-60 disabled:cursor-not-allowed"
                         title="Find Top 3 Sniper Picks"
                       >
-                        <Trophy className="w-4 h-4" />
-                        Top 3 Picks
+                        {isFindingTopPicks ? (
+                          <><Loader2 className="w-4 h-4 animate-spin" />Analysing Sentiment...</>
+                        ) : (
+                          <><Trophy className="w-4 h-4" />Top 3 Picks</>
+                        )}
                       </button>
                     )}
                   </div>
@@ -1587,12 +1703,10 @@ export default function VibeTrader() {
                         <th className="p-4 font-semibold pl-6 w-16">Rank</th>
                         <th className="p-4 font-semibold w-48">Stock</th>
                         <th className="p-4 font-semibold w-24">Score</th>
-                        <th className="p-4 font-semibold w-32">
-                          <div className="flex flex-col">
-                            <span>Last Done</span>
-                            <span className="text-[10px] text-slate-500 font-normal capitalize">
-                              {usWatchlist[0]?.lastDoneDate || '(Date)'}
-                            </span>
+                        <th className="p-4 font-semibold w-32"
+                        >Last Done
+                          <div className="text-[10px] text-slate-500 font-normal capitalize mt-0.5">
+                            {usWatchlist[0]?.lastDoneDate || '(Date)'}
                           </div>
                         </th>
                         <th className="p-4 font-semibold w-24">Last Price</th>
@@ -1609,12 +1723,25 @@ export default function VibeTrader() {
                             </span>
                           </div>
                         </th>
+                        <th className="p-4 font-semibold w-36">
+                          <div className="flex items-center gap-1">
+                            Sentiment
+                            {isFetchingWatchlistSentiment && <Loader2 className="w-3 h-3 animate-spin text-slate-500" />}
+                          </div>
+                        </th>
                         <th className="p-4 font-semibold w-12 text-center text-slate-500">Act</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-800/50">
-                      {usWatchlist.map((row, idx) => (
-                        <tr key={idx} className="hover:bg-slate-800/30 transition group">
+                      {usWatchlist.map((row, idx) => {
+                        const sent = watchlistSentiment[row.ticker];
+                        const rowIsBearish = sent === 'Bearish';
+                        const rowIsBullish = sent === 'Bullish';
+                        return (
+                        <tr key={idx} className={`hover:bg-slate-800/30 transition group ${
+                          rowIsBearish ? 'bg-rose-950/20 border-l-2 border-l-rose-500/50' : 
+                          rowIsBullish ? 'bg-emerald-950/10 border-l-2 border-l-emerald-500/30' : ''
+                        }`}>
                           <td className="p-4 pl-6 relative">
                             <div className="flex items-center gap-2">
                               {/* Label flag */}
@@ -1734,7 +1861,30 @@ export default function VibeTrader() {
                               {showDynamic && <span className={`font-mono text-xs font-medium pl-3 ${parseFloat(row.highestPrice) >= parseFloat(row.tp4) || row.hitTp4 ? 'text-slate-600' : 'text-emerald-500/50'}`}>${row.tp4}</span>}
                             </div>
                           </td>
-                          <td className="p-4 font-mono text-sm text-slate-500 pr-6">${row.highestPrice}</td>
+                          <td className="p-4 font-mono text-sm text-slate-500 pr-2">${row.highestPrice}</td>
+                          {/* Sentiment Badge */}
+                          <td className="p-4">
+                            {isFetchingWatchlistSentiment && !sent ? (
+                              <div className="flex items-center gap-1 text-slate-500">
+                                <Loader2 className="w-3 h-3 animate-spin" />
+                                <span className="text-[10px]">Checking...</span>
+                              </div>
+                            ) : sent === 'Bearish' ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-rose-500/20 text-rose-400 border border-rose-500/30">
+                                ⚠️ Bearish
+                              </span>
+                            ) : sent === 'Bullish' ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-emerald-500/15 text-emerald-400 border border-emerald-500/25">
+                                ✅ Bullish
+                              </span>
+                            ) : sent === 'Neutral' ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider bg-slate-700/50 text-slate-400 border border-slate-600/30">
+                                ➖ Neutral
+                              </span>
+                            ) : (
+                              <span className="text-[10px] text-slate-600">—</span>
+                            )}
+                          </td>
                           <td className="p-4 text-center">
                             <div className="flex items-center justify-center gap-2">
                               <button onClick={() => removeFromUsWatchlist(row.ticker)} className="text-slate-600 hover:text-red-500 transition-colors bg-slate-800/50 hover:bg-red-500/10 p-2 rounded-lg cursor-pointer" title="Delete from watchlist">
@@ -1743,7 +1893,8 @@ export default function VibeTrader() {
                             </div>
                           </td>
                         </tr>
-                      ))}
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
