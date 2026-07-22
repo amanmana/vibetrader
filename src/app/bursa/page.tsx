@@ -282,6 +282,14 @@ export default function BursaPage() {
               if (afterPrice.length > 4) {
                 lot = parseInt(afterPrice[4], 10) || 0;
               }
+            } else if (selectedScreener === 'isaham-super-short-term') {
+              const afterPrice = parts.slice(priceIdx + 1);
+              if (afterPrice.length > 0) {
+                isahamScore = parseFloat(afterPrice[0]) || 0;
+              }
+              if (afterPrice.length > 1) {
+                lot = parseInt(afterPrice[1], 10) || 0;
+              }
             } else {
               if (changeIdx !== -1) {
                 change = parseFloat(parts[changeIdx].replace(/[%+]/g, '')) || 0;
@@ -2219,6 +2227,14 @@ export default function BursaPage() {
                             <th className="p-4 font-semibold w-24">iSaham Score</th>
                             <th className="p-4 font-semibold w-20">Lot</th>
                           </>
+                        ) : selectedScreener === 'isaham-super-short-term' ? (
+                          <>
+                            <th className="p-4 font-semibold w-16 pl-6">#</th>
+                            <th className="p-4 font-semibold w-48">Symbol</th>
+                            <th className="p-4 font-semibold w-24">Last Price</th>
+                            <th className="p-4 font-semibold w-24">iSaham Score</th>
+                            <th className="p-4 font-semibold w-20">Lot</th>
+                          </>
                         ) : (
                           <>
                             <th className="p-4 font-semibold w-16 pl-6">Rank</th>
@@ -2271,6 +2287,19 @@ export default function BursaPage() {
                                 <td className="p-4 text-xs text-slate-400">
                                   {row.strength || '-'}
                                 </td>
+                                <td className="p-4 font-mono text-sm text-slate-400">
+                                  {row.isahamScore > 0 ? (
+                                    <span className="text-amber-400 font-bold">{row.isahamScore.toFixed(1)}</span>
+                                  ) : (
+                                    <span className="text-slate-600">-</span>
+                                  )}
+                                </td>
+                                <td className="p-4 font-mono text-sm text-slate-400">
+                                  {row.lot || '-'}
+                                </td>
+                              </>
+                            ) : selectedScreener === 'isaham-super-short-term' ? (
+                              <>
                                 <td className="p-4 font-mono text-sm text-slate-400">
                                   {row.isahamScore > 0 ? (
                                     <span className="text-amber-400 font-bold">{row.isahamScore.toFixed(1)}</span>
