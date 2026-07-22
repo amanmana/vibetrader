@@ -212,26 +212,64 @@ export default function BursaPage() {
               name = parts[0];
             }
 
-            if (changeIdx !== -1) {
-              change = parseFloat(parts[changeIdx].replace(/[%+]/g, '')) || 0;
-            }
+            let support = '';
+            let remarks = '';
+            let strength = '';
+            let lot = 0;
 
-            const afterChange = parts.slice(Math.max(priceIdx, changeIdx) + 1);
-            if (afterChange.length > 0) {
-              volume = parseInt(afterChange[0].replace(/,/g, ''), 10) || 0;
-            }
-            if (afterChange.length > 1) {
-              marketCap = parseInt(afterChange[1].replace(/,/g, ''), 10) || 0;
-            }
-            if (afterChange.length > 2) {
-              ltsScore = parseFloat(afterChange[2]) || 0;
-            }
-            if (afterChange.length > 3) {
-              isahamScore = parseFloat(afterChange[3]) || 0;
+            if (selectedScreener === 'jerung-x') {
+              const afterPrice = parts.slice(priceIdx + 1);
+              if (afterPrice.length > 0) {
+                support = afterPrice[0];
+              }
+              if (afterPrice.length > 1) {
+                remarks = afterPrice[1];
+              }
+              if (afterPrice.length > 2) {
+                strength = afterPrice[2];
+              }
+              if (afterPrice.length > 3) {
+                isahamScore = parseFloat(afterPrice[3]) || 0;
+              }
+              if (afterPrice.length > 4) {
+                lot = parseInt(afterPrice[4], 10) || 0;
+              }
+            } else {
+              if (changeIdx !== -1) {
+                change = parseFloat(parts[changeIdx].replace(/[%+]/g, '')) || 0;
+              }
+
+              const afterChange = parts.slice(Math.max(priceIdx, changeIdx) + 1);
+              if (afterChange.length > 0) {
+                volume = parseInt(afterChange[0].replace(/,/g, ''), 10) || 0;
+              }
+              if (afterChange.length > 1) {
+                marketCap = parseInt(afterChange[1].replace(/,/g, ''), 10) || 0;
+              }
+              if (afterChange.length > 2) {
+                ltsScore = parseFloat(afterChange[2]) || 0;
+              }
+              if (afterChange.length > 3) {
+                isahamScore = parseFloat(afterChange[3]) || 0;
+              }
             }
 
             if (symbol) {
-              cleanedList.push({ rank, symbol, name, price, change, volume, marketCap, ltsScore, isahamScore });
+              cleanedList.push({ 
+                rank, 
+                symbol, 
+                name, 
+                price, 
+                change, 
+                volume, 
+                marketCap, 
+                ltsScore, 
+                isahamScore,
+                support,
+                remarks,
+                strength,
+                lot
+              });
             }
           }
         }
@@ -2122,14 +2160,29 @@ export default function BursaPage() {
                   <table className="w-full text-left border-collapse">
                     <thead>
                       <tr className="bg-slate-900/80 border-b border-slate-800 text-xs uppercase tracking-wider text-slate-500">
-                        <th className="p-4 font-semibold w-16 pl-6">Rank</th>
-                        <th className="p-4 font-semibold w-48">Stock</th>
-                        <th className="p-4 font-semibold w-24">Last Price</th>
-                        <th className="p-4 font-semibold w-24">Change %</th>
-                        <th className="p-4 font-semibold w-28">Volume</th>
-                        <th className="p-4 font-semibold w-28">Market Cap</th>
-                        <th className="p-4 font-semibold w-24">LTS Score</th>
-                        <th className="p-4 font-semibold w-24">iSaham Score</th>
+                        {selectedScreener === 'jerung-x' ? (
+                          <>
+                            <th className="p-4 font-semibold w-16 pl-6">#</th>
+                            <th className="p-4 font-semibold w-48">Symbol</th>
+                            <th className="p-4 font-semibold w-24">Last Price</th>
+                            <th className="p-4 font-semibold w-28">S</th>
+                            <th className="p-4 font-semibold w-28">Remarks</th>
+                            <th className="p-4 font-semibold w-48">Strength</th>
+                            <th className="p-4 font-semibold w-24">iSaham Score</th>
+                            <th className="p-4 font-semibold w-20">Lot</th>
+                          </>
+                        ) : (
+                          <>
+                            <th className="p-4 font-semibold w-16 pl-6">Rank</th>
+                            <th className="p-4 font-semibold w-48">Stock</th>
+                            <th className="p-4 font-semibold w-24">Last Price</th>
+                            <th className="p-4 font-semibold w-24">Change %</th>
+                            <th className="p-4 font-semibold w-28">Volume</th>
+                            <th className="p-4 font-semibold w-28">Market Cap</th>
+                            <th className="p-4 font-semibold w-24">LTS Score</th>
+                            <th className="p-4 font-semibold w-24">iSaham Score</th>
+                          </>
+                        )}
                         <th className="p-4 font-semibold pr-6 text-right w-24">Act</th>
                       </tr>
                     </thead>
@@ -2159,39 +2212,65 @@ export default function BursaPage() {
                             <td className="p-4 font-mono text-sm text-slate-300">
                               RM {row.price.toFixed(3)}
                             </td>
-                            <td className="p-4">
-                              {row.change !== 0 ? (
-                                <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border ${changeColor}`}>
-                                  {row.change > 0 ? '+' : ''}{row.change.toFixed(2)}%
-                                </span>
-                              ) : (
-                                <span className="text-slate-600 font-mono text-sm">-</span>
-                              )}
-                            </td>
-                            <td className="p-4 font-mono text-sm text-slate-400">
-                              {row.volume > 0 ? row.volume.toLocaleString('en-US') : '-'}
-                            </td>
-                            <td className="p-4 font-mono text-sm text-slate-400">
-                              {row.marketCap > 0 ? `RM ${row.marketCap.toLocaleString('en-US')} M` : '-'}
-                            </td>
-                            <td className="p-4 font-mono text-sm text-slate-400">
-                              {row.ltsScore > 0 ? (
-                                <span className="text-blue-400 font-bold">{row.ltsScore.toFixed(2)}</span>
-                              ) : selectedScreener !== 'top-active' ? (
-                                <span className="text-slate-600">-</span>
-                              ) : (
-                                <span className="text-slate-600" title="Pro Session Required">🔒 Locked</span>
-                              )}
-                            </td>
-                            <td className="p-4 font-mono text-sm text-slate-400">
-                              {row.isahamScore > 0 ? (
-                                <span className="text-amber-400 font-bold">{row.isahamScore.toFixed(1)}</span>
-                              ) : selectedScreener !== 'top-active' ? (
-                                <span className="text-slate-600">-</span>
-                              ) : (
-                                <span className="text-slate-600" title="Pro Session Required">🔒 Locked</span>
-                              )}
-                            </td>
+                            {selectedScreener === 'jerung-x' ? (
+                              <>
+                                <td className="p-4 font-mono text-sm text-slate-300">
+                                  {row.support || '-'}
+                                </td>
+                                <td className="p-4 text-xs text-slate-300">
+                                  {row.remarks || '-'}
+                                </td>
+                                <td className="p-4 text-xs text-slate-400">
+                                  {row.strength || '-'}
+                                </td>
+                                <td className="p-4 font-mono text-sm text-slate-400">
+                                  {row.isahamScore > 0 ? (
+                                    <span className="text-amber-400 font-bold">{row.isahamScore.toFixed(1)}</span>
+                                  ) : (
+                                    <span className="text-slate-600">-</span>
+                                  )}
+                                </td>
+                                <td className="p-4 font-mono text-sm text-slate-400">
+                                  {row.lot || '-'}
+                                </td>
+                              </>
+                            ) : (
+                              <>
+                                <td className="p-4">
+                                  {row.change !== 0 ? (
+                                    <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold border ${changeColor}`}>
+                                      {row.change > 0 ? '+' : ''}{row.change.toFixed(2)}%
+                                    </span>
+                                  ) : (
+                                    <span className="text-slate-600 font-mono text-sm">-</span>
+                                  )}
+                                </td>
+                                <td className="p-4 font-mono text-sm text-slate-400">
+                                  {row.volume > 0 ? row.volume.toLocaleString('en-US') : '-'}
+                                </td>
+                                <td className="p-4 font-mono text-sm text-slate-400">
+                                  {row.marketCap > 0 ? `RM ${row.marketCap.toLocaleString('en-US')} M` : '-'}
+                                </td>
+                                <td className="p-4 font-mono text-sm text-slate-400">
+                                  {row.ltsScore > 0 ? (
+                                    <span className="text-blue-400 font-bold">{row.ltsScore.toFixed(2)}</span>
+                                  ) : selectedScreener !== 'top-active' ? (
+                                    <span className="text-slate-600">-</span>
+                                  ) : (
+                                    <span className="text-slate-600" title="Pro Session Required">🔒 Locked</span>
+                                  )}
+                                </td>
+                                <td className="p-4 font-mono text-sm text-slate-400">
+                                  {row.isahamScore > 0 ? (
+                                    <span className="text-amber-400 font-bold">{row.isahamScore.toFixed(1)}</span>
+                                  ) : selectedScreener !== 'top-active' ? (
+                                    <span className="text-slate-600">-</span>
+                                  ) : (
+                                    <span className="text-slate-600" title="Pro Session Required">🔒 Locked</span>
+                                  )}
+                                </td>
+                              </>
+                            )}
                             <td className="p-4 pr-6 text-right">
                               <button
                                 onClick={() => addToCustomText(row.symbol, row.name)}

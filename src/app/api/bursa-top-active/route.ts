@@ -14,6 +14,10 @@ interface CleanItem {
   marketCap: number;
   isahamScore: number;
   ltsScore: number;
+  support?: string;
+  remarks?: string;
+  strength?: string;
+  lot?: number;
 }
 
 export async function GET(req: NextRequest) {
