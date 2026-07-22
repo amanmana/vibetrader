@@ -38,7 +38,7 @@ const HARDCODED_MAPPING: Record<string, string> = {
   'ZETRIX': '0138.KL',
   'GIIB': '7192.KL',
   'SFPTECH': '0251.KL',
-  'SUM': '0209.KL',
+  'SUM': '0459.KL',
   'OPPSTAR': '0275.KL',
   'EIPOWER': '0228.KL',
   'NE': '0325.KL',
@@ -54,7 +54,8 @@ async function resolveSymbol(name: string): Promise<string | null> {
   let query = name.trim().toUpperCase();
   if (HARDCODED_MAPPING[query]) return HARDCODED_MAPPING[query];
   
-  if (/^\d{4}$/.test(query)) return `${query}.KL`;
+  // Support 4-digit (Main/ACE) and 5-digit (LEAP) stock codes
+  if (/^\d{4,5}$/.test(query)) return `${query}.KL`;
 
   try {
     const searchUrl = `https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(query)}&quotesCount=5&newsCount=0`;
@@ -235,6 +236,11 @@ async function processBursaStock(originalName: string) {
   const symbol = await resolveSymbol(originalName);
   if (!symbol) return null;
 
+  // Exclude warrants (4 digits followed by 2 letters, e.g. 8907WD.KL or ending in WA.KL to WZ.KL)
+  if (/\d{4}[A-Z]{2}\.KL$/i.test(symbol.trim().toUpperCase())) {
+    return null;
+  }
+
   const data = await fetchYahooPrice(symbol);
   if (!data || data.candles.length < 50) return null;
   if (data.price < 0.20 || data.price > 3.00) return null;
@@ -261,7 +267,9 @@ async function processBursaStock(originalName: string) {
   const avgTradedValue = avgVolume * c;
   
   // Liquidity Filter 1: Reject if average daily traded value is less than RM 500,000
-  if (avgTradedValue < 500000) return null;
+  // AND current day's traded value is less than RM 1,000,000 (Dynamic Liquidity Filter)
+  const currentDayTradedValue = (vols[idx] || 0) * c;
+  if (avgTradedValue < 500000 && currentDayTradedValue < 1000000) return null;
   
   // Liquidity Filter 2 (Barcode Chart Trap): Reject if price doesn't move. 
   // Count how many of the last 10 candles are basically flat (range <= 1 tick)
@@ -319,8 +327,8 @@ async function processBursaStock(originalName: string) {
   const last5Highs = highs.slice(-5);
   const highest = (data.currentWeekHighest ?? 0) > 0 ? data.currentWeekHighest! : Math.max(...last5Highs);
 
-  // Only consider stocks above EMA 34 as healthy candidates
-  if (c < e34) return null;
+  // Soft Trend Filtering: EMA 34 check removed (no longer strictly filtered)
+  // if (c < e34) return null;
 
   const gann = getStaticGannTargets(c, 100);
 

@@ -665,7 +665,12 @@ export default function BursaPage() {
       const tokens = customText.split(/[\s,]+/).map(t => t.trim()).filter(Boolean);
       
       // Cuba cari kod bursa (biasanya bermula dengan 4 digit)
-      let rawStocks = tokens.filter(t => /^\d{4}/.test(t));
+      // Dan singkirkan waran (kod 4 digit + 2 huruf, e.g. 8907WD)
+      let rawStocks = tokens.filter(t => {
+        if (!/^\d{4}/.test(t)) return false;
+        if (/^\d{4}[A-Z]{2}$/i.test(t)) return false; // Singkirkan waran
+        return true;
+      });
       
       // Jika tiada kod dijumpai (contoh: user paste nama sahaja seperti "MYEG YTL")
       if (rawStocks.length === 0) {
@@ -676,6 +681,10 @@ export default function BursaPage() {
           if (/^\d+$/.test(t)) return false; // Abaikan nombor bulat yang bukan kod bursa
           if (t.startsWith('+') || t.startsWith('-')) return false;
           if (t === 'CALL' || t === 's' || t.toLowerCase() === 'call') return false;
+          
+          // Singkirkan waran berasaskan nama (contoh: EG-WD, BMGREEN-WA)
+          if (/-W[A-Z]$/i.test(t)) return false;
+          
           return true;
         });
       }
