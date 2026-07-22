@@ -151,11 +151,35 @@ export default function BursaPage() {
       // 2. Try parsing plain text if JSON parsing yielded nothing
       if (cleanedList.length === 0) {
         const lines = rawText.split('\n');
+        
+        // Preprocess lines to merge continuation lines (where symbol & name are split across lines when copied)
+        const processedLines = [];
+        let currentLine = '';
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed) continue;
+          
+          // If it starts with a rank number followed by a tab or space, it's a new row
+          if (/^\d+\t/.test(trimmed) || /^\d+\s+/.test(trimmed)) {
+            if (currentLine) {
+              processedLines.push(currentLine);
+            }
+            currentLine = trimmed;
+          } else {
+            if (currentLine) {
+              currentLine += '\t' + trimmed;
+            } else {
+              currentLine = trimmed;
+            }
+          }
+        }
+        if (currentLine) {
+          processedLines.push(currentLine);
+        }
+
         let rankCounter = 1;
 
-        for (const line of lines) {
-          if (!line.trim()) continue;
-          
+        for (const line of processedLines) {
           let parts = line.split('\t').map(p => p.trim()).filter(Boolean);
           if (parts.length < 3) {
             parts = line.split(/ {2,}/).map(p => p.trim()).filter(Boolean);
@@ -205,7 +229,8 @@ export default function BursaPage() {
                 name = beforePrice[1] || beforePrice[0];
               } else {
                 symbol = beforePrice[0];
-                name = beforePrice.join(' ');
+                // Keep name without duplicating the symbol at the front
+                name = beforePrice.length > 1 ? beforePrice.slice(1).join(' ') : beforePrice[0];
               }
             } else {
               symbol = parts[0];
