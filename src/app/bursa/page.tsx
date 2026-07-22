@@ -141,6 +141,14 @@ export default function BursaPage() {
             isahamScore = parseFloat(item.total_score || item.isahamScore) || 0;
             ltsScore = parseFloat(item.lts_score || item.ltsScore) || 0;
 
+            // Extract and clean lot size HTML
+            let lotVal = 0;
+            const rawLot = item.allocation_lot || item.lot || item.lot_size || item.lotSize || item.s_lot || '';
+            if (rawLot) {
+              const cleanedLot = String(rawLot).replace(/<[^>]*>/g, '').trim();
+              lotVal = parseInt(cleanedLot, 10) || 0;
+            }
+
             return { 
               ...item,
               rank, 
@@ -152,10 +160,10 @@ export default function BursaPage() {
               marketCap, 
               isahamScore, 
               ltsScore,
-              support: item.s || item.support || item.support_price || item.supportPrice || item.s_support || '',
-              remarks: item.remarks || item.remark || item.s_remarks || '',
-              strength: item.strength || item.trend || item.s_strength || '',
-              lot: parseInt(item.lot || item.lot_size || item.lotSize || item.s_lot || 0, 10)
+              support: item.dynamic_supports || item.s || item.support || item.support_price || item.supportPrice || item.s_support || '',
+              remarks: item.dynamic_remarks || item.remarks || item.remark || item.s_remarks || '',
+              strength: item.simple_uptrend_remarks || item.strength || item.trend || item.s_strength || '',
+              lot: lotVal
             };
           }).filter((item: any) => item.symbol);
         } catch (e) {
