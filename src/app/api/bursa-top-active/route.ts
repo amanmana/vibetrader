@@ -165,10 +165,8 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    const hasUnlockedScores = cleanedList.some(item => item.isahamScore > 0);
-    if (hasUnlockedScores) {
-      cleanedList.sort((a, b) => b.isahamScore - a.isahamScore);
-    }
+    // Sort by rank ascending to preserve the default iSaham website order
+    cleanedList.sort((a, b) => a.rank - b.rank);
 
     // Save/Update the cache in D1
     if (db && cleanedList.length > 0) {
@@ -224,11 +222,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: "Missing screener or results array" }, { status: 400 });
     }
 
-    // Sort results by isahamScore descending before saving
-    const hasScores = results.some(item => item.isahamScore > 0);
-    if (hasScores) {
-      results.sort((a, b) => b.isahamScore - a.isahamScore);
-    }
+    // Sort by rank ascending to preserve the default iSaham website order
+    results.sort((a, b) => a.rank - b.rank);
 
     await db.prepare(`
       INSERT INTO system_settings (key, value, updated_at)
