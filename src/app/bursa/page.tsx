@@ -141,7 +141,22 @@ export default function BursaPage() {
             isahamScore = parseFloat(item.total_score || item.isahamScore) || 0;
             ltsScore = parseFloat(item.lts_score || item.ltsScore) || 0;
 
-            return { rank, symbol, name, price, change, volume, marketCap, isahamScore, ltsScore };
+            return { 
+              ...item,
+              rank, 
+              symbol, 
+              name, 
+              price, 
+              change, 
+              volume, 
+              marketCap, 
+              isahamScore, 
+              ltsScore,
+              support: item.s || item.support || item.support_price || item.supportPrice || item.s_support || '',
+              remarks: item.remarks || item.remark || item.s_remarks || '',
+              strength: item.strength || item.trend || item.s_strength || '',
+              lot: parseInt(item.lot || item.lot_size || item.lotSize || item.s_lot || 0, 10)
+            };
           }).filter((item: any) => item.symbol);
         } catch (e) {
           console.warn("Failed parsing paste as JSON:", e);
