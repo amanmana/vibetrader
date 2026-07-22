@@ -165,6 +165,7 @@ export async function GET(req: NextRequest) {
       });
     }
 
+    const hasUnlockedScores = cleanedList.some(item => item.isahamScore > 0);
     // Sort by rank ascending to preserve the default iSaham website order
     cleanedList.sort((a, b) => a.rank - b.rank);
 
