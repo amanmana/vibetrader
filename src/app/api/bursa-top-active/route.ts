@@ -38,10 +38,8 @@ export async function GET(req: NextRequest) {
           savedUpdatedAt = row.updated_at as string;
           
           if (Array.isArray(savedScreenerData)) {
-            const hasScores = savedScreenerData.some(item => item.isahamScore > 0);
-            if (hasScores) {
-              savedScreenerData.sort((a, b) => b.isahamScore - a.isahamScore);
-            }
+            // Sort by rank ascending to preserve the default iSaham website order
+            savedScreenerData.sort((a, b) => a.rank - b.rank);
           }
         }
       } catch (e) {
