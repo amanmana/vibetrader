@@ -2081,15 +2081,6 @@ export default function BursaPage() {
                 </select>
 
                 <button
-                  onClick={() => setShowCookieModal(true)}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${isahamCookie.trim() ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-[0_0_12px_rgba(16,185,129,0.05)]' : 'bg-slate-800 hover:bg-slate-700 text-slate-300'}`}
-                >
-                  {/* Settings gear icon */}
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                  ⚙️ Settings
-                </button>
-                
-                <button
                   onClick={() => setShowPasteModal(true)}
                   className="px-4 py-2 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 hover:from-emerald-500/20 hover:to-teal-500/20 border border-emerald-500/20 text-emerald-400 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-lg shadow-emerald-950/20"
                 >
@@ -2106,22 +2097,6 @@ export default function BursaPage() {
               </div>
             </div>
 
-            {isFallback && lastScreenerUpdate && (
-              <div className="bg-amber-500/10 border border-amber-500/20 text-amber-400 p-4 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-3 mb-6 animate-pulse">
-                <div className="flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 shrink-0 text-amber-400" />
-                  <span className="text-xs">
-                    Screener live disekat oleh iSaham (403). Memaparkan data terakhir disimpan: <strong>{new Date(lastScreenerUpdate).toLocaleString('ms-MY')}</strong>
-                  </span>
-                </div>
-                <button
-                  onClick={() => setShowPasteModal(true)}
-                  className="px-3 py-1 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 rounded-xl text-[10px] font-bold border border-amber-500/30 transition shrink-0 cursor-pointer"
-                >
-                  Kemaskini Manual (Paste)
-                </button>
-              </div>
-            )}
 
             {topActiveError && (
               <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-xl text-center mb-6 flex flex-col items-center justify-center gap-2">
