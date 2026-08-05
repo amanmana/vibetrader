@@ -1,7 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getRequestContext } from '@cloudflare/next-on-pages';
 import { getStaticGannTargets } from '@/utils/gann';
 
 export const runtime = 'edge';
+
+// GET handler to load cached Adaptive Sniper results from D1
+export async function GET(req: NextRequest) {
+  try {
+    const db = (getRequestContext().env as unknown as CloudflareEnv).DB;
+    if (!db) {
+      return NextResponse.json({ success: false, error: 'Database not configured' });
+    }
+    const row = await db.prepare('SELECT value, updated_at FROM system_settings WHERE key = ?')
+      .bind('adaptive_sniper_results')
+      .first();
+
+    if (row && row.value) {
+      const results = JSON.parse(row.value as string);
+      return NextResponse.json({
+        success: true,
+        count: Array.isArray(results) ? results.length : 0,
+        results,
+        updatedAt: row.updated_at
+      });
+    }
+    return NextResponse.json({ success: true, count: 0, results: [] });
+  } catch (e: any) {
+    console.error('[Adaptive Sniper GET] Error:', e);
+    return NextResponse.json({ success: false, error: e.message }, { status: 500 });
+  }
+}
 
 interface Candle {
   timestamp: number;
@@ -353,6 +381,23 @@ export async function POST(req: NextRequest) {
 
     // Sort by score descending
     scannedResults.sort((a: any, b: any) => b.score - a.score);
+
+    // Save scanned results automatically to D1 database
+    try {
+      const db = (getRequestContext().env as unknown as CloudflareEnv).DB;
+      if (db && scannedResults.length > 0) {
+        await db.prepare(`
+          INSERT INTO system_settings (key, value, updated_at)
+          VALUES ('adaptive_sniper_results', ?, CURRENT_TIMESTAMP)
+          ON CONFLICT(key) DO UPDATE SET 
+            value = excluded.value,
+            updated_at = CURRENT_TIMESTAMP
+        `).bind(JSON.stringify(scannedResults)).run();
+        console.log(`[Adaptive Sniper] Saved ${scannedResults.length} results to D1.`);
+      }
+    } catch (dbErr) {
+      console.warn('[Adaptive Sniper POST] Failed to save results to D1:', dbErr);
+    }
 
     return NextResponse.json({
       success: true,

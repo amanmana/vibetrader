@@ -666,13 +666,29 @@ export default function BursaPage() {
     return () => document.removeEventListener('click', handler);
   }, [labelPickerOpen]);
 
-  // Auto scan Adaptive Sniper when tab is active
+  // Load cached Adaptive Sniper results from D1 on mount or tab change
   useEffect(() => {
-    if (activeTab === 'adaptiveSniper' && customText.trim()) {
-      handleScanAdaptive(customText);
+    async function loadAdaptiveD1Picks() {
+      try {
+        const res = await fetch('/api/bursa-adaptive-sniper');
+        const data = await res.json();
+        if (data.success && Array.isArray(data.results) && data.results.length > 0) {
+          setAdaptiveResults(data.results);
+        } else if (customText.trim()) {
+          handleScanAdaptive(customText);
+        }
+      } catch (e) {
+        console.error("Failed to fetch Adaptive Sniper picks from D1:", e);
+      }
+    }
+
+    if (activeTab === 'adaptiveSniper') {
+      if (adaptiveResults.length === 0) {
+        loadAdaptiveD1Picks();
+      }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, customText]);
+  }, [activeTab]);
 
 
   const handleDragOver = (e: React.DragEvent) => {
