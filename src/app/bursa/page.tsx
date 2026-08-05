@@ -366,7 +366,11 @@ export default function BursaPage() {
 
   const handleScanAdaptive = async (overrideText?: string) => {
     const textToScan = overrideText !== undefined ? overrideText : customText;
-    if (!textToScan || !textToScan.trim()) {
+    const tickers = (top5Results.length > 0 && (!overrideText || overrideText === customText))
+      ? top5Results.map(r => r.symbol)
+      : undefined;
+
+    if (!tickers && (!textToScan || !textToScan.trim())) {
       setAdaptiveResults([]);
       setAdaptiveError('Tiada senarai kaunter. Sila masukkan/tampal senarai kaunter di tab Custom List terlebih dahulu.');
       return;
@@ -377,7 +381,7 @@ export default function BursaPage() {
       const res = await fetch('/api/bursa-adaptive-sniper', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: textToScan })
+        body: JSON.stringify(tickers ? { tickers } : { text: textToScan })
       });
       const data = await res.json();
       if (data.success) {
@@ -833,6 +837,7 @@ export default function BursaPage() {
       if (!response.ok) throw new Error(data.error || 'Failed to scan stocks');
       
       setTop5Results(data.data);
+      setAdaptiveResults([]);
       
       setTimeout(() => {
         document.getElementById('top5-section')?.scrollIntoView({ behavior: 'smooth' });

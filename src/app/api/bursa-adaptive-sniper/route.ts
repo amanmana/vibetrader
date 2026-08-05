@@ -229,25 +229,42 @@ function calculateStochRSI(closes: number[], rsiLength: number = 13, stochLength
   return { kLine, dLine };
 }
 
+function extractStockSymbols(text: string): string[] {
+  const rawTokens = text.split(/[\s,]+/).map(t => t.trim()).filter(Boolean);
+
+  // 1. Find 4-digit or 5-digit Bursa stock codes (e.g. 7204, 8907, 0270, 7155, 0459)
+  let stockTokens = rawTokens.filter(t => /^\d{4,5}$/.test(t));
+
+  // 2. If no numeric codes found (e.g. user pasted stock names like "MYEG YTL INARI NATGATE")
+  if (stockTokens.length === 0) {
+    stockTokens = rawTokens
+      .map(t => t.replace(/\[S\]/gi, '').trim())
+      .filter(clean => {
+        if (clean.length < 2) return false;
+        if (clean.includes('[') || clean.includes(']')) return false;
+        if (clean.includes('.') || clean.includes(',')) return false;
+        if (/^[\d+.-]+$/.test(clean)) return false; // Ignore decimal numbers/prices/percentages
+        if (clean.toUpperCase() === 'CALL' || clean.toLowerCase() === 's') return false;
+        return true;
+      });
+  }
+
+  return Array.from(new Set(stockTokens)).slice(0, 100);
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     let symbols: string[] = [];
 
-    if (Array.isArray(body.tickers)) {
+    if (Array.isArray(body.tickers) && body.tickers.length > 0) {
       symbols = body.tickers;
     } else if (typeof body.text === 'string') {
-      const tokens = body.text
-        .toUpperCase()
-        .replace(/,/g, ' ')
-        .split(/\s+/)
-        .map((t: string) => t.trim())
-        .filter(Boolean);
-      symbols = Array.from(new Set(tokens));
+      symbols = extractStockSymbols(body.text);
     }
 
     if (!symbols || symbols.length === 0) {
-      return NextResponse.json({ success: false, error: 'No symbols provided' }, { status: 400 });
+      return NextResponse.json({ success: false, error: 'Tiada kod/simbol saham yang sah dijumpai dalam teks.' }, { status: 400 });
     }
 
     const resolved = await Promise.all(symbols.map(s => resolveSymbol(s)));
