@@ -364,14 +364,20 @@ export default function BursaPage() {
     }
   };
 
-  const handleScanAdaptive = async () => {
+  const handleScanAdaptive = async (overrideText?: string) => {
+    const textToScan = overrideText !== undefined ? overrideText : customText;
+    if (!textToScan || !textToScan.trim()) {
+      setAdaptiveResults([]);
+      setAdaptiveError('Tiada senarai kaunter. Sila masukkan/tampal senarai kaunter di tab Custom List terlebih dahulu.');
+      return;
+    }
     setIsScanningAdaptive(true);
     setAdaptiveError(null);
     try {
       const res = await fetch('/api/bursa-adaptive-sniper', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: adaptiveText })
+        body: JSON.stringify({ text: textToScan })
       });
       const data = await res.json();
       if (data.success) {
@@ -655,6 +661,14 @@ export default function BursaPage() {
     document.addEventListener('click', handler);
     return () => document.removeEventListener('click', handler);
   }, [labelPickerOpen]);
+
+  // Auto scan Adaptive Sniper when tab is active
+  useEffect(() => {
+    if (activeTab === 'adaptiveSniper' && customText.trim()) {
+      handleScanAdaptive(customText);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, customText]);
 
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -2612,29 +2626,42 @@ export default function BursaPage() {
               </div>
             </div>
 
-            {/* Input Box */}
-            <div className="p-6 border border-slate-800 bg-slate-900/40 rounded-3xl backdrop-blur-xl shadow-2xl space-y-4">
-              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
-                Masukkan Simbol / Kod Saham (Dipseparasi dengan Ruang / Koma)
-              </label>
-              <textarea
-                value={adaptiveText}
-                onChange={(e) => setAdaptiveText(e.target.value)}
-                placeholder="cth: NATGATE 0270 SKPRES 7155 SUM 0459 DUFU MI"
-                className="w-full h-24 bg-slate-950 border border-slate-800 rounded-2xl p-4 text-xs text-slate-200 font-mono focus:outline-none focus:border-purple-500 resize-none"
-              />
-              <div className="flex justify-end">
-                <button
-                  onClick={handleScanAdaptive}
-                  disabled={isScanningAdaptive || !adaptiveText.trim()}
-                  className="px-6 py-3 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-400 hover:to-indigo-500 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-purple-950/40 flex items-center gap-2 disabled:opacity-50 cursor-pointer"
-                >
-                  {isScanningAdaptive ? (
-                    <><Loader2 className="w-4 h-4 animate-spin" /> Imbas Adaptive Sniper...</>
+            {/* Custom List Sync Header / Control Bar */}
+            <div className="p-6 border border-slate-800 bg-slate-900/40 rounded-3xl backdrop-blur-xl shadow-2xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2 text-xs font-bold text-purple-400 uppercase tracking-wider mb-1">
+                  <span>🔗 Bersambung ke Tab Custom List</span>
+                </div>
+                <p className="text-xs text-slate-400">
+                  {customText.trim() ? (
+                    <>Menganalisis kaunter yang terkandung di dalam tab <strong>Custom List</strong>.</>
                   ) : (
-                    <>🎯 Imbas Adaptive Sniper</>
+                    <>Sila masukkan/tampal senarai kaunter di tab <strong>Custom List</strong> untuk mula menganalisis.</>
                   )}
-                </button>
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                {!customText.trim() ? (
+                  <button
+                    onClick={() => setActiveTab('custom')}
+                    className="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-2"
+                  >
+                    ✏️ Pergi ke Tab Custom List
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => handleScanAdaptive(customText)}
+                    disabled={isScanningAdaptive}
+                    className="px-6 py-2.5 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-400 hover:to-indigo-500 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-purple-950/40 flex items-center gap-2 disabled:opacity-50 cursor-pointer"
+                  >
+                    {isScanningAdaptive ? (
+                      <><Loader2 className="w-4 h-4 animate-spin" /> Imbas Adaptive Sniper...</>
+                    ) : (
+                      <>🔄 Imbas Semula Custom List</>
+                    )}
+                  </button>
+                )}
               </div>
             </div>
 
