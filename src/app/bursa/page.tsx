@@ -1094,47 +1094,71 @@ export default function BursaPage() {
                       <th className="p-4 font-semibold">Target</th>
                       <th className="p-4 font-semibold">Highest Price</th>
                       <th className="p-4 font-semibold">TP2</th>
-                      <th className="p-4 font-semibold pr-6 text-right">Status</th>
+                      <th className="p-4 font-semibold">Status</th>
+                      <th className="p-4 font-semibold pr-6 text-right">Action</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-800/50">
-                    {results.map((row, idx) => (
-                      <tr key={idx} className="hover:bg-slate-900/30 transition group">
-                        <td className="p-4 pl-6">
-                          <div className="flex items-center gap-3">
-                            <button 
-                              onClick={() => copyToClipboard(row.stock_name, idx)}
-                              className="text-slate-600 hover:text-slate-300 transition opacity-0 group-hover:opacity-100"
-                              title="Copy Stock Name"
+                    {results.map((row, idx) => {
+                      const cleanSym = row.stock_name.replace('[S]', '').trim();
+                      return (
+                        <tr key={idx} className="hover:bg-slate-900/30 transition group">
+                          <td className="p-4 pl-6">
+                            <div className="flex items-center gap-3">
+                              <button 
+                                onClick={() => copyToClipboard(row.stock_name, idx)}
+                                className="text-slate-600 hover:text-slate-300 transition opacity-0 group-hover:opacity-100"
+                                title="Copy Stock Name"
+                              >
+                                {copiedIndex === idx ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+                              </button>
+                              <a 
+                                href={`https://www.tradingview.com/chart/S83uhZmn/?symbol=MYX:${cleanSym}`} 
+                                target="_blank" 
+                                rel="noopener noreferrer" 
+                                className="font-bold text-slate-200 hover:text-amber-400 hover:underline transition cursor-pointer"
+                              >
+                                {cleanSym}
+                              </a>
+                              {row.stock_name.includes('[S]') && (
+                                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
+                                  S
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="p-4 font-mono text-sm text-slate-400">{row.last_done || '-'}</td>
+                          <td className="p-4 font-mono text-sm text-slate-300 font-medium">{row.target || '-'}</td>
+                          <td className="p-4 font-mono text-sm text-slate-400">{row.highest_price || '-'}</td>
+                          <td className="p-4 font-mono text-sm text-amber-500/80">{row.tp2 || '-'}</td>
+                          <td className="p-4">
+                            <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold border ${getStatusColor(row.status)}`}>
+                              {row.status}
+                            </span>
+                          </td>
+                          <td className="p-4 pr-6 text-right">
+                            <button
+                              onClick={() => addToCustomText(cleanSym, cleanSym)}
+                              disabled={addingSymbol !== null}
+                              className={`p-2 rounded-xl border transition inline-flex items-center justify-center cursor-pointer ${
+                                addingSymbol === cleanSym
+                                  ? 'bg-slate-800 text-slate-500 border-slate-700 cursor-not-allowed'
+                                  : 'bg-slate-800 hover:bg-emerald-600 hover:text-white text-emerald-400 border-slate-700 hover:border-emerald-500'
+                              }`}
+                              title="Tambah ke Custom Master List"
                             >
-                              {copiedIndex === idx ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
-                            </button>
-                            <a 
-                              href={`https://www.tradingview.com/chart/S83uhZmn/?symbol=MYX:${row.stock_name.replace('[S]', '').trim()}`} 
-                              target="_blank" 
-                              rel="noopener noreferrer" 
-                              className="font-bold text-slate-200 hover:text-amber-400 hover:underline transition cursor-pointer"
-                            >
-                              {row.stock_name.replace('[S]', '').trim()}
-                            </a>
-                            {row.stock_name.includes('[S]') && (
-                              <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
-                                S
+                              <span className="text-xs font-bold px-1 flex items-center gap-1">
+                                {addingSymbol === cleanSym ? (
+                                  <><Loader2 className="w-3 h-3 animate-spin" /> Adding</>
+                                ) : (
+                                  <>➕ Add</>
+                                )}
                               </span>
-                            )}
-                          </div>
-                        </td>
-                        <td className="p-4 font-mono text-sm text-slate-400">{row.last_done || '-'}</td>
-                        <td className="p-4 font-mono text-sm text-slate-300 font-medium">{row.target || '-'}</td>
-                        <td className="p-4 font-mono text-sm text-slate-400">{row.highest_price || '-'}</td>
-                        <td className="p-4 font-mono text-sm text-amber-500/80">{row.tp2 || '-'}</td>
-                        <td className="p-4 pr-6 text-right">
-                          <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-bold border ${getStatusColor(row.status)}`}>
-                            {row.status}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
