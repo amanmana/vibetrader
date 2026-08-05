@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from 'react';
-import { Upload, Image as ImageIcon, Loader2, AlertCircle, Copy, Check, Power, RefreshCcw, Trash2, Save, TrendingUp, TrendingDown, Trophy, X } from 'lucide-react';
+import { Upload, Image as ImageIcon, Loader2, AlertCircle, Copy, Check, Power, RefreshCcw, Trash2, Save, TrendingUp, TrendingDown, Trophy, X, Zap } from 'lucide-react';
 
 interface BursaStock {
   stock_name: string;
@@ -25,9 +25,15 @@ export default function BursaPage() {
   const [top5Results, setTop5Results] = useState<any[]>([]);
   const [top5Error, setTop5Error] = useState('');
   
-  const [activeTab, setActiveTab] = useState<'ocr' | 'live' | 'custom' | 'customMaster' | 'us' | 'topActive'>('customMaster');
+  const [activeTab, setActiveTab] = useState<'ocr' | 'live' | 'custom' | 'customMaster' | 'us' | 'topActive' | 'adaptiveSniper'>('customMaster');
   const [customText, setCustomText] = useState('');
   const [isLiveScanning, setIsLiveScanning] = useState(false);
+
+  // Adaptive Sniper states
+  const [adaptiveResults, setAdaptiveResults] = useState<any[]>([]);
+  const [isScanningAdaptive, setIsScanningAdaptive] = useState(false);
+  const [adaptiveText, setAdaptiveText] = useState('NATGATE 0270 SKPRES 7155 SUM 0459 DUFU MI');
+  const [adaptiveError, setAdaptiveError] = useState<string | null>(null);
 
   // iSaham Top Active states
   const [selectedScreener, setSelectedScreener] = useState<'top-active' | 'jerung-x' | 'isaham-super-short-term'>('top-active');
@@ -355,6 +361,28 @@ export default function BursaPage() {
       alert("Ralat: " + e.message);
     } finally {
       setIsSavingPaste(false);
+    }
+  };
+
+  const handleScanAdaptive = async () => {
+    setIsScanningAdaptive(true);
+    setAdaptiveError(null);
+    try {
+      const res = await fetch('/api/bursa-adaptive-sniper', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: adaptiveText })
+      });
+      const data = await res.json();
+      if (data.success) {
+        setAdaptiveResults(data.results);
+      } else {
+        setAdaptiveError(data.error || 'Gagal membuat imbasan Adaptive Sniper.');
+      }
+    } catch (err: any) {
+      setAdaptiveError('Ralat sambungan: ' + err.message);
+    } finally {
+      setIsScanningAdaptive(false);
     }
   };
 
@@ -981,6 +1009,13 @@ export default function BursaPage() {
             >
               <div className={`w-2 h-2 rounded-full ${activeTab === 'topActive' ? 'bg-emerald-400 animate-pulse' : 'bg-slate-600'}`} />
               iSaham Screener
+            </button>
+            <button
+              onClick={() => setActiveTab('adaptiveSniper')}
+              className={`px-6 py-2.5 rounded-xl text-sm font-bold transition flex items-center gap-2 ${activeTab === 'adaptiveSniper' ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30 shadow-[0_0_15px_rgba(168,85,247,0.1)]' : 'text-slate-500 hover:text-slate-300'}`}
+            >
+              <div className={`w-2 h-2 rounded-full ${activeTab === 'adaptiveSniper' ? 'bg-purple-400 animate-pulse' : 'bg-slate-600'}`} />
+              🎯 Adaptive Sniper
             </button>
 
           </div>
@@ -2555,6 +2590,193 @@ export default function BursaPage() {
                 </div>
               </div>
             )}
+          </div>
+        )}
+
+        {/* Adaptive Sniper Tab */}
+        {activeTab === 'adaptiveSniper' && (
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center">
+                  <Zap className="w-5 h-5 text-purple-400" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-slate-100 flex items-center gap-2">
+                    Adaptive Sniper Screener <span className="text-xs px-2 py-0.5 rounded-md bg-purple-500/20 text-purple-300 border border-purple-500/30">v2.0.0</span>
+                  </h3>
+                  <p className="text-sm text-slate-500">
+                    Mengesan kaunter dengan persilangan <strong>EMA 9 / EMA 21 (Hijau/Merah)</strong> &amp; <strong>Stoch RSI %K / %D (Biru/Merah)</strong>.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Input Box */}
+            <div className="p-6 border border-slate-800 bg-slate-900/40 rounded-3xl backdrop-blur-xl shadow-2xl space-y-4">
+              <label className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
+                Masukkan Simbol / Kod Saham (Dipseparasi dengan Ruang / Koma)
+              </label>
+              <textarea
+                value={adaptiveText}
+                onChange={(e) => setAdaptiveText(e.target.value)}
+                placeholder="cth: NATGATE 0270 SKPRES 7155 SUM 0459 DUFU MI"
+                className="w-full h-24 bg-slate-950 border border-slate-800 rounded-2xl p-4 text-xs text-slate-200 font-mono focus:outline-none focus:border-purple-500 resize-none"
+              />
+              <div className="flex justify-end">
+                <button
+                  onClick={handleScanAdaptive}
+                  disabled={isScanningAdaptive || !adaptiveText.trim()}
+                  className="px-6 py-3 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-400 hover:to-indigo-500 text-white rounded-xl text-xs font-bold transition shadow-lg shadow-purple-950/40 flex items-center gap-2 disabled:opacity-50 cursor-pointer"
+                >
+                  {isScanningAdaptive ? (
+                    <><Loader2 className="w-4 h-4 animate-spin" /> Imbas Adaptive Sniper...</>
+                  ) : (
+                    <>🎯 Imbas Adaptive Sniper</>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {adaptiveError && (
+              <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-2xl text-center">
+                {adaptiveError}
+              </div>
+            )}
+
+            {/* Results Table */}
+            {isScanningAdaptive ? (
+              <div className="flex flex-col items-center justify-center py-20 bg-slate-900/30 rounded-3xl border border-slate-800/50 backdrop-blur-sm">
+                <Loader2 className="w-10 h-10 animate-spin text-purple-400 mb-4" />
+                <p className="text-sm text-slate-400">Menganalisis pergerakan EMA &amp; Stoch RSI...</p>
+              </div>
+            ) : adaptiveResults.length > 0 ? (
+              <div className="border border-slate-800 bg-slate-950/80 rounded-3xl overflow-hidden backdrop-blur-xl shadow-2xl">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-slate-900/80 border-b border-slate-800 text-xs uppercase tracking-wider text-slate-500">
+                        <th className="p-4 font-semibold pl-6">#</th>
+                        <th className="p-4 font-semibold">Stock</th>
+                        <th className="p-4 font-semibold">Score / Grade</th>
+                        <th className="p-4 font-semibold">EMA Ribbon (9 / 21)</th>
+                        <th className="p-4 font-semibold">Stoch RSI (%K / %D)</th>
+                        <th className="p-4 font-semibold">Price</th>
+                        <th className="p-4 font-semibold text-rose-400/80">Stop Loss</th>
+                        <th className="p-4 font-semibold text-emerald-400/80">TP1 / TP2</th>
+                        <th className="p-4 font-semibold pr-6 text-right">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-800/50">
+                      {adaptiveResults.map((row, idx) => {
+                        const cleanSym = row.symbol.replace('.KL', '').replace('MYX:', '');
+                        return (
+                          <tr key={idx} className="hover:bg-slate-800/30 transition group">
+                            <td className="p-4 pl-6">
+                              <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-purple-500/10 text-purple-400 font-bold text-xs border border-purple-500/20">
+                                #{idx + 1}
+                              </span>
+                            </td>
+                            <td className="p-4">
+                              <div className="flex flex-col">
+                                <a
+                                  href={`https://www.tradingview.com/chart/S83uhZmn/?symbol=MYX:${cleanSym}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="font-bold text-slate-200 hover:text-purple-400 hover:underline transition cursor-pointer"
+                                >
+                                  {row.companyName || cleanSym}
+                                </a>
+                                <span className="text-[10px] text-slate-500 font-mono mt-0.5">{cleanSym}</span>
+                              </div>
+                            </td>
+                            <td className="p-4">
+                              <div className="flex items-center gap-2">
+                                <span className="font-bold text-amber-400 text-sm">{row.score}/10</span>
+                                <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold border ${
+                                  row.grade === 'A+' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' :
+                                  row.grade === 'A' ? 'bg-teal-500/20 text-teal-300 border-teal-500/30' :
+                                  row.grade === 'B' ? 'bg-blue-500/20 text-blue-300 border-blue-500/30' :
+                                  'bg-slate-800 text-slate-400 border-slate-700'
+                                }`}>
+                                  {row.grade}
+                                </span>
+                              </div>
+                            </td>
+                            <td className="p-4">
+                              <div className="flex flex-col">
+                                {row.emaStatus === 'CROSS_UP' ? (
+                                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 animate-pulse">
+                                    ⚡ CROSS UP (9 &gt; 21)
+                                  </span>
+                                ) : row.emaStatus === 'BULLISH' ? (
+                                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                    🟢 Bullish (9 &gt; 21)
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                                    🔴 Bearish
+                                  </span>
+                                )}
+                                <span className="text-[10px] text-slate-500 font-mono mt-1">E9: {row.emaFast} | E21: {row.emaSlow}</span>
+                              </div>
+                            </td>
+                            <td className="p-4">
+                              <div className="flex flex-col">
+                                {row.stochStatus === 'CROSS_UP' ? (
+                                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 animate-pulse">
+                                    ⚡ CROSS UP (%K &gt; %D)
+                                  </span>
+                                ) : row.stochStatus === 'BULLISH' ? (
+                                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                                    🔵 Bullish (%K &gt; %D)
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-800 text-slate-500 border border-slate-700">
+                                    ⚪ Bearish
+                                  </span>
+                                )}
+                                <span className="text-[10px] text-slate-500 font-mono mt-1">K: {row.stochK} | D: {row.stochD}</span>
+                              </div>
+                            </td>
+                            <td className="p-4 font-mono text-sm text-slate-300">
+                              RM {row.price.toFixed(3)}
+                            </td>
+                            <td className="p-4 font-mono text-sm text-rose-400 font-bold">
+                              {row.stopLoss || '-'}
+                            </td>
+                            <td className="p-4 font-mono text-xs text-emerald-400">
+                              <div>TP1: {row.tp1 || '-'}</div>
+                              <div className="text-emerald-300 font-bold mt-0.5">TP2: {row.tp2 || '-'}</div>
+                            </td>
+                            <td className="p-4 pr-6 text-right">
+                              <button
+                                onClick={() => addToCustomText(cleanSym, row.companyName || cleanSym)}
+                                disabled={addingSymbol !== null}
+                                className={`p-2 rounded-xl border transition inline-flex items-center justify-center cursor-pointer ${
+                                  addingSymbol === cleanSym
+                                    ? 'bg-slate-800 text-slate-500 border-slate-700 cursor-not-allowed'
+                                    : 'bg-slate-800 hover:bg-emerald-600 hover:text-white text-emerald-400 border-slate-700 hover:border-emerald-500'
+                                }`}
+                                title="Tambah ke Custom Master List"
+                              >
+                                <span className="text-xs font-bold px-1 flex items-center gap-1">
+                                  {addingSymbol === cleanSym ? (
+                                    <><Loader2 className="w-3 h-3 animate-spin" /> Adding</>
+                                  ) : (
+                                    <>➕ Add</>
+                                  )}
+                                </span>
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ) : null}
           </div>
         )}
       </div>
