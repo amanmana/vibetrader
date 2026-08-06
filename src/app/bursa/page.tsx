@@ -2183,9 +2183,17 @@ export default function BursaPage() {
                               <div className="flex flex-col">
                                 <div className="flex items-center gap-1.5">
                                   <a href={`https://www.tradingview.com/chart/S83uhZmn/?symbol=MYX:${row.symbol.replace('.KL', '')}`} target="_blank" rel="noopener noreferrer" className="font-bold text-slate-200 hover:text-blue-400 hover:underline transition cursor-pointer">{row.companyName}</a>
-                                  {row.isManual && (
-                                    <span title="Ditambah secara manual" className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-400 text-[9px] leading-none" style={{fontSize:'8px'}}>★</span>
-                                  )}
+                                  {row.source === 'search' || (row.isManual && !row.source) ? (
+                                    <span title="Ditambah dari Search / Manual" className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-400 text-[10px] leading-none shadow-sm">⭐</span>
+                                  ) : row.source === 'adaptive' ? (
+                                    <span title="Ditambah dari Adaptive Sniper Screener" className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-purple-500/20 border border-purple-500/40 text-purple-300 text-[10px] leading-none shadow-sm">🎯</span>
+                                  ) : row.source === 'isaham' ? (
+                                    <span title="Ditambah dari iSaham Screener" className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 text-[10px] leading-none shadow-sm">⚡</span>
+                                  ) : row.source === 'ocr' ? (
+                                    <span title="Ditambah dari OCR Extractor" className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-orange-500/20 border border-orange-500/40 text-orange-400 text-[10px] leading-none shadow-sm">📸</span>
+                                  ) : row.source === 'custom' ? (
+                                    <span title="Ditambah dari Custom List" className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 text-[10px] leading-none shadow-sm">📝</span>
+                                  ) : null}
                                 </div>
                                 <span className="text-[10px] text-slate-500 font-mono">{row.symbol}</span>
                               </div>

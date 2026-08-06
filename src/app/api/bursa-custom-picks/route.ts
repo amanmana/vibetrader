@@ -561,13 +561,16 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: false, error: `Gagal menganalisis kaunter ${cleanSym}. Sila pastikan kod betul.` }, { status: 400 });
       }
 
+      const itemSource = source || (isManual === true ? 'search' : 'custom');
+
       // Check duplicates with resolved symbol
       const existing = await db.prepare('SELECT id FROM custom_picks WHERE symbol = ? OR id = ?').bind(calculated.symbol, calculated.symbol).first();
       if (existing) {
-        return NextResponse.json({ success: false, error: `Kaunter ${calculated.symbol} sudah berada di dalam Watchlist.` }, { status: 400 });
+        await db.prepare('UPDATE custom_picks SET source = ? WHERE symbol = ? OR id = ?')
+          .bind(itemSource, calculated.symbol, calculated.symbol)
+          .run();
+        return NextResponse.json({ success: true, symbol: calculated.symbol, companyName: calculated.companyName, updatedSource: true });
       }
-
-      const itemSource = source || (isManual === true ? 'search' : 'custom');
 
       // Save to D1 database
       await db.prepare(`
