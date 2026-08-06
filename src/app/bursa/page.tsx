@@ -451,7 +451,7 @@ export default function BursaPage() {
     }
   };
 
-  const addToCustomText = async (symbol: string, companyName?: string, isManual: boolean = false) => {
+  const addToCustomText = async (symbol: string, companyName?: string, isManual: boolean = false, source: string = 'custom') => {
     const cleanSym = symbol.replace('.KL', '').replace('MYX:', '');
     try {
       setAddingSymbol(cleanSym);
@@ -460,7 +460,7 @@ export default function BursaPage() {
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ action: 'add', symbol: cleanSym, name: companyName, isManual })
+        body: JSON.stringify({ action: 'add', symbol: cleanSym, name: companyName, isManual, source })
       });
       const data = await res.json();
       if (data.success) {
@@ -1210,7 +1210,7 @@ export default function BursaPage() {
                           </td>
                           <td className="p-4 pr-6 text-right">
                             <button
-                              onClick={() => addToCustomText(cleanSym, cleanSym)}
+                              onClick={() => addToCustomText(cleanSym, cleanSym, false, 'ocr')}
                               disabled={addingSymbol !== null}
                               className={`p-2 rounded-xl border transition inline-flex items-center justify-center cursor-pointer ${
                                 addingSymbol === cleanSym
@@ -1361,7 +1361,7 @@ export default function BursaPage() {
                             <td className="p-4 font-mono text-sm text-slate-400">{stock.highest}</td>
                             <td className="p-4 pr-6 text-right">
                               <button
-                                onClick={() => addToCustomText(stock.symbol, stock.originalName || stock.companyName)}
+                                onClick={() => addToCustomText(stock.symbol, stock.originalName || stock.companyName, false, 'custom')}
                                 disabled={addingSymbol !== null}
                                 className={`p-2 rounded-xl border transition inline-flex items-center justify-center cursor-pointer ${
                                   addingSymbol === stock.symbol.replace('.KL', '').replace('MYX:', '')
@@ -1666,12 +1666,15 @@ export default function BursaPage() {
                             </td>
                             <td className="p-4">
                               <div className="flex flex-col">
-                                <a href={`https://www.tradingview.com/chart/S83uhZmn/?symbol=MYX:${searchedStock.symbol.replace('.KL', '')}`} target="_blank" rel="noopener noreferrer" className="font-bold text-blue-300 hover:text-blue-400 hover:underline transition cursor-pointer">{searchedStock.companyName}</a>
-                                <span className="text-[10px] text-blue-500/70">{searchedStock.symbol}</span>
+                                <div className="flex items-center gap-1.5">
+                                  <a href={`https://www.tradingview.com/chart/S83uhZmn/?symbol=MYX:${searchedStock.symbol.replace('.KL', '')}`} target="_blank" rel="noopener noreferrer" className="font-bold text-blue-400 hover:underline transition cursor-pointer">{searchedStock.companyName}</a>
+                                  <span title="Carian Saham" className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-blue-500/20 border border-blue-500/40 text-blue-400 text-[10px] leading-none">🔍</span>
+                                </div>
+                                <span className="text-[10px] text-slate-500">{searchedStock.companyName} ({searchedStock.symbol})</span>
                               </div>
                             </td>
                             <td className="p-4">
-                              <span className="font-bold text-amber-400">{searchedStock.score}/10</span>
+                              <span className="font-bold text-blue-400">{searchedStock.score}/10</span>
                             </td>
                             <td className="p-4 font-mono text-sm text-slate-300">{searchedStock.price}</td>
                             <td className="p-4">
@@ -1748,9 +1751,17 @@ export default function BursaPage() {
                               <div className="flex flex-col">
                                 <div className="flex items-center gap-1.5">
                                   <a href={`https://www.tradingview.com/chart/S83uhZmn/?symbol=MYX:${row.symbol.replace('.KL', '')}`} target="_blank" rel="noopener noreferrer" className="font-bold text-slate-200 hover:text-slate-100 hover:underline transition cursor-pointer">{row.companyName}</a>
-                                  {row.isManual && (
-                                    <span title="Ditambah secara manual" className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-400 text-[9px] leading-none" style={{fontSize:'8px'}}>★</span>
-                                  )}
+                                  {row.source === 'search' || (row.isManual && !row.source) ? (
+                                    <span title="Ditambah dari Search / Manual" className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-400 text-[10px] leading-none shadow-sm">⭐</span>
+                                  ) : row.source === 'adaptive' ? (
+                                    <span title="Ditambah dari Adaptive Sniper Screener" className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-purple-500/20 border border-purple-500/40 text-purple-300 text-[10px] leading-none shadow-sm">🎯</span>
+                                  ) : row.source === 'isaham' ? (
+                                    <span title="Ditambah dari iSaham Screener" className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 text-[10px] leading-none shadow-sm">⚡</span>
+                                  ) : row.source === 'ocr' ? (
+                                    <span title="Ditambah dari OCR Extractor" className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-orange-500/20 border border-orange-500/40 text-orange-400 text-[10px] leading-none shadow-sm">📸</span>
+                                  ) : row.source === 'custom' ? (
+                                    <span title="Ditambah dari Custom List" className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 text-[10px] leading-none shadow-sm">📝</span>
+                                  ) : null}
                                 </div>
                                 <span className="text-[10px] text-slate-500">{row.companyName} ({row.symbol})</span>
                               </div>
@@ -1994,6 +2005,16 @@ export default function BursaPage() {
                   </div>
                 )}
 
+                {/* Source Legend Bar */}
+                <div className="flex flex-wrap items-center gap-3 px-5 py-2.5 bg-slate-900/50 border border-slate-800 rounded-2xl mb-4 text-xs text-slate-400">
+                  <span className="font-semibold text-slate-300">Petunjuk Sumber Kaunter:</span>
+                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-300"><span className="text-[11px]">⭐</span> Search / Manual</span>
+                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-purple-500/10 border border-purple-500/20 text-purple-300"><span className="text-[11px]">🎯</span> Adaptive Sniper</span>
+                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-cyan-500/10 border border-cyan-500/20 text-cyan-300"><span className="text-[11px]">⚡</span> iSaham Screener</span>
+                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-orange-500/10 border border-orange-500/20 text-orange-300"><span className="text-[11px]">📸</span> OCR Extractor</span>
+                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-300"><span className="text-[11px]">📝</span> Custom List</span>
+                </div>
+
                 <div className="border border-slate-800 bg-slate-950/80 rounded-3xl overflow-hidden backdrop-blur-xl shadow-2xl">
                   <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
@@ -2097,7 +2118,7 @@ export default function BursaPage() {
                             <td className="p-4 pr-6 text-right">
                               <button
                                 onClick={async () => {
-                                  await addToCustomText(searchedStock.symbol, searchedStock.companyName, true);
+                                  await addToCustomText(searchedStock.symbol, searchedStock.companyName, true, 'search');
                                   setSearchedStock(null);
                                   setSearchQuery('');
                                 }}
@@ -2454,7 +2475,7 @@ export default function BursaPage() {
                             )}
                             <td className="p-4 pr-6 text-right">
                               <button
-                                onClick={() => addToCustomText(row.symbol, row.name)}
+                                onClick={() => addToCustomText(row.symbol, row.name, false, 'isaham')}
                                 disabled={addingSymbol !== null}
                                 className={`p-2 rounded-xl border transition inline-flex items-center justify-center cursor-pointer ${
                                   addingSymbol === row.symbol.replace('.KL', '').replace('MYX:', '')
@@ -2813,7 +2834,7 @@ export default function BursaPage() {
                             </td>
                             <td className="p-4 pr-6 text-right">
                               <button
-                                onClick={() => addToCustomText(cleanSym, row.companyName || cleanSym)}
+                                onClick={() => addToCustomText(cleanSym, row.companyName || cleanSym, false, 'adaptive')}
                                 disabled={addingSymbol !== null}
                                 className={`p-2 rounded-xl border transition inline-flex items-center justify-center cursor-pointer ${
                                   addingSymbol === cleanSym

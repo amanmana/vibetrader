@@ -495,6 +495,7 @@ export async function GET(req: NextRequest) {
         hitTp3: currentHigh >= row.tp3,
         hitTp4: currentHigh >= row.tp4,
         isManual: row.is_manual === 1,
+        source: row.source || (row.is_manual === 1 ? 'search' : 'custom'),
         labelColor: row.label_color || null,
       };
     });
@@ -515,8 +516,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: "Database not configured" }, { status: 500 });
     }
 
+    // Ensure source column exists
+    try {
+      await db.prepare('ALTER TABLE custom_picks ADD COLUMN source TEXT').run();
+    } catch (e) {
+      // Column may already exist
+    }
+
     const body = await req.json();
-    const { action, symbol, name, results, isManual } = body;
+    const { action, symbol, name, results, isManual, source } = body;
     const timestamp = new Date().toISOString();
 
     // 0a. LABEL ACTION — Set or clear a label color for a stock
@@ -559,10 +567,12 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ success: false, error: `Kaunter ${calculated.symbol} sudah berada di dalam Watchlist.` }, { status: 400 });
       }
 
+      const itemSource = source || (isManual === true ? 'search' : 'custom');
+
       // Save to D1 database
       await db.prepare(`
-        INSERT INTO custom_picks (id, date, symbol, company_name, price, score, stop_loss, tp1, tp2, tp3, tp4, highest_price, is_manual)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO custom_picks (id, date, symbol, company_name, price, score, stop_loss, tp1, tp2, tp3, tp4, highest_price, is_manual, source)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `).bind(
         calculated.symbol,
         timestamp,
@@ -576,7 +586,8 @@ export async function POST(req: NextRequest) {
         parseFloat(calculated.tp3),
         parseFloat(calculated.tp4),
         parseFloat(calculated.highest),
-        isManual === true ? 1 : 0
+        isManual === true ? 1 : 0,
+        itemSource
       ).run();
 
       console.log(`[Bursa Custom Picks] Manually added ${calculated.symbol} to database`);
