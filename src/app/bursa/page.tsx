@@ -645,13 +645,22 @@ export default function BursaPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
+  const isStockAdded = (symOrName: string) => {
+    if (!symOrName) return false;
+    const clean = symOrName.replace('.KL', '').replace('MYX:', '').replace(/\[S\]/gi, '').trim().toUpperCase();
+    if (!clean) return false;
+    if (addedSymbols.has(clean)) return true;
+    return customMasterResults.some(m => {
+      const mSym = m.symbol.replace('.KL', '').replace('MYX:', '').toUpperCase();
+      const mName = m.companyName.toUpperCase();
+      return mSym === clean || mName === clean || (mName.length > 2 && (mName.includes(clean) || clean.includes(mName)));
+    });
+  };
+
   // Fetch custom master picks on mount
   useEffect(() => {
-    if (activeTab === 'customMaster') {
-      loadCustomMasterPicks();
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab]);
+    loadCustomMasterPicks(true);
+  }, []);
 
   // Fetch iSaham Top Active picks on tab change
   useEffect(() => {
@@ -1215,16 +1224,16 @@ export default function BursaPage() {
                               className={`p-2 rounded-xl border transition inline-flex items-center justify-center cursor-pointer ${
                                 addingSymbol === cleanSym
                                   ? 'bg-slate-800 text-slate-500 border-slate-700 cursor-not-allowed'
-                                  : addedSymbols.has(cleanSym)
+                                  : isStockAdded(cleanSym)
                                   ? 'bg-emerald-600 text-white border-emerald-500 shadow-md shadow-emerald-950/30'
                                   : 'bg-slate-800 hover:bg-emerald-600 hover:text-white text-emerald-400 border-slate-700 hover:border-emerald-500'
                               }`}
-                              title="Tambah ke Custom Master List"
+                              title={isStockAdded(cleanSym) ? 'Sudah berada di Custom Master List' : 'Tambah ke Custom Master List'}
                             >
                               <span className="text-xs font-bold px-1 flex items-center gap-1">
                                 {addingSymbol === cleanSym ? (
                                   <><Loader2 className="w-3 h-3 animate-spin" /> Adding</>
-                                ) : addedSymbols.has(cleanSym) ? (
+                                ) : isStockAdded(cleanSym) ? (
                                   <>✓ Added</>
                                 ) : (
                                   <>➕ Add</>
@@ -1366,16 +1375,16 @@ export default function BursaPage() {
                                 className={`p-2 rounded-xl border transition inline-flex items-center justify-center cursor-pointer ${
                                   addingSymbol === stock.symbol.replace('.KL', '').replace('MYX:', '')
                                     ? 'bg-slate-800 text-slate-500 border-slate-700 cursor-not-allowed'
-                                    : addedSymbols.has(stock.symbol.replace('.KL', '').replace('MYX:', ''))
+                                    : isStockAdded(stock.symbol) || isStockAdded(stock.companyName)
                                     ? 'bg-emerald-600 text-white border-emerald-500 shadow-md shadow-emerald-950/30'
                                     : 'bg-slate-800 hover:bg-emerald-600 hover:text-white text-emerald-400 border-slate-700 hover:border-emerald-500'
                                 }`}
-                                title="Tambah ke Custom Master List"
+                                title={isStockAdded(stock.symbol) || isStockAdded(stock.companyName) ? 'Sudah berada di Custom Master List' : 'Tambah ke Custom Master List'}
                               >
                                 <span className="text-xs font-bold px-1 flex items-center gap-1">
                                   {addingSymbol === stock.symbol.replace('.KL', '').replace('MYX:', '') ? (
                                     <><Loader2 className="w-3 h-3 animate-spin" /> Adding</>
-                                  ) : addedSymbols.has(stock.symbol.replace('.KL', '').replace('MYX:', '')) ? (
+                                  ) : isStockAdded(stock.symbol) || isStockAdded(stock.companyName) ? (
                                     <>✓ Added</>
                                   ) : (
                                     <>➕ Add</>
@@ -2488,16 +2497,16 @@ export default function BursaPage() {
                                 className={`p-2 rounded-xl border transition inline-flex items-center justify-center cursor-pointer ${
                                   addingSymbol === row.symbol.replace('.KL', '').replace('MYX:', '')
                                     ? 'bg-slate-800 text-slate-500 border-slate-700 cursor-not-allowed'
-                                    : addedSymbols.has(row.symbol.replace('.KL', '').replace('MYX:', ''))
+                                    : isStockAdded(row.symbol) || isStockAdded(row.name)
                                     ? 'bg-emerald-600 text-white border-emerald-500 shadow-md shadow-emerald-950/30'
                                     : 'bg-slate-800 hover:bg-emerald-600 hover:text-white text-emerald-400 border-slate-700 hover:border-emerald-500'
                                 }`}
-                                title="Tambah ke Custom Master List"
+                                title={isStockAdded(row.symbol) || isStockAdded(row.name) ? 'Sudah berada di Custom Master List' : 'Tambah ke Custom Master List'}
                               >
                                 <span className="text-xs font-bold px-1 flex items-center gap-1">
                                   {addingSymbol === row.symbol.replace('.KL', '').replace('MYX:', '') ? (
                                     <><Loader2 className="w-3 h-3 animate-spin" /> Adding</>
-                                  ) : addedSymbols.has(row.symbol.replace('.KL', '').replace('MYX:', '')) ? (
+                                  ) : isStockAdded(row.symbol) || isStockAdded(row.name) ? (
                                     <>✓ Added</>
                                   ) : (
                                     <>➕ Add</>
@@ -2847,16 +2856,16 @@ export default function BursaPage() {
                                 className={`p-2 rounded-xl border transition inline-flex items-center justify-center cursor-pointer ${
                                   addingSymbol === cleanSym
                                     ? 'bg-slate-800 text-slate-500 border-slate-700 cursor-not-allowed'
-                                    : addedSymbols.has(cleanSym)
+                                    : isStockAdded(cleanSym) || isStockAdded(row.companyName)
                                     ? 'bg-emerald-600 text-white border-emerald-500 shadow-md shadow-emerald-950/30'
                                     : 'bg-slate-800 hover:bg-emerald-600 hover:text-white text-emerald-400 border-slate-700 hover:border-emerald-500'
                                 }`}
-                                title="Tambah ke Custom Master List"
+                                title={isStockAdded(cleanSym) || isStockAdded(row.companyName) ? 'Sudah berada di Custom Master List' : 'Tambah ke Custom Master List'}
                               >
                                 <span className="text-xs font-bold px-1 flex items-center gap-1">
                                   {addingSymbol === cleanSym ? (
                                     <><Loader2 className="w-3 h-3 animate-spin" /> Adding</>
-                                  ) : addedSymbols.has(cleanSym) ? (
+                                  ) : isStockAdded(cleanSym) || isStockAdded(row.companyName) ? (
                                     <>✓ Added</>
                                   ) : (
                                     <>➕ Add</>
