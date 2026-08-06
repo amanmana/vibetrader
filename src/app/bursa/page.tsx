@@ -406,6 +406,7 @@ export default function BursaPage() {
   const [lastCustomMasterUpdate, setLastCustomMasterUpdate] = useState<string | null>(null);
   const [isSavingCustom, setIsSavingCustom] = useState(false);
   const [addingSymbol, setAddingSymbol] = useState<string | null>(null);
+  const [addedSymbols, setAddedSymbols] = useState<Set<string>>(new Set());
   const [isFetchingCustomMaster, setIsFetchingCustomMaster] = useState(false);
   const [labelPickerOpen, setLabelPickerOpen] = useState<string | null>(null); // symbol of row with open picker
   const [savingLabel, setSavingLabel] = useState<string | null>(null);
@@ -438,6 +439,8 @@ export default function BursaPage() {
       if (data.success && data.data) {
         setCustomMasterResults(data.data);
         setLastCustomMasterUpdate(new Date().toISOString());
+        const masterSyms = new Set<string>(data.data.map((item: any) => item.symbol.replace('.KL', '').replace('MYX:', '')));
+        setAddedSymbols(masterSyms);
       } else if (data.lastUpdated) {
         setLastCustomMasterUpdate(data.lastUpdated);
       }
@@ -461,12 +464,11 @@ export default function BursaPage() {
       });
       const data = await res.json();
       if (data.success) {
+        setAddedSymbols(prev => new Set(prev).add(cleanSym));
         alert(`Berjaya menambah kaunter "${data.symbol || cleanSym}" (${data.companyName || ''}) ke dalam Custom Master List!`);
         
-        // Switch tab to customMaster and force reload
-        setActiveTab('customMaster');
-        setCustomMasterResults([]);
-        await loadCustomMasterPicks(true);
+        // Reload customMaster list in background WITHOUT switching tab
+        loadCustomMasterPicks(true);
       } else {
         alert(data.error || 'Gagal menambah kaunter.');
       }
@@ -1213,6 +1215,8 @@ export default function BursaPage() {
                               className={`p-2 rounded-xl border transition inline-flex items-center justify-center cursor-pointer ${
                                 addingSymbol === cleanSym
                                   ? 'bg-slate-800 text-slate-500 border-slate-700 cursor-not-allowed'
+                                  : addedSymbols.has(cleanSym)
+                                  ? 'bg-emerald-600 text-white border-emerald-500 shadow-md shadow-emerald-950/30'
                                   : 'bg-slate-800 hover:bg-emerald-600 hover:text-white text-emerald-400 border-slate-700 hover:border-emerald-500'
                               }`}
                               title="Tambah ke Custom Master List"
@@ -1220,6 +1224,8 @@ export default function BursaPage() {
                               <span className="text-xs font-bold px-1 flex items-center gap-1">
                                 {addingSymbol === cleanSym ? (
                                   <><Loader2 className="w-3 h-3 animate-spin" /> Adding</>
+                                ) : addedSymbols.has(cleanSym) ? (
+                                  <>✓ Added</>
                                 ) : (
                                   <>➕ Add</>
                                 )}
@@ -1360,6 +1366,8 @@ export default function BursaPage() {
                                 className={`p-2 rounded-xl border transition inline-flex items-center justify-center cursor-pointer ${
                                   addingSymbol === stock.symbol.replace('.KL', '').replace('MYX:', '')
                                     ? 'bg-slate-800 text-slate-500 border-slate-700 cursor-not-allowed'
+                                    : addedSymbols.has(stock.symbol.replace('.KL', '').replace('MYX:', ''))
+                                    ? 'bg-emerald-600 text-white border-emerald-500 shadow-md shadow-emerald-950/30'
                                     : 'bg-slate-800 hover:bg-emerald-600 hover:text-white text-emerald-400 border-slate-700 hover:border-emerald-500'
                                 }`}
                                 title="Tambah ke Custom Master List"
@@ -1367,6 +1375,8 @@ export default function BursaPage() {
                                 <span className="text-xs font-bold px-1 flex items-center gap-1">
                                   {addingSymbol === stock.symbol.replace('.KL', '').replace('MYX:', '') ? (
                                     <><Loader2 className="w-3 h-3 animate-spin" /> Adding</>
+                                  ) : addedSymbols.has(stock.symbol.replace('.KL', '').replace('MYX:', '')) ? (
+                                    <>✓ Added</>
                                   ) : (
                                     <>➕ Add</>
                                   )}
@@ -2449,13 +2459,17 @@ export default function BursaPage() {
                                 className={`p-2 rounded-xl border transition inline-flex items-center justify-center cursor-pointer ${
                                   addingSymbol === row.symbol.replace('.KL', '').replace('MYX:', '')
                                     ? 'bg-slate-800 text-slate-500 border-slate-700 cursor-not-allowed'
+                                    : addedSymbols.has(row.symbol.replace('.KL', '').replace('MYX:', ''))
+                                    ? 'bg-emerald-600 text-white border-emerald-500 shadow-md shadow-emerald-950/30'
                                     : 'bg-slate-800 hover:bg-emerald-600 hover:text-white text-emerald-400 border-slate-700 hover:border-emerald-500'
                                 }`}
-                                title="Tambah ke Custom Watchlist"
+                                title="Tambah ke Custom Master List"
                               >
                                 <span className="text-xs font-bold px-1 flex items-center gap-1">
                                   {addingSymbol === row.symbol.replace('.KL', '').replace('MYX:', '') ? (
                                     <><Loader2 className="w-3 h-3 animate-spin" /> Adding</>
+                                  ) : addedSymbols.has(row.symbol.replace('.KL', '').replace('MYX:', '')) ? (
+                                    <>✓ Added</>
                                   ) : (
                                     <>➕ Add</>
                                   )}
@@ -2804,6 +2818,8 @@ export default function BursaPage() {
                                 className={`p-2 rounded-xl border transition inline-flex items-center justify-center cursor-pointer ${
                                   addingSymbol === cleanSym
                                     ? 'bg-slate-800 text-slate-500 border-slate-700 cursor-not-allowed'
+                                    : addedSymbols.has(cleanSym)
+                                    ? 'bg-emerald-600 text-white border-emerald-500 shadow-md shadow-emerald-950/30'
                                     : 'bg-slate-800 hover:bg-emerald-600 hover:text-white text-emerald-400 border-slate-700 hover:border-emerald-500'
                                 }`}
                                 title="Tambah ke Custom Master List"
@@ -2811,6 +2827,8 @@ export default function BursaPage() {
                                 <span className="text-xs font-bold px-1 flex items-center gap-1">
                                   {addingSymbol === cleanSym ? (
                                     <><Loader2 className="w-3 h-3 animate-spin" /> Adding</>
+                                  ) : addedSymbols.has(cleanSym) ? (
+                                    <>✓ Added</>
                                   ) : (
                                     <>➕ Add</>
                                   )}
